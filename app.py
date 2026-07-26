@@ -23,6 +23,9 @@ import localization
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'agendacreatorpro-secret-key-change-in-prod')
 
+_openai_key = os.environ.get('OPENAI_API_KEY', '')
+print(f"[STARTUP] OPENAI_API_KEY set: {bool(_openai_key)}, len: {len(_openai_key)}")
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
