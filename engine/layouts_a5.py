@@ -119,15 +119,7 @@ def _metade_2dpp(pdf, data, base_y_mm, alt_mm, espelhar=False, com_agendamentos=
     cx = margin_l
     est.caixa_prioridades(pdf, cx, prior_y, content_w, prior_h)
 
-    if com_agendamentos:
-        sched_h = notes_h * 0.65
-        sched_y = notes_y + notes_h - sched_h
-        notes_small_h = notes_h - sched_h - 2
-        notes_small_y = notes_y
-        est.caixa_agendamentos(pdf, cx, sched_y, content_w, sched_h)
-        est.area_anotacoes(pdf, cx, notes_small_y, content_w, notes_small_h, num_linhas=max(2, int(notes_small_h / 5)))
-    else:
-        est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 5)))
+    est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 8)))
 
 
 def desenhar_pagina_2dias(pdf, data1, data2, com_agendamentos=False):

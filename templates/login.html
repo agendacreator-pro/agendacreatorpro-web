@@ -92,7 +92,7 @@
     <div class="login-card">
         <div class="logo">&#128197;</div>
         <h1>Agenda Creator Pro</h1>
-        <p class="subtitle">Acesse sua conta para gerar suas agendas</p>
+        <p class="subtitle" id="dateDisplay"></p>
 
         <div class="error-msg" id="errorMsg"></div>
 
@@ -110,6 +110,12 @@
     </div>
 
     <script>
+        (function() {
+            var meses = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+            var dias = ['domingo','segunda-feira','terca-feira','quarta-feira','quinta-feira','sexta-feira','sabado'];
+            var now = new Date();
+            document.getElementById('dateDisplay').textContent = dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
+        })();
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnLogin');
