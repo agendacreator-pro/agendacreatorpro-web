@@ -8,7 +8,7 @@ from config import sx, sy
 from colors import *
 from .tema import Tema
 from .estilo_base import EstiloBase
-from calendar_engine import nome_mes, nome_dia
+import localization
 
 _FONT_B = "Helvetica-Bold"
 _FONT = "Helvetica"
@@ -55,7 +55,7 @@ class Minimalista(EstiloBase):
         pdf.rotate(90)
         pdf.setFont(_FONT_B, 9)
         pdf.setFillColor(accent)
-        pdf.drawCentredString(0, 0, nome_mes(data.month).upper())
+        pdf.drawCentredString(0, 0, localization.nome_mes(data.month).upper())
         pdf.restoreState()
 
     def cabecalho_diario(self, pdf, data, x, y, w, h, is_2dpp=False, espelhar=False):
@@ -69,14 +69,14 @@ class Minimalista(EstiloBase):
             if espelhar:
                 pdf.setFont(_FONT_B, 10)
                 pdf.setFillColor(HexColor("#555555"))
-                pdf.drawString(sx((x + 2) * mm), sy((y + 6) * mm), nome_dia(data).upper())
+                pdf.drawString(sx((x + 2) * mm), sy((y + 6) * mm), localization.nome_dia(data).upper())
                 pdf.setFont(_FONT, 7)
                 pdf.setFillColor(COR_TEXTO_SEC)
                 pdf.drawString(sx((x + 2) * mm), sy((y + 1) * mm), data.strftime("%d/%m/%Y"))
             else:
                 pdf.setFont(_FONT_B, 10)
                 pdf.setFillColor(HexColor("#555555"))
-                pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 10) * mm), nome_dia(data).upper())
+                pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 10) * mm), localization.nome_dia(data).upper())
                 pdf.setFont(_FONT, 7)
                 pdf.setFillColor(COR_TEXTO_SEC)
                 pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 3) * mm), data.strftime("%d/%m/%Y"))
@@ -86,7 +86,7 @@ class Minimalista(EstiloBase):
             pdf.drawRightString(sx((x + w - 3) * mm), sy((y + h - 5) * mm), data.strftime("%d"))
             pdf.setFont(_FONT_B, 11)
             pdf.setFillColor(HexColor("#555555"))
-            pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 10) * mm), nome_dia(data).upper())
+            pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 10) * mm), localization.nome_dia(data).upper())
             pdf.setFont(_FONT, 7)
             pdf.setFillColor(COR_TEXTO_SEC)
             pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 3) * mm), data.strftime("%d/%m/%Y"))

@@ -42,7 +42,7 @@ def _pascoa(ano):
     return date(ano, mes, dia)
 
 
-def _feriados_moveis(ano):
+def _feriados_moveis_br(ano):
     pascoa = _pascoa(ano)
     return {
         pascoa - timedelta(days=2): "Sexta-feira Santa",
@@ -55,7 +55,7 @@ def obter_feriado(data):
     fixo = FERIADOS_FIXOS.get((data.month, data.day), "")
     if fixo:
         return fixo
-    moveis = _feriados_moveis(data.year)
+    moveis = _feriados_moveis_br(data.year)
     return moveis.get(data, "")
 
 

@@ -9,7 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
 from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
+from io import BytesIO, generate_password_hash
 
 from themes import (
     RosaTheme, AzulTheme, VerdeTheme, AmareloTheme,
@@ -17,6 +18,7 @@ from themes import (
 )
 
 from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente
+import localization
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'agendacreatorpro-secret-key-change-in-prod')
@@ -230,7 +232,17 @@ TEMAS = {
 @login_required
 def gerar_pdf():
     try:
-        data = request.json
+        logo_bytes = None
+
+        content_type = request.content_type or ''
+        if 'multipart/form-data' in content_type:
+            data = json.loads(request.form.get('data', '{}'))
+            logo_file = request.files.get('logo')
+            if logo_file:
+                logo_bytes = BytesIO(logo_file.read())
+        else:
+            data = request.json
+
         tipo = data.get('tipo', 'datada')
         ano = int(data.get('ano', 2026))
         paginas = int(data.get('paginas', 52))
@@ -239,15 +251,17 @@ def gerar_pdf():
         formato = data.get('formato', 'A5')
         layout = data.get('layout', '1')
         com_agendamentos = data.get('agendamentos', False)
+        idioma = data.get('idioma', 'pt')
 
         tema_cls = TEMAS.get(tema_nome, RosaTheme)
         tema = tema_cls()
 
         from styles.manager import definir as definir_estilo
         definir_estilo(estilo)
+        localization.definir_idioma(idioma)
 
         if tipo == 'datada':
-            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos, logo_bytes=logo_bytes)
             nome = f"Agenda_{ano}_{tema_nome}_{formato}.pdf"
         else:
             buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
@@ -259,6 +273,47 @@ def gerar_pdf():
             as_attachment=True,
             download_name=nome
         )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/preview', methods=['POST'])
+@login_required
+def preview_pdf():
+    try:
+        logo_bytes = None
+
+        content_type = request.content_type or ''
+        if 'multipart/form-data' in content_type:
+            data = json.loads(request.form.get('data', '{}'))
+            logo_file = request.files.get('logo')
+            if logo_file:
+                logo_bytes = BytesIO(logo_file.read())
+        else:
+            data = request.json
+
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        estilo = data.get('estilo', 'minimalista')
+        formato = data.get('formato', 'A5')
+        layout = data.get('layout', '1')
+        com_agendamentos = data.get('agendamentos', False)
+        idioma = data.get('idioma', 'pt')
+
+        tema_cls = TEMAS.get(tema_nome, RosaTheme)
+        tema = tema_cls()
+
+        from styles.manager import definir as definir_estilo
+        definir_estilo(estilo)
+        localization.definir_idioma(idioma)
+
+        from pdf_generator import gerar_preview
+        buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos, logo_bytes=logo_bytes)
+
+        return send_file(buffer, mimetype='application/pdf')
 
     except Exception as e:
         import traceback

@@ -7,6 +7,7 @@ import config
 from config import sx, sy
 from colors import *
 import themes
+import localization
 
 
 _FONT_B = "Helvetica-Bold"
@@ -80,19 +81,14 @@ class EstiloBase:
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 10)
-        nomes_mes = [
-            "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL",
-            "MAIO", "JUNHO", "JULHO", "AGOSTO",
-            "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
-        ]
-        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), nomes_mes[data.month - 1])
+        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), localization.nome_mes(data.month))
 
     def caixa_prioridades(self, pdf, x, y, w, h):
         pdf.setFillColor(self._theme_tasks())
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 10)
-        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), "PRIORIDADES")
+        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), localization.label("prioridades"))
 
     def area_anotacoes(self, pdf, x, y, w, h, num_linhas=8):
         pdf.setFillColor(HexColor("#F8F8F8"))
@@ -113,7 +109,7 @@ class EstiloBase:
         pdf.rect(sx(x * mm), sy((y + h - 7) * mm), sx(w * mm), sy(7 * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 8)
-        pdf.drawString(sx((x + 1) * mm), sy((y + h - 5.5) * mm), "AGENDAMENTOS")
+        pdf.drawString(sx((x + 1) * mm), sy((y + h - 5.5) * mm), localization.label("agendamentos"))
         slot_h = (h - 9) / 14
         pdf.setFont(_FONT, 6)
         pdf.setFillColor(self._theme_text())
@@ -134,13 +130,13 @@ class EstiloBase:
         pdf.setLineWidth(0.5)
         pdf.line(sx(x1 * mm), sy(y * mm), sx(x2 * mm), sy(y * mm))
 
-    def pagina_dados_pessoais(self, pdf, campos):
+    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
         self.fundo_pagina(pdf)
         pdf.setFillColor(self._theme_accent())
         pdf.rect(sx(0), sy(200 * mm), sx(config.LARGURA), sy(30 * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 14)
-        pdf.drawString(sx(15 * mm), sy(205 * mm), "DADOS PESSOAIS")
+        pdf.drawString(sx(15 * mm), sy(205 * mm), localization.label("dados_pessoais"))
         y = 185
         pdf.setFillColor(PRETO)
         for campo in campos:
@@ -150,6 +146,20 @@ class EstiloBase:
             pdf.setLineWidth(0.5)
             pdf.line(sx(40 * mm), sy((y - 1) * mm), sx(120 * mm), sy((y - 1) * mm))
             y -= 15
+        if logo_bytes:
+            logo_bytes.seek(0)
+            try:
+                from reportlab.lib.utils import ImageReader
+                img = ImageReader(logo_bytes)
+                iw, ih = img.getSize()
+                max_w = 50
+                max_h = 25
+                ratio = min(max_w / iw, max_h / ih)
+                w = iw * ratio
+                h = ih * ratio
+                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(w * mm), height=sy(h * mm), mask='auto')
+            except Exception:
+                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):
@@ -158,7 +168,7 @@ class EstiloBase:
         pdf.rect(sx(0), sy(200 * mm), sx(config.LARGURA), sy(30 * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 14)
-        pdf.drawString(sx(15 * mm), sy(205 * mm), "PLANEJAMENTO")
+        pdf.drawString(sx(15 * mm), sy(205 * mm), localization.label("planejamento"))
         for titulo, y, num_linhas in caixas:
             pdf.setFillColor(self._theme_tasks())
             pdf.rect(sx(10 * mm), sy((y + 4) * mm), sx(120 * mm), sy(6 * mm), fill=1, stroke=0)

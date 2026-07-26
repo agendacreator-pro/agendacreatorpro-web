@@ -6,6 +6,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'styles'))
 from styles.manager import obter_estilo
 import themes
+import localization
 
 _FONT_B = config.FONTE_NEGRITO
 _FONT = config.FONTE
@@ -19,25 +20,26 @@ def _tema():
     return themes.tema_atual
 
 
-def pagina_dados_pessoais(pdf):
+def pagina_dados_pessoais(pdf, logo_bytes=None):
     est = _est()
     campos = [
-        "Nome", "Telefone", "E-mail", "Endereco",
+        localization.label("nome") if hasattr(localization, 'label') else "Nome",
+        "Telefone", "E-mail", "Endereco",
         "Cidade", "CEP", "Contato de Emergencia",
         "Telefone de Emergencia"
     ]
-    est.pagina_dados_pessoais(pdf, campos)
+    est.pagina_dados_pessoais(pdf, campos, logo_bytes=logo_bytes)
 
 
 def pagina_planejamento(pdf):
     est = _est()
     caixas = [
-        ("Metas", 168, 24),
-        ("Projetos", 140, 24),
-        ("Financeiro", 112, 24),
-        ("Saude", 84, 24),
-        ("Estudos", 56, 24),
-        ("Viagens", 28, 24),
+        (localization.label("metas"), 168, 24),
+        (localization.label("projetos"), 140, 24),
+        (localization.label("financeiro"), 112, 24),
+        (localization.label("saude"), 84, 24),
+        (localization.label("estudos"), 56, 24),
+        (localization.label("viagens"), 28, 24),
     ]
     est.planejamento(pdf, caixas)
 
