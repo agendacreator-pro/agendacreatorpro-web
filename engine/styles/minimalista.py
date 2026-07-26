@@ -66,13 +66,13 @@ class Minimalista(EstiloBase):
             if espelhar:
                 pdf.setFont(_FONT_B, 18)
                 pdf.setFillColor(accent)
-                pdf.drawString(sx((x + 2) * mm), sy((y + h - 9) * mm), data.strftime("%d"))
+                pdf.drawRightString(sx((x + w - 3) * mm), sy((y + h - 9) * mm), data.strftime("%d"))
                 pdf.setFont(_FONT_B, 10)
                 pdf.setFillColor(HexColor("#555555"))
-                pdf.drawString(sx((x + 2) * mm), sy((y + 11) * mm), localization.nome_dia(data).upper())
+                pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 11) * mm), localization.nome_dia(data).upper())
                 pdf.setFont(_FONT, 7)
                 pdf.setFillColor(COR_TEXTO_SEC)
-                pdf.drawString(sx((x + 2) * mm), sy((y + 6) * mm), data.strftime("%d/%m/%Y"))
+                pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 6) * mm), data.strftime("%d/%m/%Y"))
             else:
                 pdf.setFont(_FONT_B, 18)
                 pdf.setFillColor(accent)
