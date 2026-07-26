@@ -84,9 +84,9 @@ class Minimalista(EstiloBase):
                 pdf.setFillColor(COR_TEXTO_SEC)
                 pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 3) * mm), data.strftime("%d/%m/%Y"))
         else:
-            pdf.setFont(_FONT_B, 48)
+            pdf.setFont(_FONT_B, 36)
             pdf.setFillColor(accent)
-            pdf.drawRightString(sx((x + w - 3) * mm), sy((y + h - 5) * mm), data.strftime("%d"))
+            pdf.drawRightString(sx((x + w - 3) * mm), sy((y + h - 9) * mm), data.strftime("%d"))
             pdf.setFont(_FONT_B, 11)
             pdf.setFillColor(HexColor("#555555"))
             pdf.drawRightString(sx((x + w - 3) * mm), sy((y + 10) * mm), localization.nome_dia(data).upper())
