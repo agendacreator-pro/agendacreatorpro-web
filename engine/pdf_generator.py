@@ -1,9 +1,11 @@
 from io import BytesIO
 from reportlab.pdfgen import canvas
+from reportlab.lib.units import mm
 from datetime import date, timedelta
 from reportlab.lib.utils import ImageReader
 
 import config
+from config import sx, sy
 import themes
 from themes import definir
 import layouts_a5
