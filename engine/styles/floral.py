@@ -165,7 +165,7 @@ class Floral(EstiloBase):
             pdf.line(sx((x + 9) * mm), sy(yy * mm), sx((x + w - 5) * mm), sy(yy * mm))
             yy -= espacamento
 
-    def area_anotacoes(self, pdf, x, y, w, h, num_linhas=8):
+    def area_anotacoes(self, pdf, x, y, w, h, num_linhas=8, com_agendamentos=False):
         accent = self._theme_accent()
         pdf.setFillColor(HexColor("#FFF5F8"))
         pdf.setStrokeColor(HexColor("#F3D1DC"))
@@ -178,13 +178,52 @@ class Floral(EstiloBase):
         pdf.setFont(_FONT_B, 7)
         pdf.setFillColor(COR_HEADER_TXT)
         pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
-        espacamento = (h - 12) / (num_linhas + 1)
-        yy = y + h - 12
-        for i in range(num_linhas):
+
+        if com_agendamentos:
+            header_h = 8
+            body_y = y
+            body_h = h - header_h
+            notes_w = w * 0.65
+            sched_x = x + notes_w + 2
+            sched_w = w - notes_w - 2
+
             pdf.setStrokeColor(HexColor("#F3D1DC"))
-            pdf.setLineWidth(0.2)
-            pdf.line(sx((x + 4) * mm), sy(yy * mm), sx((x + w - 4) * mm), sy(yy * mm))
-            yy -= espacamento
+            pdf.setLineWidth(0.3)
+            pdf.line(sx(sched_x * mm), sy((y + h) * mm), sx(sched_x * mm), sy((body_y + header_h) * mm))
+
+            pdf.setFont(_FONT_B, 7)
+            pdf.setFillColor(accent)
+            pdf.drawString(sx((sched_x + 1) * mm), sy((y + h - 5) * mm), localization.label("agendamentos"))
+
+            slot_h = (body_h - 4) / 11
+            for i in range(11):
+                hora = 8 + i
+                slot_y = y + body_h - i * slot_h
+                pdf.setFont(_FONT_B, 5.5)
+                pdf.setFillColor(accent)
+                pdf.drawString(sx((sched_x + 1) * mm), sy((slot_y - 1) * mm), f"{hora:02d}:00")
+                pdf.setStrokeColor(HexColor("#F3D1DC"))
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((sched_x + 12) * mm), sy((slot_y - 1.5) * mm), sx((x + w - 1) * mm), sy((slot_y - 1.5) * mm))
+                _draw_flower(pdf, sched_x + 11, slot_y - 1, 0.3, COR_PETAL_1, COR_CENTER, 3)
+
+            espacamento = (body_h - 4) / (num_linhas + 1)
+            yy = y + body_h
+            for i in range(num_linhas):
+                pdf.setStrokeColor(HexColor("#F3D1DC"))
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((x + 4) * mm), sy(yy * mm), sx((sched_x - 2) * mm), sy(yy * mm))
+                _draw_flower(pdf, x + 3, yy, 0.3, COR_PETAL_1, COR_CENTER, 3)
+                yy -= espacamento
+        else:
+            espacamento = (h - 12) / (num_linhas + 1)
+            yy = y + h - 12
+            for i in range(num_linhas):
+                pdf.setStrokeColor(HexColor("#F3D1DC"))
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((x + 4) * mm), sy(yy * mm), sx((x + w - 4) * mm), sy(yy * mm))
+                _draw_flower(pdf, x + 3, yy, 0.3, COR_PETAL_1, COR_CENTER, 3)
+                yy -= espacamento
 
     def divisor(self, pdf, x1, y, x2):
         mid = (x1 + x2) / 2

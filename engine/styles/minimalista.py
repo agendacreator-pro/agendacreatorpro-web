@@ -121,18 +121,55 @@ class Minimalista(EstiloBase):
             pdf.line(sx((x + 10) * mm), sy(yy * mm), sx((x + w - 4) * mm), sy(yy * mm))
             yy -= espacamento
 
-    def area_anotacoes(self, pdf, x, y, w, h, num_linhas=8):
+    def area_anotacoes(self, pdf, x, y, w, h, num_linhas=8, com_agendamentos=False):
+        accent = self._theme_accent()
         pdf.setFillColor(BRANCO)
         pdf.setStrokeColor(COR_LINHA_FINA)
         pdf.setLineWidth(0.3)
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=1)
-        espacamento = h / (num_linhas + 1)
-        yy = y + h - espacamento
-        for _ in range(num_linhas):
+
+        if com_agendamentos:
+            notes_w = w * 0.65
+            sched_x = x + notes_w + 2
+            sched_w = w - notes_w - 2
+
+            pdf.setStrokeColor(COR_LINHA_FINA)
+            pdf.setLineWidth(0.3)
+            pdf.line(sx(sched_x * mm), sy((y + h) * mm), sx(sched_x * mm), sy(y * mm))
+
+            pdf.setFont(_FONT_B, 7)
+            pdf.setFillColor(accent)
+            pdf.drawString(sx((sched_x + 1) * mm), sy((y + h - 5) * mm), localization.label("agendamentos"))
+
+            pdf.setFont(_FONT, 6)
+            slot_h = (h - 8) / 11
+            for i in range(11):
+                hora = 8 + i
+                slot_y = y + h - 8 - i * slot_h
+                pdf.setFont(_FONT_B, 5.5)
+                pdf.setFillColor(accent)
+                pdf.drawString(sx((sched_x + 1) * mm), sy((slot_y - 1) * mm), f"{hora:02d}:00")
+                pdf.setStrokeColor(COR_LINHA_FINA)
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((sched_x + 12) * mm), sy((slot_y - 1.5) * mm), sx((x + w - 1) * mm), sy((slot_y - 1.5) * mm))
+
+            full_num_linhas = max(3, int((h - 8) / 5))
+            linha_y = y + h - 8
             pdf.setStrokeColor(COR_LINHA_FINA)
             pdf.setLineWidth(0.2)
-            pdf.line(sx((x + 3) * mm), sy(yy * mm), sx((x + w - 3) * mm), sy(yy * mm))
-            yy -= espacamento
+            for i in range(full_num_linhas):
+                ly = linha_y - i * 5
+                if ly < y + 4:
+                    break
+                pdf.line(sx((x + 3) * mm), sy(ly * mm), sx((sched_x - 2) * mm), sy(ly * mm))
+        else:
+            espacamento = h / (num_linhas + 1)
+            yy = y + h - espacamento
+            for _ in range(num_linhas):
+                pdf.setStrokeColor(COR_LINHA_FINA)
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((x + 3) * mm), sy(yy * mm), sx((x + w - 3) * mm), sy(yy * mm))
+                yy -= espacamento
 
     def divisor(self, pdf, x1, y, x2):
         pdf.setStrokeColor(COR_LINHA_FINA)

@@ -60,9 +60,9 @@ def desenhar_caixa_prioridades(pdf):
     est.caixa_prioridades(pdf, 15, 132, 118, 28)
 
 
-def desenhar_area_anotacoes(pdf):
+def desenhar_area_anotacoes(pdf, com_agendamentos=False):
     est = _est()
-    est.area_anotacoes(pdf, 15, 6, 118, 122, num_linhas=20)
+    est.area_anotacoes(pdf, 15, 6, 118, 122, num_linhas=20, com_agendamentos=com_agendamentos)
 
 
 def desenhar_pagina(pdf, data, com_agendamentos=False):
@@ -70,11 +70,7 @@ def desenhar_pagina(pdf, data, com_agendamentos=False):
     est.fundo_pagina(pdf)
     desenhar_cabecalho(pdf, data)
     desenhar_caixa_prioridades(pdf)
-    if com_agendamentos:
-        est.caixa_agendamentos(pdf, 15, 40, 118, 60)
-        est.area_anotacoes(pdf, 15, 6, 118, 30, num_linhas=5)
-    else:
-        desenhar_area_anotacoes(pdf)
+    desenhar_area_anotacoes(pdf, com_agendamentos=com_agendamentos)
     feriado = obter_feriado(data)
     if feriado:
         pdf.setFont(_FONT, 8)
@@ -124,7 +120,7 @@ def _metade_2dpp(pdf, data, base_y_mm, alt_mm, espelhar=False, com_agendamentos=
     cx = margin_l
     est.caixa_prioridades(pdf, cx, prior_y, content_w, prior_h)
 
-    est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 8)))
+    est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 8)), com_agendamentos=com_agendamentos)
 
 
 def desenhar_pagina_2dias(pdf, data1, data2, com_agendamentos=False):
