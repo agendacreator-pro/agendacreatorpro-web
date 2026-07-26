@@ -39,7 +39,7 @@ class OpenAIProvider(AIProvider):
                     ],
                 }
             ],
-            max_tokens=4096,
+            max_tokens=16384,
             response_format={"type": "json_object"},
         )
 

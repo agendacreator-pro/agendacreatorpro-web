@@ -10,41 +10,39 @@ from .providers import get_provider
 
 logger = logging.getLogger(__name__)
 
-ANALYSIS_PROMPT = """You are an expert layout analyzer for agenda/planner page designs.
+ANALYSIS_PROMPT = """You are an expert visual layout analyzer. Analyze the uploaded agenda/planner/planner image and reconstruct EVERY visual element precisely.
 
-Analyze the uploaded image and return a detailed JSON description of the layout.
-
-Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
+Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
 {
-  "page_type": "1dpp|2dpp|semanal|mensal|calendario|planejamento|metas|checklist|dados_pessoais|notas|divisoria|desconhecido",
-  "page_type_label": "Human readable name of the page type",
+  "page_type": "1dpp|2dpp|semanal|mensal|calendario|planejamento|metas|checklist|dados_pessoais|notas|divisoria",
+  "page_type_label": "Label in Portuguese",
   "confidence": 0.95,
-  "title": "Detected title or section name",
-  "description": "Brief description of the page layout",
+  "title": "Title of the page",
+  "description": "Description of the layout",
   "margins": {"top": 10, "bottom": 10, "left": 8, "right": 8},
   "colors": [
     {"name": "primary", "hex": "#2D2D2D", "role": "primary"},
-    {"name": "secondary", "hex": "#FFFFFF", "role": "background"},
-    {"name": "accent", "hex": "#FF5FA2", "role": "accent"}
+    {"name": "background", "hex": "#FFFFFF", "role": "background"},
+    {"name": "accent", "hex": "#FF5FA2", "role": "accent"},
+    {"name": "text", "hex": "#666666", "role": "text"},
+    {"name": "border", "hex": "#E0E0E0", "role": "border"},
+    {"name": "highlight", "hex": "#FFF0F5", "role": "highlight"}
   ],
-  "fonts_detected": ["Helvetica-Bold", "Helvetica"],
-  "inferred_pages": ["dados_pessoais", "planejamento", "diarias", "semanal"],
+  "fonts_detected": ["font name 1", "font name 2"],
+  "inferred_pages": ["page_type_1", "page_type_2"],
   "elements": [
     {
-      "type": "rect|line|text|circle|box",
-      "x": 15,
-      "y": 20,
-      "w": 118,
-      "h": 28,
-      "text": "PRIORIDADES",
-      "font_name": "Helvetica-Bold",
-      "font_size": 7,
-      "color": "#2D2D2D",
-      "bg_color": null,
-      "border": true,
-      "border_color": "#E0E0E0",
+      "type": "rect",
+      "x": 15, "y": 10, "w": 118, "h": 8,
+      "text": "",
+      "font_name": "Helvetica",
+      "font_size": 1,
+      "color": "#000000",
+      "bg_color": "#FF5FA2",
+      "border": false,
+      "border_color": null,
       "border_width": 0.5,
-      "bold": true,
+      "bold": false,
       "italic": false,
       "align": "left",
       "line_height": 14,
@@ -53,14 +51,34 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
   ]
 }
 
-IMPORTANT RULES:
-- All coordinates and sizes are in MILLIMETERS (mm), relative to A5 page (148x210mm) unless specified
-- Detect ALL visible elements: lines, boxes, text blocks, headers, separators, icons, checkboxes, grids
-- For each text element, detect the actual text content
-- Detect colors as hex values (#RRGGBB)
-- If the page has a time schedule/horario, mark it as "schedule_detected": true
-- Infer what other pages this agenda would logically contain based on the detected type
-- Be precise with element positions (x, y from top-left origin)"""
+DETECT EVERY VISUAL ELEMENT - be extremely thorough:
+- HEADER BAR at top: colored rectangles, date area, day name area
+- SECTION HEADERS: "PRIORIDADES", "ANOTACOES", "AGENDAMENTOS", any text titles
+- DIVIDER LINES: horizontal lines, vertical lines separating sections
+- BOXES with borders: priority boxes, notes areas, task areas
+- CHECKBOXES: small squares/circles with text next to them
+- TIME SCHEDULE: rows with times (08:00, 09:00...) and lines
+- GRIDS/TABLES: rows and columns with separators
+- DECORATIVE ELEMENTS: flowers, hearts, stars, shapes, icons
+- DATE/DAY displays: large day number, month name, day of week
+- TEXT BLOCKS: placeholder lines, sample text, labels
+- SMALL DETAILS: corner decorations, colored dots, background patterns
+
+COORDINATE SYSTEM:
+- Origin (0,0) is TOP-LEFT of the page
+- All values in MILLIMETERS (mm)
+- A5 page = 148mm wide × 210mm tall
+- Measure positions carefully from the image edges
+
+CRITICAL RULES:
+- Detect the ACTUAL text visible in the image (not placeholders)
+- Detect actual hex colors from the image
+- Include EVERY element, even small ones (dots, thin lines, tiny icons)
+- Position accuracy is essential for faithful recreation
+- If you see a pink header bar at the top with date, create a rect element for it
+- If you see time slots, create line elements for each one
+- If you see decorative flowers/hearts, create decorative elements for them
+- Each element must have complete attributes (no nulls for required fields)"""
 
 PAGE_TYPE_MAP = {
     "1dpp": PageType.ONE_PER_PAGE,

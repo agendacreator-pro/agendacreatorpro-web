@@ -50,8 +50,6 @@ def gerar_pdf_da_analise(analysis_dict, formato="A5"):
     pa = analysis_dict.get("page_analysis", analysis_dict)
     elements = pa.get("elements", [])
     colors = pa.get("colors", [])
-    page_type = pa.get("page_type", "1dpp")
-    inferred = pa.get("inferred_pages", [])
 
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
 
@@ -69,14 +67,6 @@ def gerar_pdf_da_analise(analysis_dict, formato="A5"):
     pdf.rect(0, 0, w, h, fill=1, stroke=0)
 
     _draw_elements(pdf, elements, w, h)
-
-    inferred_types = _infer_pages(page_type, inferred)
-    for inf_type in inferred_types:
-        pdf.showPage()
-        pdf.setFillColor(_parse_color(bg_color))
-        pdf.rect(0, 0, w, h, fill=1, stroke=0)
-        inf_elements = _generate_inferred_elements(inf_type, elements, colors, w, h)
-        _draw_elements(pdf, inf_elements, w, h)
 
     pdf.save()
     buffer.seek(0)
