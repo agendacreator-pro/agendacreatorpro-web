@@ -44,6 +44,11 @@ def pagina_planejamento(pdf):
     est.planejamento(pdf, caixas)
 
 
+def pagina_calendario_anual(pdf, ano):
+    est = _est()
+    est.pagina_calendario_anual(pdf, ano)
+
+
 def desenhar_cabecalho(pdf, data):
     est = _est()
     est.faixa_mes(pdf, 10, 166, 10, 30, data)

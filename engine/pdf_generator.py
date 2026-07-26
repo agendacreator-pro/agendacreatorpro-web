@@ -39,6 +39,7 @@ def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
     pdf.setPageCompression(0)
 
     layouts_a5.pagina_dados_pessoais(pdf)
+    layouts_a5.pagina_calendario_anual(pdf, ano)
     layouts_a5.pagina_planejamento(pdf)
 
     for _ in range(quantidade_paginas):
@@ -61,6 +62,7 @@ def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamento
     pdf.setPageCompression(0)
 
     layouts_a5.pagina_dados_pessoais(pdf, logo_bytes=logo_bytes)
+    layouts_a5.pagina_calendario_anual(pdf, ano)
     layouts_a5.pagina_planejamento(pdf)
 
     data = date(ano, 1, 1)
@@ -95,6 +97,7 @@ def gerar_preview(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=F
     pdf.setPageCompression(0)
 
     layouts_a5.pagina_dados_pessoais(pdf, logo_bytes=logo_bytes)
+    layouts_a5.pagina_calendario_anual(pdf, ano)
     layouts_a5.pagina_planejamento(pdf)
 
     data = date(ano, 1, 15)

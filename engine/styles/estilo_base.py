@@ -238,3 +238,75 @@ class EstiloBase:
         pdf.setFillColor(self._theme_accent())
         pdf.setFont(_FONT_B, 20)
         pdf.drawString(sx(10 * mm), sy(210 * mm), "AGENDA PRO")
+
+    def pagina_calendario_anual(self, pdf, ano, idioma='pt'):
+        import calendar
+        self.fundo_pagina(pdf)
+        pw_mm = config.LARGURA / mm
+        ph_mm = config.ALTURA / mm
+
+        pdf.setFillColor(self._theme_accent())
+        pdf.rect(sx(0), sy((ph_mm - 14) * mm), sx(config.LARGURA), sy(14 * mm), fill=1, stroke=0)
+        pdf.setFillColor(BRANCO)
+        pdf.setFont(_FONT_B, 14)
+        pdf.drawCentredString(sx(pw_mm / 2 * mm), sy((ph_mm - 10) * mm), str(ano))
+
+        margin_x = 8
+        margin_top = ph_mm - 20
+        margin_bottom = 8
+        cols = 4
+        rows = 3
+        gap_x = 4
+        gap_y = 5
+        cell_w = (pw_mm - 2 * margin_x - (cols - 1) * gap_x) / cols
+        cell_h = (margin_top - margin_bottom - (rows - 1) * gap_y) / rows
+
+        dias_curto = localization._idioma_atual.get(
+            'dias_semana_curto', ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'])
+        meses = localization._idioma_atual.get(
+            'meses', {1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
+                      5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+                      9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'})
+
+        for mes in range(1, 13):
+            idx = mes - 1
+            col = idx % cols
+            row = idx // cols
+            cx = margin_x + col * (cell_w + gap_x)
+            cy = margin_top - row * (cell_h + gap_y) - cell_h
+
+            pdf.setFillColor(BRANCO)
+            pdf.setStrokeColor(self._theme_accent())
+            pdf.setLineWidth(0.3)
+            pdf.rect(sx(cx * mm), sy(cy * mm), sx(cell_w * mm), sy(cell_h * mm), fill=1, stroke=1)
+
+            pdf.setFillColor(self._theme_accent())
+            pdf.rect(sx(cx * mm), sy((cy + cell_h - 7) * mm), sx(cell_w * mm), sy(7 * mm), fill=1, stroke=0)
+            pdf.setFillColor(BRANCO)
+            pdf.setFont(_FONT_B, 6)
+            pdf.drawCentredString(sx((cx + cell_w / 2) * mm), sy((cy + cell_h - 5.5) * mm), meses[mes].upper())
+
+            day_label_y = cy + cell_h - 12
+            day_w = cell_w / 7
+            pdf.setFillColor(self._theme_accent())
+            pdf.setFont(_FONT_B, 4.5)
+            for d in range(7):
+                dx = cx + d * day_w + day_w / 2
+                pdf.drawCentredString(sx(dx * mm), sy(day_label_y * mm), dias_curto[d])
+
+            cal = calendar.monthcalendar(ano, mes)
+            start_y = day_label_y - 4
+            row_h = (start_y - cy - 2) / max(len(cal), 1)
+            for wi, week in enumerate(cal):
+                for di, day in enumerate(week):
+                    if day != 0:
+                        dx = cx + di * day_w + day_w / 2
+                        dy = start_y - wi * row_h
+                        if di == 6:
+                            pdf.setFillColor(HexColor("#CC0000"))
+                        else:
+                            pdf.setFillColor(self._theme_destaque())
+                        pdf.setFont(_FONT, 4.5)
+                        pdf.drawCentredString(sx(dx * mm), sy(dy * mm), str(day))
+
+        pdf.showPage()
