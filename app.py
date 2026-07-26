@@ -1,12 +1,15 @@
 import sys
 import os
 import json
+import uuid
+import secrets
+from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
 from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from themes import (
     RosaTheme, AzulTheme, VerdeTheme, AmareloTheme,
@@ -24,11 +27,60 @@ login_manager.init_app(app)
 login_manager.login_view = 'login_page'
 
 USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
+WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET', 'agendacreatorpro-webhook-secret')
 
 
-def load_users():
-    with open(USERS_FILE, 'r') as f:
-        return json.load(f)['users']
+def load_users_data():
+    try:
+        with open(USERS_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"users": []}
+
+
+def save_users_data(data):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+def find_user(email):
+    data = load_users_data()
+    for u in data['users']:
+        if u['email'].lower() == email.lower():
+            return u
+    return None
+
+
+def find_user_by_token(token):
+    data = load_users_data()
+    for u in data['users']:
+        if u.get('access_token') == token and u.get('ativo', True):
+            return u
+    return None
+
+
+def create_user(email, token=None):
+    data = load_users_data()
+    existing = [u for u in data['users'] if u['email'].lower() == email.lower()]
+    if existing:
+        if token:
+            existing[0]['access_token'] = token
+            save_users_data(data)
+        return existing[0]
+
+    if not token:
+        token = secrets.token_urlsafe(32)
+
+    user = {
+        'email': email,
+        'password': generate_password_hash(token),
+        'access_token': token,
+        'ativo': True,
+        'criado_em': datetime.now().isoformat()
+    }
+    data['users'].append(user)
+    save_users_data(data)
+    return user
 
 
 class User(UserMixin):
@@ -39,10 +91,9 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(email):
-    users = load_users()
-    for u in users:
-        if u['email'] == email and u.get('ativo', True):
-            return User(email)
+    user = find_user(email)
+    if user and user.get('ativo', True):
+        return User(email)
     return None
 
 
@@ -60,6 +111,20 @@ def landing():
     return render_template('landing.html')
 
 
+@app.route('/auth')
+def auth_token():
+    token = request.args.get('token', '')
+    if not token:
+        return redirect(url_for('landing'))
+
+    user = find_user_by_token(token)
+    if user:
+        login_user(User(user['email']))
+        return redirect(url_for('index'))
+
+    return redirect(url_for('login_page'))
+
+
 @app.route('/login', methods=['GET'])
 def login_page():
     if current_user.is_authenticated:
@@ -73,15 +138,13 @@ def login():
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
 
-    users = load_users()
-    for u in users:
-        if u['email'].lower() == email and u.get('ativo', True):
-            if check_password_hash(u['password'], password):
-                user = User(u['email'])
-                login_user(user)
-                return jsonify({'success': True, 'redirect': '/'})
-            else:
-                return jsonify({'success': False, 'message': 'Senha incorreta'})
+    user = find_user(email)
+    if user and user.get('ativo', True):
+        if check_password_hash(user['password'], password):
+            login_user(User(user['email']))
+            return jsonify({'success': True, 'redirect': '/'})
+        else:
+            return jsonify({'success': False, 'message': 'Senha incorreta'})
     return jsonify({'success': False, 'message': 'E-mail nao encontrado'})
 
 
@@ -96,6 +159,59 @@ def logout():
 @login_required
 def index():
     return render_template('index.html')
+
+
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    data = load_users_data()
+    return jsonify(data['users'])
+
+
+@app.route('/admin/users', methods=['POST'])
+@login_required
+def admin_create_user():
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    if not email:
+        return jsonify({'error': 'Email obrigatorio'}), 400
+
+    user = create_user(email)
+    return jsonify({
+        'email': user['email'],
+        'token': user['access_token'],
+        'link': f"{request.host_url}auth?token={user['access_token']}"
+    })
+
+
+@app.route('/webhook/cakto', methods=['POST'])
+def webhook_cakto():
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header != f"Bearer {WEBHOOK_SECRET}":
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    payload = request.json
+    if not payload:
+        return jsonify({'error': 'Invalid payload'}), 400
+
+    email = (
+        payload.get('email') or
+        payload.get('buyer_email') or
+        payload.get('participant', {}).get('email') or
+        payload.get('data', {}).get('email') or
+        ''
+    ).strip().lower()
+
+    if not email:
+        return jsonify({'error': 'Email not found in payload'}), 400
+
+    user = create_user(email)
+
+    return jsonify({
+        'success': True,
+        'email': user['email'],
+        'token': user['access_token']
+    })
 
 
 TEMAS = {

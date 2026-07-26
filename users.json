@@ -4,6 +4,13 @@
       "email": "agendacreatorpro@gmail.com",
       "password": "scrypt:32768:8:1$gx01oSxp3rxjXvF0$6e5b9ce2b44c795eaad9f442560353a8e3aa568c14a3b966270d342e51d69b6f74246bb08bc242af940ebfa18dca29bdf95aafa24a4d7b954edbc5bb06202deb",
       "ativo": true
+    },
+    {
+      "email": "cliente@teste.com",
+      "password": "scrypt:32768:8:1$IUXD2nuwgYsuA4eI$953e63ccc264ff95bfd0d8529b81fc97cf82d419a51a54997de2878ffa8a3f2dcd8b9270e9ea427d824ef91d4fdd6ebdecba9faca4da12b46ebb25b21aad5404",
+      "access_token": "KCS6zjK6rAhWUNbK7aU7pQrBhxrrCgAb_XBMoamkkW0",
+      "ativo": true,
+      "criado_em": "2026-07-26T07:41:46.026563"
     }
   ]
 }
