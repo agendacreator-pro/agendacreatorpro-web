@@ -379,26 +379,16 @@ def ia_result(task_id):
 def ia_generate():
     try:
         data = request.json
-        page_type = data.get('page_type', '1dpp')
-        layout = '2' if page_type == '2dpp' else '1'
         formato = data.get('formato', 'A5')
-        idioma = data.get('idioma', 'pt')
-        tema_nome = data.get('tema', 'rosa')
-        estilo = data.get('estilo', 'minimalista')
-        com_agendamentos = data.get('agendamentos', False)
-        ano = int(data.get('ano', 2026))
-        paginas = int(data.get('paginas', 52))
+        page_analysis = data.get('page_analysis', {})
 
-        tema = TEMAS.get(tema_nome, RosaTheme)()
-        from styles.manager import definir as definir_estilo
-        definir_estilo(estilo)
-        localization.definir_idioma(idioma)
+        if not page_analysis:
+            return jsonify({"error": "No analysis data"}), 400
 
-        if page_type in ('semanal', 'mensal', 'calendario', 'planejamento', 'metas'):
-            buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
-        else:
-            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+        from dynamic_pdf import gerar_pdf_da_analise
+        buffer = gerar_pdf_da_analise({"page_analysis": page_analysis}, formato=formato)
 
+        page_type = page_analysis.get('page_type', 'unknown')
         nome = f"IA_Agenda_{page_type}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:

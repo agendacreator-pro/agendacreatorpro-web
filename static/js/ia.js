@@ -190,14 +190,8 @@ function generateProject() {
 
   const pa = analysisResult.page_analysis || {};
   const payload = {
-    page_type: pa.page_type || "1dpp",
     formato: "A5",
-    idioma: "pt",
-    tema: "rosa",
-    estilo: "minimalista",
-    agendamentos: false,
-    ano: 2026,
-    paginas: 52
+    page_analysis: pa
   };
 
   fetch("/api/ia/generate", {
@@ -205,10 +199,6 @@ function generateProject() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   }).then(r => r.blob()).then(blob => {
-    if (blob.type === "application/json") {
-      blob.text().then(t => { alert(t); resetBtn(); });
-      return;
-    }
     if (blob.size < 100) {
       blob.text().then(t => { alert(t); resetBtn(); });
       return;
