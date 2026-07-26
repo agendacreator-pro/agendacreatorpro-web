@@ -278,6 +278,14 @@ def ia_creator():
     return render_template('ia_creator.html')
 
 
+@app.route('/api/ia/debug')
+@login_required
+def ia_debug():
+    key = os.environ.get('OPENAI_API_KEY', '')
+    masked = (key[:8] + '...' + key[-4:]) if len(key) > 12 else 'NOT SET'
+    return jsonify({"key_preview": masked, "key_len": len(key)})
+
+
 @app.route('/api/ia/analyze', methods=['POST'])
 @login_required
 def ia_analyze():
@@ -307,7 +315,8 @@ def ia_analyze():
     def run_analysis():
         try:
             from ai.analyzer import SmartAnalyzer
-            analyzer = SmartAnalyzer(provider_name=provider)
+            api_key_val = os.environ.get('OPENAI_API_KEY', '')
+            analyzer = SmartAnalyzer(provider_name=provider, api_key=api_key_val or None)
             result = analyzer.analyze(image_bytes, content_type=image.content_type, on_progress=on_progress)
             with IA_LOCK:
                 IA_TASKS[task_id]["result"] = result.to_dict()
