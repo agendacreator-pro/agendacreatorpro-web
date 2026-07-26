@@ -387,21 +387,29 @@ def ia_generate():
 
         page_type = pa.get('page_type', '1dpp')
         layout = '2' if page_type == '2dpp' else '1'
-        formato = 'A5'
-        idioma = 'pt'
+        formato = data.get('formato', 'A5')
+        idioma = data.get('idioma', 'pt')
+        tema_nome = data.get('tema', 'rosa')
+        estilo = data.get('estilo', 'minimalista')
+        com_agendamentos = data.get('agendamentos', False)
+        ano = int(data.get('ano', 2026))
+        paginas = int(data.get('paginas', 52))
 
-        from ai.models import PageType
+        tema = TEMAS.get(tema_nome, RosaTheme)()
         from styles.manager import definir as definir_estilo
-        definir_estilo('minimalista')
+        definir_estilo(estilo)
         localization.definir_idioma(idioma)
 
-        tema = RosaTheme()
-        import calendar as cal
-        ano = 2026
+        tipo = 'permanente' if page_type in ('semanal', 'mensal', 'calendario') else 'datada'
 
-        buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=False)
-        return send_file(buffer, mimetype='application/pdf', as_attachment=True,
-                         download_name=f"IA_Created_Agenda_{page_type}.pdf")
+        if tipo == 'datada':
+            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+            nome = f"IA_Agenda_{page_type}_{tema_nome}_{formato}.pdf"
+        else:
+            buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
+            nome = f"IA_Agenda_{page_type}_{tema_nome}_{formato}.pdf"
+
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
         import traceback
         traceback.print_exc()

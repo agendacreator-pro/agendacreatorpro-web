@@ -191,16 +191,27 @@ function generateProject() {
   fetch("/api/ia/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ task_id: analysisResult.task_id || "", analysis: analysisResult }),
-  }).then(r => r.json()).then(data => {
-    if (data.pdf_url) {
-      window.location.href = data.pdf_url;
-    } else if (data.error) {
-      alert(data.error);
+    body: JSON.stringify({ analysis: analysisResult }),
+  }).then(r => {
+    if (r.headers.get("content-type") === "application/pdf") {
+      return r.blob().then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "IA_Agenda.pdf";
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.textContent = "Gerar Projeto Completo";
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "all";
+      });
     }
-    btn.textContent = "Gerar Projeto Completo";
-    btn.style.opacity = "1";
-    btn.style.pointerEvents = "all";
+    return r.json().then(data => {
+      if (data.error) alert(data.error);
+      btn.textContent = "Gerar Projeto Completo";
+      btn.style.opacity = "1";
+      btn.style.pointerEvents = "all";
+    });
   }).catch(err => {
     alert(err.message);
     btn.textContent = "Gerar Projeto Completo";
