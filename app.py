@@ -2,10 +2,14 @@ import sys
 import os
 import json
 import secrets
+import uuid
+import threading
+import queue
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
-from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
+from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for, Response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -258,6 +262,134 @@ def preview_pdf():
 
         buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
         return send_file(buffer, mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+IA_TASKS = {}
+IA_LOCK = threading.Lock()
+
+
+@app.route('/ia')
+@login_required
+def ia_creator():
+    return render_template('ia_creator.html')
+
+
+@app.route('/api/ia/analyze', methods=['POST'])
+@login_required
+def ia_analyze():
+    if 'image' not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+
+    image = request.files['image']
+    provider = request.form.get('provider', 'openai')
+
+    allowed = {'image/png', 'image/jpeg', 'image/jpg', 'application/pdf'}
+    if image.content_type not in allowed:
+        return jsonify({"error": "Format not supported"}), 400
+
+    image_bytes = image.read()
+    if len(image_bytes) > 20 * 1024 * 1024:
+        return jsonify({"error": "File too large (max 20MB)"}), 400
+
+    task_id = str(uuid.uuid4())[:8]
+    progress_queue = queue.Queue()
+
+    with IA_LOCK:
+        IA_TASKS[task_id] = {"status": "processing", "progress_queue": progress_queue, "result": None}
+
+    def on_progress(msg):
+        progress_queue.put(msg)
+
+    def run_analysis():
+        try:
+            from ai.analyzer import SmartAnalyzer
+            analyzer = SmartAnalyzer(provider_name=provider)
+            result = analyzer.analyze(image_bytes, content_type=image.content_type, on_progress=on_progress)
+            with IA_LOCK:
+                IA_TASKS[task_id]["result"] = result.to_dict()
+                IA_TASKS[task_id]["status"] = "done"
+            progress_queue.put({"stage": "complete", "progress": 100, "message": "Done"})
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            with IA_LOCK:
+                IA_TASKS[task_id]["result"] = {"success": False, "error": str(e)}
+                IA_TASKS[task_id]["status"] = "done"
+            progress_queue.put({"stage": "error", "progress": 100, "message": str(e)})
+
+    threading.Thread(target=run_analysis, daemon=True).start()
+    return jsonify({"success": True, "task_id": task_id})
+
+
+@app.route('/api/ia/stream/<task_id>')
+@login_required
+def ia_stream(task_id):
+    with IA_LOCK:
+        task = IA_TASKS.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    def generate():
+        pq = task["progress_queue"]
+        while True:
+            try:
+                msg = pq.get(timeout=30)
+                yield f"data: {json.dumps(msg)}\n\n"
+                if msg.get("stage") in ("complete", "error"):
+                    break
+            except queue.Empty:
+                yield f"data: {json.dumps({'stage': 'timeout', 'progress': 0, 'message': 'Timeout'})}\n\n"
+                break
+
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.route('/api/ia/result/<task_id>')
+@login_required
+def ia_result(task_id):
+    with IA_LOCK:
+        task = IA_TASKS.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    result = task.get("result")
+    if not result:
+        return jsonify({"success": False, "error": "Analysis still in progress"})
+    return jsonify(result)
+
+
+@app.route('/api/ia/generate', methods=['POST'])
+@login_required
+def ia_generate():
+    try:
+        data = request.json
+        analysis = data.get('analysis', {})
+        pa = analysis.get('page_analysis', {})
+
+        if not pa:
+            return jsonify({"error": "No analysis data"}), 400
+
+        page_type = pa.get('page_type', '1dpp')
+        layout = '2' if page_type == '2dpp' else '1'
+        formato = 'A5'
+        idioma = 'pt'
+
+        from ai.models import PageType
+        from styles.manager import definir as definir_estilo
+        definir_estilo('minimalista')
+        localization.definir_idioma(idioma)
+
+        tema = RosaTheme()
+        import calendar as cal
+        ano = 2026
+
+        buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=False)
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True,
+                         download_name=f"IA_Created_Agenda_{page_type}.pdf")
     except Exception as e:
         import traceback
         traceback.print_exc()

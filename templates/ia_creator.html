@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Smart Creator - Agenda Creator Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <style>
+    .ia-creator { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+    .ia-creator h1 { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .ia-creator .subtitle { text-align: center; color: #888; margin-bottom: 40px; font-size: 0.95rem; }
+
+    .upload-zone {
+      border: 2px dashed #ccc; border-radius: 16px; padding: 60px 20px;
+      text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #4A90D9; background: #f0f6ff;
+    }
+    .upload-zone input[type="file"] { display: none; }
+    .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-zone p { color: #666; margin: 4px 0; }
+    .upload-zone .hint { font-size: 0.8rem; color: #aaa; }
+    .upload-zone .browse { color: #4A90D9; font-weight: 600; text-decoration: underline; }
+
+    .preview-container {
+      display: none; margin-top: 24px; text-align: center;
+    }
+    .preview-container img {
+      max-width: 100%; max-height: 400px; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .preview-container .file-info { margin-top: 8px; color: #888; font-size: 0.85rem; }
+
+    .provider-select {
+      margin-top: 24px; text-align: center;
+    }
+    .provider-select label { font-weight: 600; margin-right: 8px; }
+    .provider-select select {
+      padding: 8px 16px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.9rem;
+    }
+
+    .btn-analyze {
+      display: inline-block; margin-top: 20px; padding: 14px 40px;
+      background: linear-gradient(135deg, #4A90D9, #7B61FF); color: #fff;
+      border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s; opacity: 0.5; pointer-events: none;
+    }
+    .btn-analyze.active { opacity: 1; pointer-events: all; }
+    .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,144,217,0.4); }
+
+    .progress-container { display: none; margin-top: 32px; }
+    .progress-bar-wrapper {
+      background: #e8e8e8; border-radius: 20px; height: 12px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: linear-gradient(90deg, #4A90D9, #7B61FF);
+      border-radius: 20px; transition: width 0.5s ease;
+    }
+    .progress-stage {
+      margin-top: 12px; font-size: 0.9rem; color: #666; text-align: center;
+    }
+    .progress-steps { display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .progress-step {
+      padding: 4px 12px; border-radius: 20px; font-size: 0.75rem;
+      background: #f0f0f0; color: #aaa; transition: all 0.3s;
+    }
+    .progress-step.active { background: #4A90D9; color: #fff; }
+    .progress-step.done { background: #4CAF50; color: #fff; }
+
+    .result-container { display: none; margin-top: 32px; }
+    .result-card {
+      background: #fff; border-radius: 16px; padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 16px;
+    }
+    .result-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
+    .result-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600; background: #E8F5E9; color: #2E7D32;
+    }
+    .result-badge.warning { background: #FFF3E0; color: #E65100; }
+    .result-detail { margin: 8px 0; font-size: 0.9rem; color: #555; }
+    .result-elements { max-height: 300px; overflow-y: auto; }
+    .result-element {
+      padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+      font-size: 0.85rem; display: flex; gap: 8px; align-items: center;
+    }
+    .result-element .type-badge {
+      padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;
+      background: #f0f0f0; font-weight: 600; min-width: 50px; text-align: center;
+    }
+    .color-palette { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 8px; border: 2px solid #eee;
+    }
+
+    .btn-generate {
+      display: inline-block; margin-top: 16px; padding: 14px 40px;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff;
+      border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76,175,80,0.4); }
+
+    .btn-back {
+      display: inline-block; margin-top: 16px; padding: 10px 24px;
+      background: #f0f0f0; color: #666; border: none; border-radius: 8px;
+      font-size: 0.9rem; cursor: pointer; margin-right: 8px;
+    }
+    .btn-back:hover { background: #e0e0e0; }
+
+    .error-container { display: none; margin-top: 24px; text-align: center; }
+    .error-card {
+      background: #FFF3E0; border-radius: 12px; padding: 24px;
+      border: 1px solid #FFE0B2;
+    }
+    .error-card h3 { color: #E65100; margin-bottom: 8px; }
+    .error-card p { color: #BF360C; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="ia-creator">
+    <h1>IA Smart Creator</h1>
+    <p class="subtitle" data-i18n="ia_subtitle">Envie uma imagem e a IA recria seu projeto completo</p>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf">
+      <div class="icon">📤</div>
+      <p>Arraste sua imagem aqui ou <span class="browse" data-i18n="ia_browse">clique para selecionar</span></p>
+      <p class="hint">PNG, JPG, JPEG ou PDF — máx. 20MB</p>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+      <img id="previewImage" alt="Preview">
+      <div class="file-info" id="fileInfo"></div>
+    </div>
+
+    <div class="provider-select">
+      <label data-i18n="ia_provider">Provedor de IA:</label>
+      <select id="providerSelect">
+        <option value="openai">OpenAI (GPT-4o)</option>
+        <option value="gemini">Google Gemini</option>
+        <option value="ollama">Ollama (Local)</option>
+      </select>
+    </div>
+
+    <div style="text-align: center;">
+      <button class="btn-analyze" id="btnAnalyze" data-i18n="ia_analyze">Analisar Layout</button>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar-wrapper">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <div class="progress-stage" id="progressStage">Preparando...</div>
+      <div class="progress-steps">
+        <div class="progress-step" id="step-upload">Upload</div>
+        <div class="progress-step" id="step-cache">Cache</div>
+        <div class="progress-step" id="step-ocr">OCR</div>
+        <div class="progress-step" id="step-elements">Elementos</div>
+        <div class="progress-step" id="step-colors">Cores</div>
+        <div class="progress-step" id="step-structure">Estrutura</div>
+        <div class="progress-step" id="step-complete">Completo</div>
+      </div>
+    </div>
+
+    <div class="error-container" id="errorContainer">
+      <div class="error-card">
+        <h3>Erro na Análise</h3>
+        <p id="errorMessage"></p>
+        <button class="btn-back" onclick="resetIA()" data-i18n="ia_try_again">Tentar Novamente</button>
+      </div>
+    </div>
+
+    <div class="result-container" id="resultContainer">
+      <div class="result-card">
+        <h3 data-i18n="ia_result_title">Resultado da Análise</h3>
+        <div id="resultBadge"></div>
+        <div class="result-detail" id="resultDescription"></div>
+
+        <h4 style="margin-top:16px;" data-i18n="ia_colors">Paleta de Cores</h4>
+        <div class="color-palette" id="colorPalette"></div>
+
+        <h4 style="margin-top:16px;" data-i18n="ia_fonts">Fontes Detectadas</h4>
+        <div class="result-detail" id="fontsDetected"></div>
+
+        <h4 style="margin-top:16px;" data-i18n="ia_elements">Elementos Detectados</h4>
+        <div class="result-elements" id="elementsList"></div>
+
+        <h4 style="margin-top:16px;" data-i18n="ia_inferred">Páginas Inferidas</h4>
+        <div class="result-detail" id="inferredPages"></div>
+      </div>
+
+      <div style="text-align:center;">
+        <button class="btn-back" onclick="resetIA()" data-i18n="ia_new_analysis">Nova Análise</button>
+        <button class="btn-generate" id="btnGenerate" data-i18n="ia_generate_project">Gerar Projeto Completo</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/ia.js"></script>
+  <script src="/static/js/i18n.js"></script>
+</body>
+</html>
