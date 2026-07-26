@@ -1,0 +1,284 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    width: 480px;
+}
+
+.field {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #444;
+}
+
+.field input[type="number"],
+.field select {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.radio-group label {
+    font-weight: normal;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+button {
+    width: 100%;
+    padding: 16px;
+    background: #FF5FA2;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #FF4B93;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: wait;
+}
+
+#status {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-editor {
+    background: #5C6BC0;
+    margin-bottom: 5px;
+}
+
+.btn-editor:hover {
+    background: #3F51B5;
+}
+
+.editor-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+}
+
+.editor-panel {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    width: 90vw;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.editor-header h2 {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.editor-close-btn {
+    width: auto;
+    padding: 5px 12px;
+    margin: 0;
+    background: #eee;
+    color: #333;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.editor-close-btn:hover {
+    background: #ddd;
+}
+
+.editor-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.editor-page-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #f0f0f0;
+    overflow: auto;
+}
+
+.editor-page {
+    position: relative;
+    width: 450px;
+    height: 450px;
+    background: white;
+    border: 2px solid #333;
+    flex-shrink: 0;
+}
+
+.editor-sidebar {
+    width: 220px;
+    padding: 15px;
+    border-left: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+.editor-info p {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.editor-info pre {
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    min-height: 50px;
+    color: #333;
+}
+
+.editor-legend {
+    font-size: 0.75rem;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.editor-legend div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.editor-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.editor-actions button {
+    padding: 10px;
+    font-size: 0.9rem;
+}
+
+.btn-reset {
+    background: #9E9E9E;
+}
+
+.btn-reset:hover {
+    background: #757575;
+}
+
+.btn-apply {
+    background: #4CAF50;
+}
+
+.btn-apply:hover {
+    background: #388E3C;
+}
+
+.editor-element {
+    transition: box-shadow 0.1s;
+}
+
+.editor-draggable:hover {
+    box-shadow: 0 0 0 2px rgba(255,95,162,0.5);
+}

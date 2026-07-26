@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Creator Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+</head>
+<body>
+    <div class="container">
+        <h1>Agenda Creator Pro</h1>
+        <p class="subtitle">Gerador de Agendas Profissionais</p>
+
+        <div class="card">
+            <div class="field">
+                <label>Ano da Agenda</label>
+                <input type="number" id="ano" value="2026" min="2024" max="2030">
+            </div>
+
+            <div class="field">
+                <label>Tipo de Agenda</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="tipo" value="datada" checked> Agenda Datada</label>
+                    <label><input type="radio" name="tipo" value="permanente"> Agenda Permanente</label>
+                </div>
+            </div>
+
+            <div class="field" id="paginas-field" style="display:none;">
+                <label>Quantidade de Paginas Semanais</label>
+                <input type="number" id="paginas" value="52" min="1" max="200">
+            </div>
+
+            <div class="field">
+                <label>Formato</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="formato" value="A5" checked> A5</label>
+                    <label><input type="radio" name="formato" value="A4"> A4</label>
+                    <label><input type="radio" name="formato" value="QUADRADO"> Quadrado</label>
+                </div>
+            </div>
+
+            <div class="field" id="layout-field">
+                <label>Layout</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="layout" value="1" checked> 1 DPP</label>
+                    <label><input type="radio" name="layout" value="2"> 2 DPP</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Tema</label>
+                <select id="tema">
+                    <option value="rosa">Rosa</option>
+                    <option value="azul">Azul</option>
+                    <option value="verde">Verde</option>
+                    <option value="amarelo">Amarelo</option>
+                    <option value="laranja">Laranja</option>
+                    <option value="vermelho">Vermelho</option>
+                    <option value="lilas">Lilas</option>
+                    <option value="preto">Preto</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Estilo</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="estilo" value="minimalista" checked> Minimalista</label>
+                    <label><input type="radio" name="estilo" value="executivo"> Executivo</label>
+                    <label><input type="radio" name="estilo" value="floral"> Floral</label>
+                    <label><input type="radio" name="estilo" value="kawaii"> Kawaii</label>
+                </div>
+            </div>
+
+            <button id="btn-gerar" onclick="gerar()">GERAR PDF</button>
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=4"></script>
+</body>
+</html>
