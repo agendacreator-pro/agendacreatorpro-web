@@ -19,9 +19,15 @@ body {
 
 .header-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    position: relative;
     margin-bottom: 5px;
+}
+
+.header-row .btn-logout {
+    position: absolute;
+    right: 0;
 }
 
 .btn-logout {
