@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+from datetime import datetime
 import uuid
 import secrets
 from datetime import datetime
@@ -30,14 +31,40 @@ login_manager.login_view = 'login_page'
 
 USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET', 'agendacreatorpro-webhook-secret')
+DEFAULT_ADMIN_EMAIL = 'agendacreatorpro@gmail.com'
+DEFAULT_ADMIN_PASSWORD = 'Agenda15*'
+
+
+def create_default_admin(data=None):
+    from werkzeug.security import generate_password_hash
+    if data is None:
+        try:
+            with open(USERS_FILE, 'r') as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = {"users": []}
+    admins = [u for u in data['users'] if u['email'] == DEFAULT_ADMIN_EMAIL]
+    if not admins:
+        data['users'].append({
+            'email': DEFAULT_ADMIN_EMAIL,
+            'password': generate_password_hash(DEFAULT_ADMIN_PASSWORD),
+            'access_token': '',
+            'ativo': True,
+            'criado_em': datetime.now().isoformat()
+        })
+        save_users_data(data)
+    return data
 
 
 def load_users_data():
     try:
         with open(USERS_FILE, 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            if not any(u['email'] == DEFAULT_ADMIN_EMAIL for u in data.get('users', [])):
+                data = create_default_admin(data)
+            return data
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"users": []}
+        return create_default_admin()
 
 
 def save_users_data(data):
