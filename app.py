@@ -34,7 +34,13 @@ USERS = {
         'password': generate_password_hash(ADMIN_PASSWORD),
         'token': '',
         'ativo': True,
-    }
+    },
+    'sammy.paschoalin@gmail.com': {
+        'email': 'sammy.paschoalin@gmail.com',
+        'password': generate_password_hash('Sammy07!'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 
