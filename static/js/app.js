@@ -55,7 +55,8 @@ function gerar() {
         tema: tema,
         estilo: estilo,
         formato: formato,
-        layout: layout
+        layout: layout,
+        agendamentos: document.getElementById('agendamentos').checked
     };
 
     btn.disabled = true;

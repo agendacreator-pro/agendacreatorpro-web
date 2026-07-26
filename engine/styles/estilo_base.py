@@ -106,6 +106,29 @@ class EstiloBase:
             pdf.line(sx(x * mm), sy((linha_y - i * 5) * mm),
                      sx((x + w) * mm), sy((linha_y - i * 5) * mm))
 
+    def caixa_agendamentos(self, pdf, x, y, w, h):
+        pdf.setFillColor(HexColor("#F8F8F8"))
+        pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=0)
+        pdf.setFillColor(self._theme_tasks())
+        pdf.rect(sx(x * mm), sy((y + h - 7) * mm), sx(w * mm), sy(7 * mm), fill=1, stroke=0)
+        pdf.setFillColor(BRANCO)
+        pdf.setFont(_FONT_B, 8)
+        pdf.drawString(sx((x + 1) * mm), sy((y + h - 5.5) * mm), "AGENDAMENTOS")
+        slot_h = (h - 9) / 14
+        pdf.setFont(_FONT, 6)
+        pdf.setFillColor(self._theme_text())
+        pdf.setStrokeColor(LINHA)
+        pdf.setLineWidth(0.3)
+        for i in range(14):
+            hora = 7 + i
+            slot_y = y + h - 9 - (i + 1) * slot_h
+            pdf.setFillColor(self._theme_accent())
+            pdf.setFont(_FONT_B, 6)
+            pdf.drawString(sx((x + 1) * mm), sy((slot_y + 1) * mm), f"{hora:02d}:00")
+            pdf.setStrokeColor(LINHA)
+            pdf.setLineWidth(0.3)
+            pdf.line(sx((x + 14) * mm), sy((slot_y + 0.5) * mm), sx((x + w - 1) * mm), sy((slot_y + 0.5) * mm))
+
     def divisor(self, pdf, x1, y, x2):
         pdf.setStrokeColor(self._theme_accent())
         pdf.setLineWidth(0.5)

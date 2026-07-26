@@ -238,6 +238,7 @@ def gerar_pdf():
         estilo = data.get('estilo', 'minimalista')
         formato = data.get('formato', 'A5')
         layout = data.get('layout', '1')
+        com_agendamentos = data.get('agendamentos', False)
 
         tema_cls = TEMAS.get(tema_nome, RosaTheme)
         tema = tema_cls()
@@ -246,7 +247,7 @@ def gerar_pdf():
         definir_estilo(estilo)
 
         if tipo == 'datada':
-            buffer = gerar_pdf_datada(ano, tema, layout, formato)
+            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
             nome = f"Agenda_{ano}_{tema_nome}_{formato}.pdf"
         else:
             buffer = gerar_pdf_permanente(paginas, tema, ano, formato)

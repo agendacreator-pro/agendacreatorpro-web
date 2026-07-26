@@ -31,7 +31,7 @@ def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
     return buffer
 
 
-def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5"):
+def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False):
     definir(tema)
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
@@ -49,7 +49,7 @@ def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5"):
 
     if layout_pagina == "1":
         while data.year == ano:
-            layouts_a5.desenhar_pagina(pdf, data)
+            layouts_a5.desenhar_pagina(pdf, data, com_agendamentos=com_agendamentos)
             data += timedelta(days=1)
     else:
         while data.year == ano:
@@ -57,7 +57,7 @@ def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5"):
             data2 = data + timedelta(days=1)
             if data2.year != ano:
                 data2 = None
-            layouts_a5.desenhar_pagina_2dias(pdf, data1, data2)
+            layouts_a5.desenhar_pagina_2dias(pdf, data1, data2, com_agendamentos=com_agendamentos)
             data += timedelta(days=2)
 
     pdf.save()

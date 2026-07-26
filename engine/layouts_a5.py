@@ -58,12 +58,16 @@ def desenhar_area_anotacoes(pdf):
     est.area_anotacoes(pdf, 15, 6, 118, 122, num_linhas=20)
 
 
-def desenhar_pagina(pdf, data):
+def desenhar_pagina(pdf, data, com_agendamentos=False):
     est = _est()
     est.fundo_pagina(pdf)
     desenhar_cabecalho(pdf, data)
     desenhar_caixa_prioridades(pdf)
-    desenhar_area_anotacoes(pdf)
+    if com_agendamentos:
+        est.caixa_agendamentos(pdf, 15, 40, 118, 60)
+        est.area_anotacoes(pdf, 15, 6, 118, 30, num_linhas=5)
+    else:
+        desenhar_area_anotacoes(pdf)
     feriado = obter_feriado(data)
     if feriado:
         pdf.setFont(_FONT, 8)
@@ -72,7 +76,7 @@ def desenhar_pagina(pdf, data):
     pdf.showPage()
 
 
-def _metade_2dpp(pdf, data, base_y_mm, alt_mm, espelhar=False):
+def _metade_2dpp(pdf, data, base_y_mm, alt_mm, espelhar=False, com_agendamentos=False):
     est = _est()
     pw_mm = config.LARGURA / mm
 
@@ -112,18 +116,27 @@ def _metade_2dpp(pdf, data, base_y_mm, alt_mm, espelhar=False):
 
     cx = margin_l
     est.caixa_prioridades(pdf, cx, prior_y, content_w, prior_h)
-    est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 5)))
+
+    if com_agendamentos:
+        sched_h = notes_h * 0.65
+        sched_y = notes_y + notes_h - sched_h
+        notes_small_h = notes_h - sched_h - 2
+        notes_small_y = notes_y
+        est.caixa_agendamentos(pdf, cx, sched_y, content_w, sched_h)
+        est.area_anotacoes(pdf, cx, notes_small_y, content_w, notes_small_h, num_linhas=max(2, int(notes_small_h / 5)))
+    else:
+        est.area_anotacoes(pdf, cx, notes_y, content_w, notes_h, num_linhas=max(3, int(notes_h / 5)))
 
 
-def desenhar_pagina_2dias(pdf, data1, data2):
+def desenhar_pagina_2dias(pdf, data1, data2, com_agendamentos=False):
     est = _est()
     est.fundo_pagina(pdf)
 
     alt_mm = config.ALTURA / mm / 2
 
-    _metade_2dpp(pdf, data1, alt_mm, alt_mm, espelhar=False)
+    _metade_2dpp(pdf, data1, alt_mm, alt_mm, espelhar=False, com_agendamentos=com_agendamentos)
     if data2 is not None:
-        _metade_2dpp(pdf, data2, 0, alt_mm, espelhar=True)
+        _metade_2dpp(pdf, data2, 0, alt_mm, espelhar=True, com_agendamentos=com_agendamentos)
 
     est.divisor(pdf, 0, alt_mm, config.LARGURA / mm)
 
