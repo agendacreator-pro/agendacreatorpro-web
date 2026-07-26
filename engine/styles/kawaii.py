@@ -240,7 +240,7 @@ class Kawaii(EstiloBase):
         _draw_cloud(pdf, 8, 8, 6, 3, COR_CLOUD)
         _draw_happy_face(pdf, pw - 8, 8, 2, COR_HAPPY)
 
-    def pagina_dados_pessoais(self, pdf, campos):
+    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
         self.decorar_borda(pdf)
         self.fundo_pagina(pdf)
         accent = self._theme_accent()
@@ -265,6 +265,16 @@ class Kawaii(EstiloBase):
             pdf.setDash([], 0)
             _draw_heart(pdf, 18, yy - 1, 0.6, COR_HEART)
             yy -= 18
+        if logo_bytes:
+            logo_bytes.seek(0)
+            try:
+                from reportlab.lib.utils import ImageReader
+                img = ImageReader(logo_bytes)
+                iw, ih = img.getSize()
+                ratio = min(50 / iw, 25 / ih)
+                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(iw * ratio * mm), height=sy(ih * ratio * mm), mask='auto')
+            except Exception:
+                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):

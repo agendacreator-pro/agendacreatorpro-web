@@ -142,7 +142,7 @@ class Minimalista(EstiloBase):
     def decorar_borda(self, pdf):
         pass
 
-    def pagina_dados_pessoais(self, pdf, campos):
+    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
         accent = self._theme_accent()
         pdf.setFillColor(BRANCO)
         pdf.rect(0, 0, config.LARGURA, config.ALTURA, fill=1, stroke=0)
@@ -163,6 +163,16 @@ class Minimalista(EstiloBase):
             pdf.setLineWidth(0.25)
             pdf.line(sx(20 * mm), sy((yy - 2) * mm), sx((pw - 20) * mm), sy((yy - 2) * mm))
             yy -= 18
+        if logo_bytes:
+            logo_bytes.seek(0)
+            try:
+                from reportlab.lib.utils import ImageReader
+                img = ImageReader(logo_bytes)
+                iw, ih = img.getSize()
+                ratio = min(50 / iw, 25 / ih)
+                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(iw * ratio * mm), height=sy(ih * ratio * mm), mask='auto')
+            except Exception:
+                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):

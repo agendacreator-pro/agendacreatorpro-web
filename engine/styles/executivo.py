@@ -181,7 +181,7 @@ class Executivo(EstiloBase):
         self.decorar_canto(pdf, 5, 5, "bl")
         self.decorar_canto(pdf, pw - 5, 5, "br")
 
-    def pagina_dados_pessoais(self, pdf, campos):
+    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
         self.decorar_borda(pdf)
         self.fundo_pagina(pdf)
         accent = self._theme_accent()
@@ -205,6 +205,16 @@ class Executivo(EstiloBase):
             pdf.setFillColor(COR_GOLD)
             pdf.rect(sx(20 * mm), sy((yy - 2) * mm), sx(1.5 * mm), sy(0.3 * mm), fill=1, stroke=0)
             yy -= 18
+        if logo_bytes:
+            logo_bytes.seek(0)
+            try:
+                from reportlab.lib.utils import ImageReader
+                img = ImageReader(logo_bytes)
+                iw, ih = img.getSize()
+                ratio = min(50 / iw, 25 / ih)
+                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(iw * ratio * mm), height=sy(ih * ratio * mm), mask='auto')
+            except Exception:
+                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):
