@@ -379,13 +379,7 @@ def ia_result(task_id):
 def ia_generate():
     try:
         data = request.json
-        analysis = data.get('analysis', {})
-        pa = analysis.get('page_analysis', {})
-
-        if not pa:
-            return jsonify({"error": "No analysis data"}), 400
-
-        page_type = pa.get('page_type', '1dpp')
+        page_type = data.get('page_type', '1dpp')
         layout = '2' if page_type == '2dpp' else '1'
         formato = data.get('formato', 'A5')
         idioma = data.get('idioma', 'pt')
@@ -400,15 +394,12 @@ def ia_generate():
         definir_estilo(estilo)
         localization.definir_idioma(idioma)
 
-        tipo = 'permanente' if page_type in ('semanal', 'mensal', 'calendario') else 'datada'
-
-        if tipo == 'datada':
-            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
-            nome = f"IA_Agenda_{page_type}_{tema_nome}_{formato}.pdf"
-        else:
+        if page_type in ('semanal', 'mensal', 'calendario', 'planejamento', 'metas'):
             buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
-            nome = f"IA_Agenda_{page_type}_{tema_nome}_{formato}.pdf"
+        else:
+            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
 
+        nome = f"IA_Agenda_{page_type}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
         import traceback

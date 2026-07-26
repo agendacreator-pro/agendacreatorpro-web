@@ -188,36 +188,50 @@ function generateProject() {
   btn.style.opacity = "0.6";
   btn.style.pointerEvents = "none";
 
+  const pa = analysisResult.page_analysis || {};
+  const payload = {
+    page_type: pa.page_type || "1dpp",
+    formato: "A5",
+    idioma: "pt",
+    tema: "rosa",
+    estilo: "minimalista",
+    agendamentos: false,
+    ano: 2026,
+    paginas: 52
+  };
+
   fetch("/api/ia/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ analysis: analysisResult }),
-  }).then(r => {
-    if (r.headers.get("content-type") === "application/pdf") {
-      return r.blob().then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "IA_Agenda.pdf";
-        a.click();
-        URL.revokeObjectURL(url);
-        btn.textContent = "Gerar Projeto Completo";
-        btn.style.opacity = "1";
-        btn.style.pointerEvents = "all";
-      });
+    body: JSON.stringify(payload),
+  }).then(r => r.blob()).then(blob => {
+    if (blob.type === "application/json") {
+      blob.text().then(t => { alert(t); resetBtn(); });
+      return;
     }
-    return r.json().then(data => {
-      if (data.error) alert(data.error);
-      btn.textContent = "Gerar Projeto Completo";
-      btn.style.opacity = "1";
-      btn.style.pointerEvents = "all";
-    });
+    if (blob.size < 100) {
+      blob.text().then(t => { alert(t); resetBtn(); });
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "IA_Agenda.pdf";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    resetBtn();
   }).catch(err => {
-    alert(err.message);
+    alert("Erro: " + err.message);
+    resetBtn();
+  });
+
+  function resetBtn() {
     btn.textContent = "Gerar Projeto Completo";
     btn.style.opacity = "1";
     btn.style.pointerEvents = "all";
-  });
+  }
 }
 
 function resetIA() {
