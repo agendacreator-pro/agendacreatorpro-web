@@ -1,135 +1,89 @@
 import sys
 import os
 import json
-from datetime import datetime
-import uuid
 import secrets
-from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
 from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash
-from io import BytesIO, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+from io import BytesIO
 
 from themes import (
     RosaTheme, AzulTheme, VerdeTheme, AmareloTheme,
     LaranjaTheme, VermelhoTheme, LilasTheme, PretoTheme
 )
-
-from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente
+from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente, gerar_preview
 import localization
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'agendacreatorpro-secret-key-change-in-prod')
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
 
-USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'agendacreatorpro@gmail.com')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Agenda15*')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET', 'agendacreatorpro-webhook-secret')
-DEFAULT_ADMIN_EMAIL = 'agendacreatorpro@gmail.com'
-DEFAULT_ADMIN_PASSWORD = 'Agenda15*'
 
-
-def create_default_admin(data=None):
-    from werkzeug.security import generate_password_hash
-    if data is None:
-        try:
-            with open(USERS_FILE, 'r') as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = {"users": []}
-    admins = [u for u in data['users'] if u['email'] == DEFAULT_ADMIN_EMAIL]
-    if not admins:
-        data['users'].append({
-            'email': DEFAULT_ADMIN_EMAIL,
-            'password': generate_password_hash(DEFAULT_ADMIN_PASSWORD),
-            'access_token': '',
-            'ativo': True,
-            'criado_em': datetime.now().isoformat()
-        })
-        save_users_data(data)
-    return data
-
-
-def load_users_data():
-    try:
-        with open(USERS_FILE, 'r') as f:
-            data = json.load(f)
-            if not any(u['email'] == DEFAULT_ADMIN_EMAIL for u in data.get('users', [])):
-                data = create_default_admin(data)
-            return data
-    except (FileNotFoundError, json.JSONDecodeError):
-        return create_default_admin()
-
-
-def save_users_data(data):
-    with open(USERS_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
-
-
-def find_user(email):
-    data = load_users_data()
-    for u in data['users']:
-        if u['email'].lower() == email.lower():
-            return u
-    return None
-
-
-def find_user_by_token(token):
-    data = load_users_data()
-    for u in data['users']:
-        if u.get('access_token') == token and u.get('ativo', True):
-            return u
-    return None
-
-
-def create_user(email, token=None):
-    data = load_users_data()
-    existing = [u for u in data['users'] if u['email'].lower() == email.lower()]
-    if existing:
-        if token:
-            existing[0]['access_token'] = token
-            save_users_data(data)
-        return existing[0]
-
-    if not token:
-        token = secrets.token_urlsafe(32)
-
-    user = {
-        'email': email,
-        'password': generate_password_hash(token),
-        'access_token': token,
+USERS = {
+    ADMIN_EMAIL.lower(): {
+        'email': ADMIN_EMAIL.lower(),
+        'password': generate_password_hash(ADMIN_PASSWORD),
+        'token': '',
         'ativo': True,
-        'criado_em': datetime.now().isoformat()
     }
-    data['users'].append(user)
-    save_users_data(data)
-    return user
+}
 
 
 class User(UserMixin):
     def __init__(self, email):
         self.id = email
-        self.email = email
+
+
+def find_user(email):
+    return USERS.get(email.lower())
+
+
+def find_user_by_token(token):
+    for u in USERS.values():
+        if u.get('token') == token and u.get('ativo'):
+            return u
+    return None
+
+
+def create_user(email, token=None):
+    key = email.lower()
+    if key in USERS:
+        if token:
+            USERS[key]['token'] = token
+        return USERS[key]
+    if not token:
+        token = secrets.token_urlsafe(32)
+    user = {
+        'email': key,
+        'password': generate_password_hash(token),
+        'token': token,
+        'ativo': True,
+    }
+    USERS[key] = user
+    return user
 
 
 @login_manager.user_loader
 def load_user(email):
-    user = find_user(email)
-    if user and user.get('ativo', True):
+    u = find_user(email)
+    if u and u.get('ativo'):
         return User(email)
     return None
 
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    if request.is_json or request.path == '/gerar':
-        return jsonify({'error': 'Acesso nao autorizado'}), 401
+    if request.is_json or '/gerar' in request.path or '/preview' in request.path:
+        return jsonify({'error': 'Unauthorized'}), 401
     return redirect(url_for('login_page'))
 
 
@@ -145,12 +99,10 @@ def auth_token():
     token = request.args.get('token', '')
     if not token:
         return redirect(url_for('landing'))
-
     user = find_user_by_token(token)
     if user:
         login_user(User(user['email']))
         return redirect(url_for('index'))
-
     return redirect(url_for('login_page'))
 
 
@@ -166,15 +118,11 @@ def login():
     data = request.json
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
-
     user = find_user(email)
-    if user and user.get('ativo', True):
-        if check_password_hash(user['password'], password):
-            login_user(User(user['email']))
-            return jsonify({'success': True, 'redirect': '/'})
-        else:
-            return jsonify({'success': False, 'message': 'Senha incorreta'})
-    return jsonify({'success': False, 'message': 'E-mail nao encontrado'})
+    if user and user.get('ativo') and check_password_hash(user['password'], password):
+        login_user(User(user['email']))
+        return jsonify({'success': True, 'redirect': '/'})
+    return jsonify({'success': False, 'message': 'E-mail ou senha incorretos'})
 
 
 @app.route('/logout')
@@ -190,11 +138,10 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/admin/users')
+@app.route('/admin/users', methods=['GET'])
 @login_required
 def admin_users():
-    data = load_users_data()
-    return jsonify(data['users'])
+    return jsonify(list(USERS.values()))
 
 
 @app.route('/admin/users', methods=['POST'])
@@ -204,12 +151,11 @@ def admin_create_user():
     email = data.get('email', '').strip().lower()
     if not email:
         return jsonify({'error': 'Email obrigatorio'}), 400
-
     user = create_user(email)
     return jsonify({
         'email': user['email'],
-        'token': user['access_token'],
-        'link': f"{request.host_url}auth?token={user['access_token']}"
+        'token': user['token'],
+        'link': f"{request.host_url}auth?token={user['token']}"
     })
 
 
@@ -218,11 +164,9 @@ def webhook_cakto():
     auth_header = request.headers.get('Authorization', '')
     if auth_header != f"Bearer {WEBHOOK_SECRET}":
         return jsonify({'error': 'Unauthorized'}), 401
-
     payload = request.json
     if not payload:
         return jsonify({'error': 'Invalid payload'}), 400
-
     email = (
         payload.get('email') or
         payload.get('buyer_email') or
@@ -230,28 +174,16 @@ def webhook_cakto():
         payload.get('data', {}).get('email') or
         ''
     ).strip().lower()
-
     if not email:
-        return jsonify({'error': 'Email not found in payload'}), 400
-
+        return jsonify({'error': 'Email not found'}), 400
     user = create_user(email)
-
-    return jsonify({
-        'success': True,
-        'email': user['email'],
-        'token': user['access_token']
-    })
+    return jsonify({'success': True, 'email': user['email'], 'token': user['token']})
 
 
 TEMAS = {
-    "rosa": RosaTheme,
-    "azul": AzulTheme,
-    "verde": VerdeTheme,
-    "amarelo": AmareloTheme,
-    "laranja": LaranjaTheme,
-    "vermelho": VermelhoTheme,
-    "lilas": LilasTheme,
-    "preto": PretoTheme,
+    "rosa": RosaTheme, "azul": AzulTheme, "verde": VerdeTheme,
+    "amarelo": AmareloTheme, "laranja": LaranjaTheme,
+    "vermelho": VermelhoTheme, "lilas": LilasTheme, "preto": PretoTheme,
 }
 
 
@@ -260,7 +192,6 @@ TEMAS = {
 def gerar_pdf():
     try:
         logo_bytes = None
-
         content_type = request.content_type or ''
         if 'multipart/form-data' in content_type:
             data = json.loads(request.form.get('data', '{}'))
@@ -280,8 +211,7 @@ def gerar_pdf():
         com_agendamentos = data.get('agendamentos', False)
         idioma = data.get('idioma', 'pt')
 
-        tema_cls = TEMAS.get(tema_nome, RosaTheme)
-        tema = tema_cls()
+        tema = TEMAS.get(tema_nome, RosaTheme)()
 
         from styles.manager import definir as definir_estilo
         definir_estilo(estilo)
@@ -294,13 +224,7 @@ def gerar_pdf():
             buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
             nome = f"Agenda_Permanente_{tema_nome}_{formato}.pdf"
 
-        return send_file(
-            buffer,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=nome
-        )
-
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -312,7 +236,6 @@ def gerar_pdf():
 def preview_pdf():
     try:
         logo_bytes = None
-
         content_type = request.content_type or ''
         if 'multipart/form-data' in content_type:
             data = json.loads(request.form.get('data', '{}'))
@@ -330,18 +253,14 @@ def preview_pdf():
         com_agendamentos = data.get('agendamentos', False)
         idioma = data.get('idioma', 'pt')
 
-        tema_cls = TEMAS.get(tema_nome, RosaTheme)
-        tema = tema_cls()
+        tema = TEMAS.get(tema_nome, RosaTheme)()
 
         from styles.manager import definir as definir_estilo
         definir_estilo(estilo)
         localization.definir_idioma(idioma)
 
-        from pdf_generator import gerar_preview
         buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos, logo_bytes=logo_bytes)
-
         return send_file(buffer, mimetype='application/pdf')
-
     except Exception as e:
         import traceback
         traceback.print_exc()
