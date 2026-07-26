@@ -224,7 +224,7 @@ class Kawaii(EstiloBase):
             slot_h = (body_h - 4) / 11
             for i in range(11):
                 hora = 8 + i
-                slot_y = y + body_h - i * slot_h
+                slot_y = y + body_h - 1.5 - i * slot_h
                 pdf.setFont(_FONT_B, 5.5)
                 pdf.setFillColor(accent)
                 pdf.drawString(sx((sched_x + 1) * mm), sy((slot_y - 1) * mm), f"{hora:02d}:00")
