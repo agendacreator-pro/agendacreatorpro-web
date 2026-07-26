@@ -123,3 +123,51 @@ tema_atual = RosaTheme()
 def definir(tema):
     global tema_atual
     tema_atual = tema
+
+
+def criar_tema_da_ia(colors_list):
+    """Create a dynamic theme from AI-detected colors."""
+    class DynamicTheme(AgendaTheme):
+        nome = "IA Custom"
+        pass
+
+    t = DynamicTheme()
+
+    for c in colors_list:
+        role = c.get("role", "")
+        hex_val = c.get("hex", "")
+        if not hex_val:
+            continue
+        try:
+            color = HexColor(hex_val)
+        except Exception:
+            continue
+
+        if role == "accent":
+            t.titulo = color
+            t.cabecalho = color
+            t.calendario = color
+            t.destaque = color
+        elif role == "primary":
+            t.titulo = color
+            t.cabecalho = color
+        elif role == "background":
+            t.fundo = color
+        elif role == "text":
+            t.texto = color
+            t.texto_secundario = color
+        elif role == "highlight":
+            t.importante = color
+            t.prioridade = color
+        elif role == "border":
+            t.linha = color
+            t.linhas = color
+            t.bordas = color
+
+    accent = t.titulo
+    t.tarefas = accent
+    t.primaria = accent
+    t.gratidao = accent
+    t.secundaria = accent
+
+    return t
