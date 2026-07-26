@@ -385,26 +385,10 @@ def ia_generate():
         if not page_analysis:
             return jsonify({"error": "No analysis data"}), 400
 
-        from themes import criar_tema_da_ia
-        colors = page_analysis.get('colors', [])
-        theme = criar_tema_da_ia(colors)
+        from dynamic_pdf import gerar_pdf_da_analise
+        buffer = gerar_pdf_da_analise({"page_analysis": page_analysis}, formato=formato)
 
         page_type = page_analysis.get('page_type', '1dpp')
-        ano = 2026
-
-        from styles.manager import definir as definir_estilo
-        if page_type in ('2dpp',):
-            definir_estilo('minimalista')
-            layout = '2'
-        else:
-            definir_estilo('minimalista')
-            layout = '1'
-
-        if page_type in ('semanal', 'mensal', 'calendario', 'planejamento', 'metas'):
-            buffer = gerar_pdf_permanente(52, theme, ano, formato)
-        else:
-            buffer = gerar_pdf_datada(ano, theme, layout, formato, com_agendamentos=False)
-
         nome = f"IA_Agenda_{page_type}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
