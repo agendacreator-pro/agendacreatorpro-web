@@ -237,7 +237,7 @@ class EstiloBase:
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=0)
         pdf.setFillColor(BRANCO)
         pdf.setFont(_FONT_B, 8)
-        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), "PRIORIDADES")
+        pdf.drawString(sx((x + 1) * mm), sy((y + 1) * mm), localization.label("prioridades"))
 
     def pagina_semanal_escrita(self, pdf, x, y, w, h):
         pdf.setStrokeColor(LINHA)

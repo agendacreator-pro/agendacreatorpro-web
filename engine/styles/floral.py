@@ -153,7 +153,7 @@ class Floral(EstiloBase):
         _draw_flower(pdf, x + 5, y + h - 4.5, 1.2, COR_PETAL_1, COR_CENTER)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 6) * mm), "PRIORIDADES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 6) * mm), localization.label("prioridades"))
         espacamento = (h - 14) / 4
         yy = y + h - 14
         dot_colors = [accent, HexColor("#E91E63"), HexColor("#F06292"), HexColor("#F8BBD0")]
@@ -177,7 +177,7 @@ class Floral(EstiloBase):
         _draw_flower(pdf, x + w / 2, y + h - 4, 1.2, COR_PETAL_1, COR_CENTER)
         pdf.setFont(_FONT_B, 7)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), localization.label("anotacoes"))
 
         if com_agendamentos:
             header_h = 8
@@ -271,7 +271,7 @@ class Floral(EstiloBase):
         _draw_leaf(pdf, pw / 2 + 32, ph - 28, 2, 135, COR_LEAF)
         pdf.setFont(_FONT_B, 18)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), "DADOS PESSOAIS")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), localization.label("dados_pessoais"))
         yy = ph - 50
         for campo in campos:
             pdf.setFont(_FONT_B, 8)
@@ -337,7 +337,7 @@ class Floral(EstiloBase):
         _draw_leaf(pdf, pw / 2 + 33, ph - 11, 1.5, 135, COR_LEAF)
         pdf.setFont(_FONT_B, 10)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), "PLANEJAMENTO SEMANAL")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), localization.label("planejamento_semanal"))
 
     def pagina_semanal_dias(self, pdf, dias_info):
         pw = config.LARGURA / mm
@@ -401,7 +401,7 @@ class Floral(EstiloBase):
         _draw_leaf(pdf, x + w / 2 + 9, y + h - 4, 1.5, 340, COR_LEAF)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), localization.label("anotacoes"))
         yy = y + h - 14
         while yy >= y + 6:
             pdf.setStrokeColor(HexColor("#F3D1DC"))

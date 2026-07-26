@@ -106,7 +106,7 @@ class Minimalista(EstiloBase):
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=1)
         pdf.setFont(_FONT_B, 7)
         pdf.setFillColor(accent)
-        pdf.drawString(sx((x + 4) * mm), sy((y + h - 8) * mm), "PRIORIDADES")
+        pdf.drawString(sx((x + 4) * mm), sy((y + h - 8) * mm), localization.label("prioridades"))
         pdf.setStrokeColor(COR_LINHA_FINA)
         pdf.setLineWidth(0.25)
         pdf.line(sx((x + 4) * mm), sy((y + h - 10) * mm), sx((x + w - 4) * mm), sy((y + h - 10) * mm))
@@ -190,7 +190,7 @@ class Minimalista(EstiloBase):
         ph = config.ALTURA / mm
         pdf.setFont(_FONT_B, 18)
         pdf.setFillColor(accent)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 20) * mm), "DADOS PESSOAIS")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 20) * mm), localization.label("dados_pessoais"))
         pdf.setStrokeColor(COR_LINHA_FINA)
         pdf.setLineWidth(0.3)
         pdf.line(sx((pw / 2 - 30) * mm), sy((ph - 25) * mm), sx((pw / 2 + 30) * mm), sy((ph - 25) * mm))
@@ -246,7 +246,7 @@ class Minimalista(EstiloBase):
         pdf.rect(sx(8 * mm), sy((ph - 14) * mm), sx((pw - 16) * mm), sy(8 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 10)
         pdf.setFillColor(accent)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10) * mm), "PLANEJAMENTO SEMANAL")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10) * mm), localization.label("planejamento_semanal"))
 
     def pagina_semanal_dias(self, pdf, dias_info):
         accent = self._theme_accent()
@@ -301,7 +301,7 @@ class Minimalista(EstiloBase):
         pdf.rect(sx(x * mm), sy(y * mm), sx(w * mm), sy(h * mm), fill=1, stroke=1)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(accent)
-        pdf.drawString(sx((x + 4) * mm), sy((y + h - 8) * mm), "ANOTACOES")
+        pdf.drawString(sx((x + 4) * mm), sy((y + h - 8) * mm), localization.label("anotacoes"))
         pdf.setStrokeColor(COR_LINHA_FINA)
         pdf.setLineWidth(0.2)
         pdf.line(sx((x + 4) * mm), sy((y + h - 10) * mm), sx((x + w - 4) * mm), sy((y + h - 10) * mm))

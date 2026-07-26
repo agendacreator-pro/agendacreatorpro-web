@@ -177,7 +177,7 @@ class Kawaii(EstiloBase):
         _draw_heart(pdf, x + w - 5, y + h - 4.5, 1.2, COR_HEART)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 6.5) * mm), "PRIORIDADES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 6.5) * mm), localization.label("prioridades"))
         espacamento = (h - 14) / 4
         yy = y + h - 14
         dot_colors = [accent, HexColor("#FFB6C1"), HexColor("#FF85A2"), HexColor("#FFC0CB")]
@@ -203,7 +203,7 @@ class Kawaii(EstiloBase):
         _draw_cloud(pdf, x + w / 2, y + h - 4, 8, 4, COR_CLOUD)
         pdf.setFont(_FONT_B, 7)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), localization.label("anotacoes"))
 
         if com_agendamentos:
             header_h = 8
@@ -290,7 +290,7 @@ class Kawaii(EstiloBase):
         _draw_heart(pdf, pw / 2 + 35, ph - 26, 2.5, COR_HEART)
         pdf.setFont(_FONT_B, 18)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), "DADOS PESSOAIS")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), localization.label("dados_pessoais"))
         yy = ph - 50
         for campo in campos:
             pdf.setFont(_FONT_B, 8)
@@ -355,7 +355,7 @@ class Kawaii(EstiloBase):
         _draw_heart(pdf, pw / 2 + 35, ph - 10, 1.2, COR_HEART)
         pdf.setFont(_FONT_B, 10)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), "PLANEJAMENTO SEMANAL")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), localization.label("planejamento_semanal"))
 
     def pagina_semanal_dias(self, pdf, dias_info):
         pw = config.LARGURA / mm
@@ -414,7 +414,7 @@ class Kawaii(EstiloBase):
         _draw_cloud(pdf, x + w / 2, y + h - 4, 6, 3, COR_CLOUD)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
+        pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h - 5.5) * mm), localization.label("anotacoes"))
         yy = y + h - 14
         while yy >= y + 6:
             pdf.setStrokeColor(HexColor("#FFD1DC"))

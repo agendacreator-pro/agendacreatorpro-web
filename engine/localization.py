@@ -41,6 +41,7 @@ IDIOMAS = {
             "estudos": "Estudos",
             "viagens": "Viagens",
             "agenda": "Agenda",
+            "planejamento_semanal": "PLANEJAMENTO SEMANAL",
         }
     },
     "en": {
@@ -85,6 +86,7 @@ IDIOMAS = {
             "estudos": "Studies",
             "viagens": "Travel",
             "agenda": "Planner",
+            "planejamento_semanal": "WEEKLY PLANNING",
         }
     },
     "es": {
@@ -129,6 +131,7 @@ IDIOMAS = {
             "estudos": "Estudios",
             "viagens": "Viajes",
             "agenda": "Agenda",
+            "planejamento_semanal": "PLANIFICACION SEMANAL",
         }
     }
 }

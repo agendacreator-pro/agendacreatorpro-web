@@ -115,7 +115,7 @@ class Executivo(EstiloBase):
         pdf.rect(sx(x * mm), sy((y + h - 9) * mm), sx(2.5 * mm), sy(9 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawString(sx((x + 6) * mm), sy((y + h - 6.5) * mm), "PRIORIDADES")
+        pdf.drawString(sx((x + 6) * mm), sy((y + h - 6.5) * mm), localization.label("prioridades"))
         espacamento = (h - 14) / 4
         yy = y + h - 14
         dot_colors = [accent, task, HexColor("#059669"), HexColor("#D97706")]
@@ -139,7 +139,7 @@ class Executivo(EstiloBase):
         pdf.rect(sx(x * mm), sy((y + h - 7) * mm), sx(2 * mm), sy(7 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 7)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawString(sx((x + 5) * mm), sy((y + h - 5) * mm), "ANOTACOES")
+        pdf.drawString(sx((x + 5) * mm), sy((y + h - 5) * mm), localization.label("anotacoes"))
 
         if com_agendamentos:
             header_h = 7
@@ -229,7 +229,7 @@ class Executivo(EstiloBase):
         pdf.rect(sx(15 * mm), sy((ph - 35) * mm), sx(3 * mm), sy(18 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 18)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), "DADOS PESSOAIS")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 27) * mm), localization.label("dados_pessoais"))
         yy = ph - 50
         for campo in campos:
             pdf.setFont(_FONT_B, 8)
@@ -291,7 +291,7 @@ class Executivo(EstiloBase):
         pdf.rect(sx(8 * mm), sy((ph - 14) * mm), sx(2.5 * mm), sy(8 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 10)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), "PLANEJAMENTO SEMANAL")
+        pdf.drawCentredString(sx(pw / 2 * mm), sy((ph - 10.5) * mm), localization.label("planejamento_semanal"))
 
     def pagina_semanal_dias(self, pdf, dias_info):
         accent = self._theme_accent()
@@ -353,7 +353,7 @@ class Executivo(EstiloBase):
         pdf.rect(sx(x * mm), sy((y + h - 8) * mm), sx(2 * mm), sy(8 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 8)
         pdf.setFillColor(COR_HEADER_TXT)
-        pdf.drawString(sx((x + 5) * mm), sy((y + h - 5.5) * mm), "ANOTACOES")
+        pdf.drawString(sx((x + 5) * mm), sy((y + h - 5.5) * mm), localization.label("anotacoes"))
         yy = y + h - 14
         while yy >= y + 6:
             pdf.setStrokeColor(HexColor("#E2E8F0"))
