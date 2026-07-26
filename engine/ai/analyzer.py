@@ -167,12 +167,20 @@ class SmartAnalyzer:
         return result
 
     def _parse_response(self, raw: Dict[str, Any]) -> PageAnalysis:
+        def _float(val, default=0):
+            if val is None:
+                return default
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return default
+
         analysis = PageAnalysis()
 
         pt = raw.get("page_type", "desconhecido")
         analysis.page_type = PAGE_TYPE_MAP.get(pt, PageType.UNKNOWN)
         analysis.page_type_label = raw.get("page_type_label", pt)
-        analysis.confidence = float(raw.get("confidence", 0.5))
+        analysis.confidence = _float(raw.get("confidence"), 0.5)
         analysis.title = raw.get("title", "")
         analysis.description = raw.get("description", "")
         analysis.margins = raw.get("margins", {"top": 10, "bottom": 10, "left": 8, "right": 8})
@@ -189,23 +197,23 @@ class SmartAnalyzer:
         for e in raw.get("elements", []):
             analysis.elements.append(DetectedElement(
                 type=e.get("type", "rect"),
-                x=float(e.get("x", 0)),
-                y=float(e.get("y", 0)),
-                w=float(e.get("w", 0)),
-                h=float(e.get("h", 0)),
+                x=_float(e.get("x")),
+                y=_float(e.get("y")),
+                w=_float(e.get("w")),
+                h=_float(e.get("h")),
                 text=e.get("text", ""),
                 font_name=e.get("font_name", "Helvetica"),
-                font_size=float(e.get("font_size", 10)),
+                font_size=_float(e.get("font_size"), 10),
                 color=e.get("color", "#000000"),
                 bg_color=e.get("bg_color"),
                 border=bool(e.get("border")),
                 border_color=e.get("border_color"),
-                border_width=float(e.get("border_width", 0.5)),
+                border_width=_float(e.get("border_width"), 0.5),
                 bold=bool(e.get("bold")),
                 italic=bool(e.get("italic")),
                 align=e.get("align", "left"),
-                line_height=float(e.get("line_height", 14)),
-                opacity=float(e.get("opacity", 1.0)),
+                line_height=_float(e.get("line_height"), 14),
+                opacity=_float(e.get("opacity"), 1.0),
             ))
 
         return analysis
