@@ -119,6 +119,14 @@
     }
     .error-card h3 { color: #E65100; margin-bottom: 8px; }
     .error-card p { color: #BF360C; font-size: 0.9rem; }
+
+    .result-image-compare {
+      text-align: center; margin-bottom: 20px; padding: 16px;
+      background: #f8f9fa; border-radius: 12px;
+    }
+    .result-image-compare .compare-label {
+      font-size: 0.8rem; color: #888; margin-bottom: 8px; font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -177,7 +185,13 @@
 
     <div class="result-container" id="resultContainer">
       <div class="result-card">
-        <h3 data-i18n="ia_result_title">Resultado da Análise</h3>
+        <h3 data-i18n="ia_result_title">Resultado da Analise</h3>
+
+        <div class="result-image-compare" id="resultImageCompare" style="display:none;">
+          <div class="compare-label">Imagem Original</div>
+          <img id="resultOriginalImage" alt="Imagem original" style="max-width:100%;max-height:350px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+        </div>
+
         <div id="resultBadge"></div>
         <div class="result-detail" id="resultDescription"></div>
 
@@ -187,15 +201,29 @@
         <h4 style="margin-top:16px;" data-i18n="ia_fonts">Fontes Detectadas</h4>
         <div class="result-detail" id="fontsDetected"></div>
 
-        <h4 style="margin-top:16px;" data-i18n="ia_elements">Elementos Detectados</h4>
+        <h4 style="margin-top:16px;" data-i18n="ia_elements">Elementos Detectados (<span id="elementCount">0</span>)</h4>
         <div class="result-elements" id="elementsList"></div>
 
-        <h4 style="margin-top:16px;" data-i18n="ia_inferred">Páginas Inferidas</h4>
+        <h4 style="margin-top:16px;" data-i18n="ia_inferred">Paginas Inferidas</h4>
         <div class="result-detail" id="inferredPages"></div>
       </div>
 
+      <div class="result-card">
+        <h3>Gerar PDF</h3>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+          <div>
+            <label style="font-weight:600;margin-right:6px;">Formato:</label>
+            <select id="formatSelect" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
+              <option value="A5">A5 (148×210mm)</option>
+              <option value="A4">A4 (210×297mm)</option>
+              <option value="QUADRADO">Quadrado (150×150mm)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div style="text-align:center;">
-        <button class="btn-back" onclick="resetIA()" data-i18n="ia_new_analysis">Nova Análise</button>
+        <button class="btn-back" onclick="resetIA()" data-i18n="ia_new_analysis">Nova Analise</button>
         <button class="btn-generate" id="btnGenerate" data-i18n="ia_generate_project">Gerar Projeto Completo</button>
       </div>
     </div>

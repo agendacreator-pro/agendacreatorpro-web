@@ -143,11 +143,16 @@ function showResult(data) {
   document.getElementById("resultContainer").style.display = "block";
   analysisResult = data;
 
+  if (data.image_data_url) {
+    document.getElementById("resultOriginalImage").src = data.image_data_url;
+    document.getElementById("resultImageCompare").style.display = "block";
+  }
+
   const pa = data.page_analysis;
   const badge = document.getElementById("resultBadge");
   const conf = (pa.confidence * 100).toFixed(0);
   const confClass = pa.confidence >= 0.7 ? "" : "warning";
-  badge.innerHTML = `<span class="result-badge ${confClass}">${pa.page_type_label} — ${conf}% confiança</span>`;
+  badge.innerHTML = `<span class="result-badge ${confClass}">${pa.page_type_label} — ${conf}% confianca</span>`;
 
   document.getElementById("resultDescription").textContent =
     pa.description || `Layout detectado: ${pa.page_type_label}`;
@@ -163,22 +168,26 @@ function showResult(data) {
   });
 
   document.getElementById("fontsDetected").textContent =
-    (pa.fonts_detected || []).join(", ") || "Não detectado";
+    (pa.fonts_detected || []).join(", ") || "Nao detectado";
+
+  const elements = pa.elements || [];
+  document.getElementById("elementCount").textContent = elements.length;
 
   const elList = document.getElementById("elementsList");
   elList.innerHTML = "";
-  (pa.elements || []).forEach(el => {
+  elements.forEach(el => {
     const row = document.createElement("div");
     row.className = "result-element";
+    const txt = el.text ? `"${el.text.substring(0,30)}"` : el.type;
     row.innerHTML = `
       <span class="type-badge">${el.type}</span>
-      <span>${el.text || el.type} (${el.x.toFixed(1)}, ${el.y.toFixed(1)}) ${el.w.toFixed(0)}×${el.h.toFixed(0)}mm</span>
+      <span>${txt} (${el.x.toFixed(1)}, ${el.y.toFixed(1)}) ${el.w.toFixed(0)}×${el.h.toFixed(0)}mm</span>
     `;
     elList.appendChild(row);
   });
 
   document.getElementById("inferredPages").textContent =
-    (pa.inferred_pages || []).join(", ") || "Nenhuma página adicional inferida";
+    (pa.inferred_pages || []).join(", ") || "Nenhuma pagina adicional inferida";
 }
 
 function generateProject() {
@@ -189,8 +198,9 @@ function generateProject() {
   btn.style.pointerEvents = "none";
 
   const pa = analysisResult.page_analysis || {};
+  const formato = document.getElementById("formatSelect") ? document.getElementById("formatSelect").value : "A5";
   const payload = {
-    formato: "A5",
+    formato: formato,
     page_analysis: pa
   };
 

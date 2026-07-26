@@ -6,6 +6,7 @@ import uuid
 import threading
 import queue
 import time
+import base64
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
@@ -289,6 +290,15 @@ def ia_debug():
     return jsonify({"key_preview": masked, "key_len": len(key)})
 
 
+@app.route('/api/ia/clear-cache', methods=['POST'])
+@login_required
+def ia_clear_cache():
+    from ai.analyzer import SmartAnalyzer
+    analyzer = SmartAnalyzer()
+    analyzer.cache.clear()
+    return jsonify({"success": True, "message": "Cache cleared"})
+
+
 @app.route('/api/ia/analyze', methods=['POST'])
 @login_required
 def ia_analyze():
@@ -308,6 +318,8 @@ def ia_analyze():
 
     task_id = str(uuid.uuid4())[:8]
     progress_queue = queue.Queue()
+    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+    ct = image.content_type or "image/png"
 
     with IA_LOCK:
         IA_TASKS[task_id] = {"status": "processing", "progress_queue": progress_queue, "result": None}
@@ -321,8 +333,10 @@ def ia_analyze():
             api_key_val = os.environ.get('OPENAI_API_KEY', '')
             analyzer = SmartAnalyzer(provider_name=provider, api_key=api_key_val or None)
             result = analyzer.analyze(image_bytes, content_type=image.content_type, on_progress=on_progress)
+            result_dict = result.to_dict()
+            result_dict["image_data_url"] = f"data:{ct};base64,{image_b64}"
             with IA_LOCK:
-                IA_TASKS[task_id]["result"] = result.to_dict()
+                IA_TASKS[task_id]["result"] = result_dict
                 IA_TASKS[task_id]["status"] = "done"
             progress_queue.put({"stage": "complete", "progress": 100, "message": "Done"})
         except Exception as e:

@@ -10,75 +10,138 @@ from .providers import get_provider
 
 logger = logging.getLogger(__name__)
 
-ANALYSIS_PROMPT = """You are an expert visual layout analyzer. Analyze the uploaded agenda/planner/planner image and reconstruct EVERY visual element precisely.
+ANALYSIS_PROMPT = """You are an expert visual layout analyzer specializing in planner/agenda page design. Your task is to map EVERY SINGLE visual element on this page with extreme precision.
+
+IMPORTANT: You MUST detect a MINIMUM of 25 elements. Most planner pages have 30-50+ elements. If you detect fewer than 20, you are MISSING elements. Look again more carefully.
+
+PAGE SIZE REFERENCE: A5 = 148mm wide × 210mm tall. Coordinates: (0,0) = top-left corner. X goes right, Y goes down. All values in MILLIMETERS.
+
+SCAN THE IMAGE SYSTEMATICALLY from top to bottom, left to right. For each visual component you see, create an element.
 
 Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
 {
-  "page_type": "1dpp|2dpp|semanal|mensal|calendario|planejamento|metas|checklist|dados_pessoais|notas|divisoria",
-  "page_type_label": "Label in Portuguese",
+  "page_type": "1dpp",
+  "page_type_label": "Um por Pagina",
   "confidence": 0.95,
-  "title": "Title of the page",
-  "description": "Description of the layout",
-  "margins": {"top": 10, "bottom": 10, "left": 8, "right": 8},
+  "title": "Title visible on page",
+  "description": "Detailed description of the layout",
+  "margins": {"top": 8, "bottom": 8, "left": 8, "right": 8},
   "colors": [
     {"name": "primary", "hex": "#2D2D2D", "role": "primary"},
     {"name": "background", "hex": "#FFFFFF", "role": "background"},
     {"name": "accent", "hex": "#FF5FA2", "role": "accent"},
-    {"name": "text", "hex": "#666666", "role": "text"},
+    {"name": "light", "hex": "#FFF0F5", "role": "highlight"},
+    {"name": "text", "hex": "#555555", "role": "text"},
     {"name": "border", "hex": "#E0E0E0", "role": "border"},
-    {"name": "highlight", "hex": "#FFF0F5", "role": "highlight"}
+    {"name": "secondary", "hex": "#F5F5F5", "role": "secondary"}
   ],
-  "fonts_detected": ["font name 1", "font name 2"],
-  "inferred_pages": ["page_type_1", "page_type_2"],
+  "fonts_detected": ["Helvetica", "Helvetica-Bold"],
+  "inferred_pages": ["planejamento", "semanal", "mensal", "checklist", "notas"],
   "elements": [
-    {
-      "type": "rect",
-      "x": 15, "y": 10, "w": 118, "h": 8,
-      "text": "",
-      "font_name": "Helvetica",
-      "font_size": 1,
-      "color": "#000000",
-      "bg_color": "#FF5FA2",
-      "border": false,
-      "border_color": null,
-      "border_width": 0.5,
-      "bold": false,
-      "italic": false,
-      "align": "left",
-      "line_height": 14,
-      "opacity": 1.0
-    }
+    {"type": "rect", "x": 0, "y": 0, "w": 148, "h": 25, "text": "", "font_name": "", "font_size": 0, "color": "", "bg_color": "#FF5FA2", "border": false, "border_color": null, "border_width": 0, "bold": false, "italic": false, "align": "left", "line_height": 0, "opacity": 1.0},
+    {"type": "text", "x": 10, "y": 4, "w": 50, "h": 8, "text": "TERCA", "font_name": "Helvetica-Bold", "font_size": 9, "color": "#FFFFFF", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": true, "italic": false, "align": "left", "line_height": 12, "opacity": 1.0},
+    {"type": "text", "x": 10, "y": 12, "w": 30, "h": 10, "text": "15", "font_name": "Helvetica-Bold", "font_size": 24, "color": "#FFFFFF", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": true, "italic": false, "align": "left", "line_height": 28, "opacity": 1.0},
+    {"type": "text", "x": 40, "y": 14, "w": 40, "h": 6, "text": "julho 2026", "font_name": "Helvetica", "font_size": 8, "color": "#FFFFFF", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": false, "italic": false, "align": "left", "line_height": 10, "opacity": 1.0},
+    {"type": "line", "x": 0, "y": 25, "w": 148, "h": 0, "text": "", "font_name": "", "font_size": 0, "color": "#FF5FA2", "bg_color": "", "border": false, "border_color": null, "border_width": 1.5, "bold": false, "italic": false, "align": "left", "line_height": 0, "opacity": 1.0},
+    {"type": "text", "x": 8, "y": 28, "w": 30, "h": 6, "text": "PRIORIDADES", "font_name": "Helvetica-Bold", "font_size": 6, "color": "#FF5FA2", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": true, "italic": false, "align": "left", "line_height": 8, "opacity": 1.0},
+    {"type": "rect", "x": 8, "y": 35, "w": 62, "h": 8, "text": "", "font_name": "", "font_size": 0, "color": "", "bg_color": "#FFF0F5", "border": true, "border_color": "#FFD6E8", "border_width": 0.3, "bold": false, "italic": false, "align": "left", "line_height": 0, "opacity": 1.0},
+    {"type": "circle", "x": 10, "y": 37, "w": 3, "h": 3, "text": "", "font_name": "", "font_size": 0, "color": "#FF5FA2", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": false, "italic": false, "align": "left", "line_height": 0, "opacity": 1.0},
+    {"type": "text", "x": 15, "y": 37, "w": 52, "h": 4, "text": "Revisar material do curso", "font_name": "Helvetica", "font_size": 5, "color": "#555555", "bg_color": "", "border": false, "border_color": null, "border_width": 0, "bold": false, "italic": false, "align": "left", "line_height": 6, "opacity": 1.0}
   ]
 }
 
-DETECT EVERY VISUAL ELEMENT - be extremely thorough:
-- HEADER BAR at top: colored rectangles, date area, day name area
-- SECTION HEADERS: "PRIORIDADES", "ANOTACOES", "AGENDAMENTOS", any text titles
-- DIVIDER LINES: horizontal lines, vertical lines separating sections
-- BOXES with borders: priority boxes, notes areas, task areas
-- CHECKBOXES: small squares/circles with text next to them
-- TIME SCHEDULE: rows with times (08:00, 09:00...) and lines
-- GRIDS/TABLES: rows and columns with separators
-- DECORATIVE ELEMENTS: flowers, hearts, stars, shapes, icons
-- DATE/DAY displays: large day number, month name, day of week
-- TEXT BLOCKS: placeholder lines, sample text, labels
-- SMALL DETAILS: corner decorations, colored dots, background patterns
+EXAMPLE OF30+ ELEMENTS for a typical planner page (your output must have this many or more):
 
-COORDINATE SYSTEM:
-- Origin (0,0) is TOP-LEFT of the page
-- All values in MILLIMETERS (mm)
-- A5 page = 148mm wide × 210mm tall
-- Measure positions carefully from the image edges
+TOP SECTION (y=0 to 30mm) — Header bar:
+1. Large colored rect covering full width (background bar)
+2. Day name text ("TERCA", "QUARTA", etc.)
+3. Day number (large font, "15", "16", etc.)
+4. Month/year text ("julho 2026")
+5. Decorative line below header
 
-CRITICAL RULES:
-- Detect the ACTUAL text visible in the image (not placeholders)
-- Detect actual hex colors from the image
-- Include EVERY element, even small ones (dots, thin lines, tiny icons)
-- Position accuracy is essential for faithful recreation
-- If you see a pink header bar at the top with date, create a rect element for it
-- If you see time slots, create line elements for each one
-- If you see decorative flowers/hearts, create decorative elements for them
-- Each element must have complete attributes (no nulls for required fields)"""
+LEFT COLUMN (x=8 to 74mm, y=30 to 200mm):
+6. Section title "PRIORIDADES" 
+7. Colored background rect for priority area
+8. Checkbox circle for task 1
+9. Text for task 1
+10. Checkbox circle for task 2
+11. Text for task 2
+12. Checkbox circle for task 3
+13. Text for task 3
+14. Divider line between sections
+15. Section title "ANOTACOES"
+16. Background rect for notes area
+17. Horizontal ruled line 1
+18. Horizontal ruled line 2
+19. Horizontal ruled line 3
+20. Horizontal ruled line 4
+21. Horizontal ruled line 5
+22. Horizontal ruled line 6
+23. Horizontal ruled line 7
+
+RIGHT COLUMN (x=74 to 140mm, y=30 to 200mm):
+24. Section title "AGENDAMENTOS"
+25. Time label "08:00"
+26. Horizontal line for 08:00
+27. Time label "09:00"
+28. Horizontal line for 09:00
+29. Time label "10:00"
+30. Horizontal line for 10:00
+31. Time label "11:00"
+32. Horizontal line for 11:00
+33. Time label "12:00"
+34. Horizontal line for 12:00
+35. Time label "13:00"
+36. Horizontal line for 13:00
+37. Time label "14:00"
+38. Horizontal line for 14:00
+39. Time label "15:00"
+40. Horizontal line for 15:00
+41. Time label "16:00"
+42. Horizontal line for 16:00
+43. Time label "17:00"
+44. Horizontal line for 17:00
+
+BOTTOM:
+45. Decorative element (heart/flower/star)
+46. Page number or small text
+
+WHAT TO DETECT (be extremely thorough):
+
+HEADER AREA (y=0 to 30mm):
+- Full-width colored rectangle (the header bar)
+- Day name text (bold, large)
+- Day number (very large, bold)
+- Month and year text
+- Any decorative elements in header
+- Thin line below header
+
+SECTIONS (y=30 to 200mm):
+- Each section title (PRIORIDADES, ANOTACOES, AGENDAMENTOS, etc.)
+- Background rectangles behind each section
+- Every checkbox (small circle or square) — YES, each individual one
+- Every task text next to each checkbox
+- Every horizontal ruled line in notes area
+- Every time slot label (08:00, 09:00, etc.)
+- Every horizontal line next to time slots
+- Vertical dividers between columns
+- Any colored accent strips or borders
+
+DECORATIVE ELEMENTS:
+- Hearts, flowers, stars, dots, icons
+- Corner decorations
+- Background patterns
+- Colored dots or shapes
+- Small illustrations
+
+COORDINATE ACCURACY:
+- Measure from the ACTUAL edges of each element in the image
+- A5 page is 148mm wide × 210mm tall
+- If header bar is top 12% of page: y=0, h=25mm
+- If left column starts 5% from left: x=8mm
+- If a line is at 60% down the page: y=126mm
+
+CRITICAL: Return MINIMUM 25 elements. Most planner pages have 30-50. Count your elements before returning. If you have fewer than 20, STOP and look for more elements you missed."""
 
 PAGE_TYPE_MAP = {
     "1dpp": PageType.ONE_PER_PAGE,
