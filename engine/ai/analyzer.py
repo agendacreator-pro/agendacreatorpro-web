@@ -149,7 +149,15 @@ class SmartAnalyzer:
         if on_progress:
             on_progress({"stage": "elements", "progress": 60, "message": "Detecting elements..."})
 
-        parsed = self._parse_response(raw)
+        try:
+            parsed = self._parse_response(raw)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[PARSE ERROR] Raw response: {json.dumps(raw)[:500]}")
+            result.error = f"Parse error: {str(e)}"
+            result.raw_response = raw
+            return result
         result.page_analysis = parsed
 
         if on_progress:
