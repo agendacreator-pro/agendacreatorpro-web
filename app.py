@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from io import BytesIO
 
 from themes import (
     RosaTheme, AzulTheme, VerdeTheme, AmareloTheme,
@@ -197,16 +196,7 @@ TEMAS = {
 @login_required
 def gerar_pdf():
     try:
-        logo_bytes = None
-        content_type = request.content_type or ''
-        if 'multipart/form-data' in content_type:
-            data = json.loads(request.form.get('data', '{}'))
-            logo_file = request.files.get('logo')
-            if logo_file:
-                logo_bytes = BytesIO(logo_file.read())
-        else:
-            data = request.json
-
+        data = request.json
         tipo = data.get('tipo', 'datada')
         ano = int(data.get('ano', 2026))
         paginas = int(data.get('paginas', 52))
@@ -218,13 +208,12 @@ def gerar_pdf():
         idioma = data.get('idioma', 'pt')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
-
         from styles.manager import definir as definir_estilo
         definir_estilo(estilo)
         localization.definir_idioma(idioma)
 
         if tipo == 'datada':
-            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos, logo_bytes=logo_bytes)
+            buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
             nome = f"Agenda_{ano}_{tema_nome}_{formato}.pdf"
         else:
             buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
@@ -241,16 +230,7 @@ def gerar_pdf():
 @login_required
 def preview_pdf():
     try:
-        logo_bytes = None
-        content_type = request.content_type or ''
-        if 'multipart/form-data' in content_type:
-            data = json.loads(request.form.get('data', '{}'))
-            logo_file = request.files.get('logo')
-            if logo_file:
-                logo_bytes = BytesIO(logo_file.read())
-        else:
-            data = request.json
-
+        data = request.json
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         estilo = data.get('estilo', 'minimalista')
@@ -260,12 +240,11 @@ def preview_pdf():
         idioma = data.get('idioma', 'pt')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
-
         from styles.manager import definir as definir_estilo
         definir_estilo(estilo)
         localization.definir_idioma(idioma)
 
-        buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos, logo_bytes=logo_bytes)
+        buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:
         import traceback

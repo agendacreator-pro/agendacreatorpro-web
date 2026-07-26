@@ -20,7 +20,7 @@ def _tema():
     return themes.tema_atual
 
 
-def pagina_dados_pessoais(pdf, logo_bytes=None):
+def pagina_dados_pessoais(pdf):
     est = _est()
     campos = [
         localization.label("nome") if hasattr(localization, 'label') else "Nome",
@@ -28,7 +28,7 @@ def pagina_dados_pessoais(pdf, logo_bytes=None):
         "Cidade", "CEP", "Contato de Emergencia",
         "Telefone de Emergencia"
     ]
-    est.pagina_dados_pessoais(pdf, campos, logo_bytes=logo_bytes)
+    est.pagina_dados_pessoais(pdf, campos)
 
 
 def pagina_planejamento(pdf):

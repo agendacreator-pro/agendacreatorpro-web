@@ -2,7 +2,6 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from datetime import date, timedelta
-from reportlab.lib.utils import ImageReader
 
 import config
 from config import sx, sy
@@ -10,21 +9,6 @@ import themes
 from themes import definir
 import layouts_a5
 import layouts_permanente_a5
-
-
-def _inserir_logo(pdf, logo_bytes, x, y, max_w, max_h):
-    if not logo_bytes:
-        return
-    logo_bytes.seek(0)
-    try:
-        img = ImageReader(logo_bytes)
-        iw, ih = img.getSize()
-        ratio = min(max_w / iw, max_h / ih)
-        w = iw * ratio
-        h = ih * ratio
-        pdf.drawImage(img, sx(x * mm), sy((y - h) * mm), width=sx(w * mm), height=sy(h * mm), mask='auto')
-    except Exception:
-        pass
 
 
 def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
@@ -50,7 +34,7 @@ def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
     return buffer
 
 
-def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False, logo_bytes=None):
+def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False):
     definir(tema)
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
@@ -61,7 +45,7 @@ def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamento
     pdf = canvas.Canvas(buffer, pagesize=(config.LARGURA, config.ALTURA))
     pdf.setPageCompression(0)
 
-    layouts_a5.pagina_dados_pessoais(pdf, logo_bytes=logo_bytes)
+    layouts_a5.pagina_dados_pessoais(pdf)
     layouts_a5.pagina_calendario_anual(pdf, ano)
     layouts_a5.pagina_planejamento(pdf)
 
@@ -85,7 +69,7 @@ def gerar_pdf_datada(ano, tema, layout_pagina="1", formato="A5", com_agendamento
     return buffer
 
 
-def gerar_preview(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False, logo_bytes=None):
+def gerar_preview(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False):
     definir(tema)
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
@@ -96,7 +80,7 @@ def gerar_preview(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=F
     pdf = canvas.Canvas(buffer, pagesize=(config.LARGURA, config.ALTURA))
     pdf.setPageCompression(0)
 
-    layouts_a5.pagina_dados_pessoais(pdf, logo_bytes=logo_bytes)
+    layouts_a5.pagina_dados_pessoais(pdf)
     layouts_a5.pagina_calendario_anual(pdf, ano)
     layouts_a5.pagina_planejamento(pdf)
 

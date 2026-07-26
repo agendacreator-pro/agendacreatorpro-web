@@ -130,7 +130,7 @@ class EstiloBase:
         pdf.setLineWidth(0.5)
         pdf.line(sx(x1 * mm), sy(y * mm), sx(x2 * mm), sy(y * mm))
 
-    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
+    def pagina_dados_pessoais(self, pdf, campos):
         self.fundo_pagina(pdf)
         pdf.setFillColor(self._theme_accent())
         pdf.rect(sx(0), sy(200 * mm), sx(config.LARGURA), sy(30 * mm), fill=1, stroke=0)
@@ -146,20 +146,6 @@ class EstiloBase:
             pdf.setLineWidth(0.5)
             pdf.line(sx(40 * mm), sy((y - 1) * mm), sx(120 * mm), sy((y - 1) * mm))
             y -= 15
-        if logo_bytes:
-            logo_bytes.seek(0)
-            try:
-                from reportlab.lib.utils import ImageReader
-                img = ImageReader(logo_bytes)
-                iw, ih = img.getSize()
-                max_w = 50
-                max_h = 25
-                ratio = min(max_w / iw, max_h / ih)
-                w = iw * ratio
-                h = ih * ratio
-                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(w * mm), height=sy(h * mm), mask='auto')
-            except Exception:
-                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):

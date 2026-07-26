@@ -218,7 +218,7 @@ class Floral(EstiloBase):
         _draw_leaf(pdf, 12, 10, 3, 315, COR_LEAF)
         _draw_leaf(pdf, pw - 12, 10, 3, 225, COR_LEAF)
 
-    def pagina_dados_pessoais(self, pdf, campos, logo_bytes=None):
+    def pagina_dados_pessoais(self, pdf, campos):
         self.decorar_borda(pdf)
         self.fundo_pagina(pdf)
         accent = self._theme_accent()
@@ -243,16 +243,6 @@ class Floral(EstiloBase):
             pdf.line(sx(20 * mm), sy((yy - 2) * mm), sx((pw - 20) * mm), sy((yy - 2) * mm))
             _draw_flower(pdf, 18, yy - 1, 0.5, COR_PETAL_1, COR_CENTER, 3)
             yy -= 18
-        if logo_bytes:
-            logo_bytes.seek(0)
-            try:
-                from reportlab.lib.utils import ImageReader
-                img = ImageReader(logo_bytes)
-                iw, ih = img.getSize()
-                ratio = min(50 / iw, 25 / ih)
-                pdf.drawImage(img, sx(85 * mm), sy(210 * mm), width=sx(iw * ratio * mm), height=sy(ih * ratio * mm), mask='auto')
-            except Exception:
-                pass
         pdf.showPage()
 
     def planejamento(self, pdf, caixas):
