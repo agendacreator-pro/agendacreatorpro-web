@@ -46,6 +46,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'magaliduarte16@gmail.com': {
+        'email': 'magaliduarte16@gmail.com',
+        'password': generate_password_hash('Md@130370'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 
