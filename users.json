@@ -1,0 +1,9 @@
+{
+  "users": [
+    {
+      "email": "agendacreatorpro@gmail.com",
+      "password": "scrypt:32768:8:1$gx01oSxp3rxjXvF0$6e5b9ce2b44c795eaad9f442560353a8e3aa568c14a3b966270d342e51d69b6f74246bb08bc242af940ebfa18dca29bdf95aafa24a4d7b954edbc5bb06202deb",
+      "ativo": true
+    }
+  ]
+}

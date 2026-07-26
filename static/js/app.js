@@ -67,6 +67,7 @@ function gerar() {
         body: JSON.stringify(payload)
     })
     .then(function(response) {
+        if (response.status === 401) { window.location.href = '/login'; return; }
         if (!response.ok) throw new Error('Erro ao gerar PDF');
         return response.blob();
     })

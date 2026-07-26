@@ -1,9 +1,12 @@
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
-from flask import Flask, render_template, send_file, request, jsonify
+from flask import Flask, render_template, send_file, request, jsonify, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash
 
 from themes import (
     RosaTheme, AzulTheme, VerdeTheme, AmareloTheme,
@@ -13,7 +16,80 @@ from themes import (
 from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'agendacreatorpro-secret-key-change-in-prod')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login_page'
+
+USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
+
+
+def load_users():
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)['users']
+
+
+class User(UserMixin):
+    def __init__(self, email):
+        self.id = email
+        self.email = email
+
+
+@login_manager.user_loader
+def load_user(email):
+    users = load_users()
+    for u in users:
+        if u['email'] == email and u.get('ativo', True):
+            return User(email)
+    return None
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.is_json or request.path == '/gerar':
+        return jsonify({'error': 'Acesso nao autorizado'}), 401
+    return redirect(url_for('login_page'))
+
+
+@app.route('/login', methods=['GET'])
+def login_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+
+    users = load_users()
+    for u in users:
+        if u['email'].lower() == email and u.get('ativo', True):
+            if check_password_hash(u['password'], password):
+                user = User(u['email'])
+                login_user(user)
+                return jsonify({'success': True})
+            else:
+                return jsonify({'success': False, 'message': 'Senha incorreta'})
+    return jsonify({'success': False, 'message': 'E-mail nao encontrado'})
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login_page'))
+
+
+@app.route('/')
+@login_required
+def index():
+    return render_template('index.html')
+
 
 TEMAS = {
     "rosa": RosaTheme,
@@ -27,12 +103,8 @@ TEMAS = {
 }
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
 @app.route('/gerar', methods=['POST'])
+@login_required
 def gerar_pdf():
     try:
         data = request.json
