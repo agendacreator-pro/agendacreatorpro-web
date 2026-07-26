@@ -40,6 +40,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'strelakadente@gmail.com': {
+        'email': 'strelakadente@gmail.com',
+        'password': generate_password_hash('Veiga65@'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 
