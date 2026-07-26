@@ -4,26 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Creator Pro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=5">
 </head>
 <body>
     <div class="container">
         <div class="header-row">
             <div>
                 <h1>Agenda Creator Pro</h1>
-                <p class="subtitle">Gerador de Agendas Profissionais</p>
+                <p class="subtitle" data-i18n="subtitulo">Gerador de Agendas Profissionais</p>
             </div>
-            <a href="/logout" class="btn-logout">Sair</a>
+            <a href="/logout" class="btn-logout" data-i18n="sair">Sair</a>
         </div>
 
         <div class="card">
             <div class="field">
-                <label>Ano da Agenda</label>
+                <label data-i18n="ano_agenda">Ano da Agenda</label>
                 <input type="number" id="ano" value="2026" min="2024" max="2030">
             </div>
 
             <div class="field">
-                <label>Idioma</label>
+                <label data-i18n="idioma">Idioma</label>
                 <select id="idioma">
                     <option value="pt">&#127463;&#127479; Portugues</option>
                     <option value="en">&#127468;&#127463; English</option>
@@ -32,24 +32,24 @@
             </div>
 
             <div class="field">
-                <label>Tipo de Agenda</label>
+                <label data-i18n="tipo_agenda">Tipo de Agenda</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="tipo" value="datada" checked> Agenda Datada</label>
-                    <label><input type="radio" name="tipo" value="permanente"> Agenda Permanente</label>
+                    <label><input type="radio" name="tipo" value="datada" checked> <span data-i18n="agenda_datada">Agenda Datada</span></label>
+                    <label><input type="radio" name="tipo" value="permanente"> <span data-i18n="agenda_permanente">Agenda Permanente</span></label>
                 </div>
             </div>
 
             <div class="field" id="paginas-field" style="display:none;">
-                <label>Quantidade de Paginas Semanais</label>
+                <label data-i18n="qtd_paginas">Quantidade de Paginas Semanais</label>
                 <input type="number" id="paginas" value="52" min="1" max="200">
             </div>
 
             <div class="field">
-                <label>Formato</label>
+                <label data-i18n="formato">Formato</label>
                 <div class="radio-group">
                     <label><input type="radio" name="formato" value="A5" checked> A5</label>
                     <label><input type="radio" name="formato" value="A4"> A4</label>
-                    <label><input type="radio" name="formato" value="QUADRADO"> Quadrado</label>
+                    <label><input type="radio" name="formato" value="QUADRADO"> <span data-i18n="quadrado">Quadrado</span></label>
                 </div>
             </div>
 
@@ -62,21 +62,21 @@
             </div>
 
             <div class="field">
-                <label>Tema</label>
+                <label data-i18n="tema">Tema</label>
                 <select id="tema">
-                    <option value="rosa">Rosa</option>
-                    <option value="azul">Azul</option>
-                    <option value="verde">Verde</option>
-                    <option value="amarelo">Amarelo</option>
-                    <option value="laranja">Laranja</option>
-                    <option value="vermelho">Vermelho</option>
-                    <option value="lilas">Lilas</option>
-                    <option value="preto">Preto</option>
+                    <option value="rosa" data-i18n-opt="rosa">Rosa</option>
+                    <option value="azul" data-i18n-opt="azul">Azul</option>
+                    <option value="verde" data-i18n-opt="verde">Verde</option>
+                    <option value="amarelo" data-i18n-opt="amarelo">Amarelo</option>
+                    <option value="laranja" data-i18n-opt="laranja">Laranja</option>
+                    <option value="vermelho" data-i18n-opt="vermelho">Vermelho</option>
+                    <option value="lilas" data-i18n-opt="lilas">Lilas</option>
+                    <option value="preto" data-i18n-opt="preto">Preto</option>
                 </select>
             </div>
 
             <div class="field">
-                <label>Estilo</label>
+                <label data-i18n="estilo">Estilo</label>
                 <div class="radio-group">
                     <label><input type="radio" name="estilo" value="minimalista" checked> Minimalista</label>
                     <label><input type="radio" name="estilo" value="executivo"> Executivo</label>
@@ -87,12 +87,12 @@
 
             <div class="field">
                 <label>
-                    <input type="checkbox" id="agendamentos"> Incluir agenda de compromissos (07:00-20:00)
+                    <input type="checkbox" id="agendamentos"> <span data-i18n="incluir_agendamentos">Incluir agenda de compromissos (08:00-18:00)</span>
                 </label>
             </div>
 
-            <button id="btn-gerar" onclick="gerar()">GERAR PDF</button>
-            <button id="btn-preview" onclick="preview()" style="background:#5C6BC0; margin-top:8px;">VISUALIZAR PREVIA</button>
+            <button id="btn-gerar" onclick="gerar()" data-i18n="gerar_pdf">GERAR PDF</button>
+            <button id="btn-preview" onclick="preview()" style="background:#5C6BC0; margin-top:8px;" data-i18n="visualizar_previa">VISUALIZAR PREVIA</button>
             <div id="status"></div>
         </div>
     </div>
@@ -100,9 +100,9 @@
     <div id="previewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
         <div style="background:white; border-radius:12px; max-width:90vw; max-height:90vh; display:flex; flex-direction:column; overflow:hidden;">
             <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid #eee;">
-                <strong>Previa do PDF</strong>
+                <strong data-i18n="previa_pdf">Previa do PDF</strong>
                 <div>
-                    <button onclick="downloadFromPreview()" style="width:auto; padding:8px 20px; font-size:0.9rem; background:#4CAF50; margin-right:8px;">BAIXAR PDF</button>
+                    <button onclick="downloadFromPreview()" style="width:auto; padding:8px 20px; font-size:0.9rem; background:#4CAF50; margin-right:8px;" data-i18n="baixar_pdf">BAIXAR PDF</button>
                     <button onclick="closePreview()" style="width:auto; padding:8px 12px; font-size:1.2rem; background:#eee; color:#333;">&times;</button>
                 </div>
             </div>
@@ -112,6 +112,41 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=4"></script>
+    <script>var UI_TRANSLATIONS = {
+pt: {
+    subtitulo: "Gerador de Agendas Profissionais", sair: "Sair", ano_agenda: "Ano da Agenda",
+    idioma: "Idioma", tipo_agenda: "Tipo de Agenda", agenda_datada: "Agenda Datada",
+    agenda_permanente: "Agenda Permanente", qtd_paginas: "Quantidade de Paginas Semanais",
+    formato: "Formato", quadrado: "Quadrado", tema: "Tema", estilo: "Estilo",
+    incluir_agendamentos: "Incluir agenda de compromissos (08:00-18:00)",
+    gerar_pdf: "GERAR PDF", visualizar_previa: "VISUALIZAR PREVIA",
+    previa_pdf: "Previa do PDF", baixar_pdf: "BAIXAR PDF",
+    rosa: "Rosa", azul: "Azul", verde: "Verde", amarelo: "Amarelo",
+    laranja: "Laranja", vermelho: "Vermelho", lilas: "Lilas", preto: "Preto"
+},
+en: {
+    subtitulo: "Professional Planner Generator", sair: "Logout", ano_agenda: "Planner Year",
+    idioma: "Language", tipo_agenda: "Planner Type", agenda_datada: "Dated Planner",
+    agenda_permanente: "Permanent Planner", qtd_paginas: "Number of Weekly Pages",
+    formato: "Format", quadrado: "Square", tema: "Theme", estilo: "Style",
+    incluir_agendamentos: "Include schedule (08:00-18:00)",
+    gerar_pdf: "GENERATE PDF", visualizar_previa: "PREVIEW",
+    previa_pdf: "PDF Preview", baixar_pdf: "DOWNLOAD PDF",
+    rosa: "Pink", azul: "Blue", verde: "Green", amarelo: "Yellow",
+    laranja: "Orange", vermelho: "Red", lilas: "Lilac", preto: "Black"
+},
+es: {
+    subtitulo: "Generador de Agendas Profesionales", sair: "Salir", ano_agenda: "Ano de la Agenda",
+    idioma: "Idioma", tipo_agenda: "Tipo de Agenda", agenda_datada: "Agenda Datada",
+    agenda_permanente: "Agenda Permanente", qtd_paginas: "Cantidad de Paginas Semanales",
+    formato: "Formato", quadrado: "Cuadrado", tema: "Tema", estilo: "Estilo",
+    incluir_agendamentos: "Incluir agenda de citas (08:00-18:00)",
+    gerar_pdf: "GENERAR PDF", visualizar_previa: "VISTA PREVIA",
+    previa_pdf: "Vista Previa del PDF", baixar_pdf: "DESCARGAR PDF",
+    rosa: "Rosa", azul: "Azul", verde: "Verde", amarelo: "Amarillo",
+    laranja: "Naranja", vermelho: "Rojo", lilas: "Lila", preto: "Negro"
+}};
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=5"></script>
 </body>
 </html>

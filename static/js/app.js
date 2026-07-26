@@ -4,6 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var formatoRadios = document.querySelectorAll('input[name="formato"]');
     var layoutField = document.getElementById('layout-field');
     var layoutRadios = document.querySelectorAll('input[name="layout"]');
+    var idiomaSelect = document.getElementById('idioma');
+
+    function aplicarTraducoes() {
+        var lang = idiomaSelect.value;
+        var t = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS['pt'];
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            if (t[key]) el.textContent = t[key];
+        });
+        document.querySelectorAll('[data-i18n-opt]').forEach(function(opt) {
+            var key = opt.getAttribute('data-i18n-opt');
+            if (t[key]) opt.textContent = t[key];
+        });
+    }
 
     function atualizarPaginas() {
         var tipo = document.querySelector('input[name="tipo"]:checked');
@@ -32,8 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', atualizarLayout);
     });
 
+    idiomaSelect.addEventListener('change', aplicarTraducoes);
+
     atualizarPaginas();
     atualizarLayout();
+    aplicarTraducoes();
 });
 
 function _getPayload() {
