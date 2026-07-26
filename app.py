@@ -53,6 +53,13 @@ def unauthorized():
     return redirect(url_for('login_page'))
 
 
+@app.route('/')
+def landing():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    return render_template('landing.html')
+
+
 @app.route('/login', methods=['GET'])
 def login_page():
     if current_user.is_authenticated:
@@ -72,7 +79,7 @@ def login():
             if check_password_hash(u['password'], password):
                 user = User(u['email'])
                 login_user(user)
-                return jsonify({'success': True})
+                return jsonify({'success': True, 'redirect': '/'})
             else:
                 return jsonify({'success': False, 'message': 'Senha incorreta'})
     return jsonify({'success': False, 'message': 'E-mail nao encontrado'})
@@ -82,10 +89,10 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('landing'))
 
 
-@app.route('/')
+@app.route('/app')
 @login_required
 def index():
     return render_template('index.html')

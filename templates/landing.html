@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Creator Pro - Gerador de Agendas Profissionais</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 80px 20px 60px;
+        }
+        .hero h1 { font-size: 2.8rem; margin-bottom: 10px; }
+        .hero .tagline { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; }
+        .hero .price-box {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 20px 40px;
+            margin-bottom: 30px;
+        }
+        .hero .price-box .old-price { font-size: 1rem; text-decoration: line-through; opacity: 0.7; }
+        .hero .price-box .price { font-size: 2.5rem; font-weight: 800; }
+        .hero .price-box .installment { font-size: 0.9rem; opacity: 0.8; }
+        .btn-buy {
+            display: inline-block;
+            background: #FF5FA2;
+            color: white;
+            padding: 18px 50px;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 20px rgba(255,95,162,0.4);
+        }
+        .btn-buy:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,95,162,0.6); }
+        .btn-login-top {
+            display: inline-block;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 16px;
+            transition: color 0.2s;
+        }
+        .btn-login-top:hover { color: white; }
+
+        .section { padding: 60px 20px; max-width: 1000px; margin: 0 auto; }
+        .section h2 { text-align: center; font-size: 1.8rem; margin-bottom: 40px; color: #333; }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .feature-card .icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .feature-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: #444; }
+        .feature-card p { font-size: 0.9rem; color: #666; line-height: 1.5; }
+
+        .themes-section { background: #f8f9fa; }
+        .theme-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+        .theme-chip {
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .cta-bottom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .cta-bottom h2 { color: white; margin-bottom: 10px; }
+        .cta-bottom p { opacity: 0.9; margin-bottom: 24px; }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #999;
+            font-size: 0.8rem;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.8rem; }
+            .hero .price-box .price { font-size: 2rem; }
+            .btn-buy { padding: 14px 36px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <h1>Agenda Creator Pro</h1>
+        <p class="tagline">Crie agendas profissionais personalizadas em PDF com apenas alguns cliques. Estilos, temas e formatos para todos os gustos.</p>
+        <div class="price-box">
+            <div class="old-price">De R$ 127,00</div>
+            <div class="price">R$ 67,00</div>
+            <div class="installment">ou 3x de R$ 22,33</div>
+        </div>
+        <br>
+        <a href="https://pay.cakto.com.br/pmejvr6_1003042" class="btn-buy" target="_blank">QUERO MINHA AGENDA</a>
+        <br>
+        <a href="/login" class="btn-login-top">Ja comprou? Acesse sua conta</a>
+    </div>
+
+    <div class="section">
+        <h2>O que voce vai ter</h2>
+        <div class="features">
+            <div class="feature-card">
+                <div class="icon">&#128197;</div>
+                <h3>Agendas Datadas</h3>
+                <p>Paginas para cada dia do ano, ja preenchidas com data e dia da semana. So imprimir e usar.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">&#128221;</div>
+                <h3>Agendas Permanentes</h3>
+                <p>Paginas em branco para voce preencher com suas proprias datas. Comece quando quiser.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">&#128209;</div>
+                <h3>4 Formatos</h3>
+                <p>A5, A4 e Quadrado. Escolha o formato ideal para sua necessidade ou estilo de impressao.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">&#128100;</div>
+                <h3>4 Estilos</h3>
+                <p>Minimalista, Executivo, Floral e Kawaii. Cada estilo com uma personalidade unica.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">&#127912;</div>
+                <h3>8 Temas de Cores</h3>
+                <p>Rosa, azul, verde, amarelo, laranja, vermelho, lilas e preto. Personalize cada detalhe.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">&#9889;</div>
+                <h3>Download Instantaneo</h3>
+                <p>Configure, gere e baixe seu PDF em segundos. Sem espera, sem complicacao.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section themes-section">
+        <h2>8 Temas Disponiveis</h2>
+        <div class="theme-grid">
+            <span class="theme-chip" style="background:#FF5FA2;">Rosa</span>
+            <span class="theme-chip" style="background:#4A90D9;">Azul</span>
+            <span class="theme-chip" style="background:#4CAF50;">Verde</span>
+            <span class="theme-chip" style="background:#F5C542;">Amarelo</span>
+            <span class="theme-chip" style="background:#FF9800;">Laranja</span>
+            <span class="theme-chip" style="background:#E53935;">Vermelho</span>
+            <span class="theme-chip" style="background:#9C27B0;">Lilas</span>
+            <span class="theme-chip" style="background:#333333;">Preto</span>
+        </div>
+    </div>
+
+    <div class="cta-bottom">
+        <h2>Comece a criar suas agendas agora</h2>
+        <p>Acesso imediato apos a compra. Gere quantos PDFs quiser.</p>
+        <a href="https://pay.cakto.com.br/pmejvr6_1003042" class="btn-buy" target="_blank">COMPRAR POR R$ 67</a>
+    </div>
+
+    <div class="footer">
+        Agenda Creator Pro &copy; 2026 - Todos os direitos reservados.
+    </div>
+
+</body>
+</html>
