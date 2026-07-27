@@ -317,6 +317,7 @@ def ia_generate():
         formato = data.get('formato', 'A5')
         num_pages = int(data.get('num_pages', 7) or 7)
         layout = data.get('layout', '2dpp')
+        style = data.get('style', 'minimalista')
         palette = data.get('palette', {})
 
         if not palette:
@@ -328,6 +329,7 @@ def ia_generate():
 
         blueprint = {
             "page_type": layout,
+            "style": style,
             "palette": palette,
             "editable_objects": [],
             "sections": [],

@@ -410,155 +410,253 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
 
 # ── Pre-built daily templates ──────────────────────────────────────────
 
-def _build_1dpp_objects(palette, w_mm=148, h_mm=210):
-    """Build a 1DPP page layout: header + 2-column body with checkboxes/schedule."""
+def _build_1dpp_objects(palette, w_mm=148, h_mm=210, style="minimalista"):
+    if style == "executivo":
+        return _build_1dpp_executivo(palette, w_mm, h_mm)
+    elif style == "kawaii":
+        return _build_1dpp_kawaii(palette, w_mm, h_mm)
+    elif style == "floral":
+        return _build_1dpp_floral(palette, w_mm, h_mm)
+    return _build_1dpp_minimalista(palette, w_mm, h_mm)
+
+
+def _build_2dpp_objects(palette, w_mm=148, h_mm=210, style="minimalista"):
+    if style == "executivo":
+        return _build_2dpp_executivo(palette, w_mm, h_mm)
+    elif style == "kawaii":
+        return _build_2dpp_kawaii(palette, w_mm, h_mm)
+    elif style == "floral":
+        return _build_2dpp_floral(palette, w_mm, h_mm)
+    return _build_2dpp_minimalista(palette, w_mm, h_mm)
+
+
+def _build_1dpp_minimalista(palette, w_mm=148, h_mm=210):
     objs = []
-    accent = "_accent_"
-    text = "_text_"
-    border = "_border_"
-    white = "_white_"
-    highlight = "_highlight_"
-    secondary = "_secondary_"
-    bg = "_background_"
+    m, ac, tx, bd, wh, hi, sec, bg = 8, "_accent_", "_text_", "_border_", "_white_", "_highlight_", "_secondary_", "_background_"
+    lh = (w_mm - 2*m - 4) * 0.6
+    rx = m + lh + 4
+    rw = w_mm - 2*m - lh - 4
+    by = 31
+    bh = h_mm - 47
 
-    margin = 8
-    col_gap = 4
-    header_h = 28
-    body_y = header_h + 3
-    body_h = h_mm - header_h - 16
-    left_w = (w_mm - 2 * margin - col_gap) * 0.6
-    right_x = margin + left_w + col_gap
-    right_w = w_mm - 2 * margin - left_w - col_gap
-
-    objs.append({"id": "bg_rect", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
-    objs.append({"id": "header_bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": header_h, "bg_color": accent})
-    objs.append({"id": "day_name", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA",
-                 "x": margin, "y": 3, "w": 60, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10,
-                 "color": white, "bold": True})
-    objs.append({"id": "day_number", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15",
-                 "x": margin, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28,
-                 "color": white, "bold": True})
-    objs.append({"id": "month_year", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026",
-                 "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9,
-                 "color": white})
-    objs.append({"id": "accent_line", "obj_type": "LINE", "x": 0, "y": header_h, "w": w_mm, "h": 0,
-                 "color": accent, "border_width": 1.5})
-
-    objs.append({"id": "section_pri", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "PRIORIDADES",
-                 "x": margin, "y": body_y, "w": 35, "h": 6,
-                 "font_name": "Helvetica-Bold", "font_size": 7, "color": accent, "bold": True})
-
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "hdr", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 28, "bg_color": ac})
+    objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m, "y": 3, "w": 60, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10, "color": wh, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28, "color": wh, "bold": True})
+    objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9, "color": wh})
+    objs.append({"id": "al", "obj_type": "LINE", "x": 0, "y": 28, "w": w_mm, "h": 0, "color": ac, "border_width": 1.5})
+    objs.append({"id": "sp", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "PRIORIDADES", "x": m, "y": by, "w": 35, "h": 6, "font_name": "Helvetica-Bold", "font_size": 7, "color": ac, "bold": True})
     for i in range(5):
-        cy = body_y + 8 + i * 10
-        objs.append({"id": f"cb_{i}", "obj_type": "CHECKBOX", "x": margin, "y": cy, "w": 3.5, "h": 3.5, "color": accent})
-        objs.append({"id": f"task_{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "",
-                     "x": margin + 5, "y": cy - 0.5, "w": left_w - 8, "h": 5,
-                     "font_name": "Helvetica", "font_size": 6, "color": text})
-
-    objs.append({"id": "vdivider", "obj_type": "LINE", "x": margin + left_w + col_gap / 2, "y": body_y,
-                 "w": 0, "h": body_h, "color": border, "border_width": 0.5})
-
-    objs.append({"id": "section_sched", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "AGENDA",
-                 "x": right_x, "y": body_y, "w": 35, "h": 6,
-                 "font_name": "Helvetica-Bold", "font_size": 7, "color": accent, "bold": True})
-
-    times = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
-    for i, t in enumerate(times):
-        ty = body_y + 8 + i * 10
-        objs.append({"id": f"time_{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t,
-                     "x": right_x, "y": ty, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": text})
-        objs.append({"id": f"tline_{i}", "obj_type": "LINE", "x": right_x + 14, "y": ty + 3,
-                     "w": right_w - 16, "h": 0, "color": border, "border_width": 0.2})
-
-    objs.append({"id": "page_num", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365",
-                 "x": 0, "y": h_mm - 10, "w": w_mm, "h": 5, "font_name": "Helvetica", "font_size": 5,
-                 "color": text, "align": "center"})
-
+        cy = by + 8 + i * 10
+        objs.append({"id": f"cb{i}", "obj_type": "CHECKBOX", "x": m, "y": cy, "w": 3.5, "h": 3.5, "color": ac})
+        objs.append({"id": f"tk{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+5, "y": cy-0.5, "w": lh-8, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": tx})
+    objs.append({"id": "vd", "obj_type": "LINE", "x": m+lh+2, "y": by, "w": 0, "h": bh, "color": bd, "border_width": 0.5})
+    objs.append({"id": "sa", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "AGENDA", "x": rx, "y": by, "w": 35, "h": 6, "font_name": "Helvetica-Bold", "font_size": 7, "color": ac, "bold": True})
+    for i, t_str in enumerate(["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]):
+        ty = by + 8 + i * 10
+        objs.append({"id": f"tm{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": rx, "y": ty, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": tx})
+        objs.append({"id": f"tl{i}", "obj_type": "LINE", "x": rx+14, "y": ty+3, "w": rw-16, "h": 0, "color": bd, "border_width": 0.2})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": h_mm-10, "w": w_mm, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": tx, "align": "center"})
     return objs
 
 
-def _build_2dpp_objects(palette, w_mm=148, h_mm=210):
-    """Build a 2DPP page layout: two day panels stacked vertically."""
+def _build_1dpp_executivo(palette, w_mm=148, h_mm=210):
     objs = []
-    accent = "_accent_"
-    text = "_text_"
-    border = "_border_"
-    white = "_white_"
-    bg = "_background_"
+    m, a, t, b, w, bg = 10, "_accent_", "_text_", "_border_", "_white_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "hdr", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 24, "bg_color": a})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": 3, "w": 22, "h": 18, "font_name": "Helvetica-Bold", "font_size": 32, "color": w, "bold": True})
+    objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m+24, "y": 4, "w": 50, "h": 8, "font_name": "Helvetica-Bold", "font_size": 12, "color": w, "bold": True})
+    objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+24, "y": 13, "w": 50, "h": 6, "font_name": "Helvetica", "font_size": 8, "color": w})
+    objs.append({"id": "al", "obj_type": "LINE", "x": 0, "y": 24, "w": w_mm, "h": 0, "color": a, "border_width": 2})
+    by = 30
+    objs.append({"id": "sp", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "TAREFAS DO DIA", "x": m, "y": by, "w": 50, "h": 5, "font_name": "Helvetica-Bold", "font_size": 6, "color": a, "bold": True})
+    for i in range(8):
+        cy = by + 7 + i * 8
+        objs.append({"id": f"cb{i}", "obj_type": "CHECKBOX", "x": m, "y": cy, "w": 3, "h": 3, "color": a})
+        objs.append({"id": f"tk{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+5, "y": cy-0.5, "w": w_mm-2*m-8, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t})
+    sy = by + 75
+    objs.append({"id": "hl", "obj_type": "LINE", "x": m, "y": sy, "w": w_mm-2*m, "h": 0, "color": b, "border_width": 0.3})
+    objs.append({"id": "sa", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "HORARIOS", "x": m, "y": sy-7, "w": 40, "h": 5, "font_name": "Helvetica-Bold", "font_size": 6, "color": a, "bold": True})
+    for i, t_str in enumerate(["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]):
+        ty = sy - 14 - i * 7
+        objs.append({"id": f"tm{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": m, "y": ty, "w": 12, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t})
+        objs.append({"id": f"tl{i}", "obj_type": "LINE", "x": m+14, "y": ty+2, "w": w_mm-2*m-16, "h": 0, "color": b, "border_width": 0.15})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": h_mm-8, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t, "align": "center"})
+    return objs
 
-    margin = 8
-    panel_gap = 6
-    top_bar = 20
-    panel_h = (h_mm - top_bar - 2 * margin - panel_gap) / 2
 
-    objs.append({"id": "bg_rect", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
-    objs.append({"id": "title_bar", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": top_bar, "bg_color": accent})
-    objs.append({"id": "title_text", "obj_type": "TEXT", "value": "AGENDA DIARIA",
-                 "x": 0, "y": 5, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 10,
-                 "color": white, "align": "center"})
+def _build_1dpp_kawaii(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, w, hi, bg = 10, "_accent_", "_text_", "_white_", "_highlight_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "hdr", "obj_type": "ROUNDED_RECTANGLE", "x": m, "y": h_mm-30, "w": w_mm-2*m, "h": 26, "bg_color": a, "radius": 5})
+    objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m+8, "y": h_mm-28, "w": 60, "h": 7, "font_name": "Helvetica-Bold", "font_size": 10, "color": w, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m+8, "y": h_mm-20, "w": 20, "h": 14, "font_name": "Helvetica-Bold", "font_size": 24, "color": w, "bold": True})
+    objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+30, "y": h_mm-16, "w": 50, "h": 6, "font_name": "Helvetica", "font_size": 8, "color": w})
+    objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "heart", "x": w_mm-m-16, "y": h_mm-26, "w": 10, "h": 10, "color": w})
+    by = h_mm - 36
+    objs.append({"id": "sp", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "tarefinhas", "x": m, "y": by, "w": 40, "h": 5, "font_name": "Helvetica", "font_size": 7, "color": a})
+    for i in range(6):
+        cy = by - 8 - i * 11
+        objs.append({"id": f"cb{i}", "obj_type": "CHECKBOX", "x": m, "y": cy, "w": 4, "h": 4, "color": a})
+        objs.append({"id": f"tk{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+6, "y": cy-0.5, "w": w_mm-2*m-10, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": t})
+    ny = by - 80
+    objs.append({"id": "sn", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "notas", "x": m, "y": ny, "w": 30, "h": 5, "font_name": "Helvetica", "font_size": 7, "color": a})
+    for i in range(8):
+        ly = ny - 7 - i * 6
+        objs.append({"id": f"rl{i}", "obj_type": "LINE", "x": m, "y": ly, "w": w_mm-2*m, "h": 0, "color": "_border_", "border_width": 0.2})
+    objs.append({"id": "d2", "obj_type": "DECORATION", "shape": "star", "x": w_mm/2-5, "y": 4, "w": 10, "h": 10, "color": a})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": 14, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t, "align": "center"})
+    return objs
 
-    for side in range(2):
-        panel_y = top_bar + margin + side * (panel_h + panel_gap)
-        header_h = 22
 
-        objs.append({"id": f"panel_{side}_bg", "obj_type": "ROUNDED_RECTANGLE",
-                     "x": margin, "y": panel_y, "w": w_mm - 2 * margin, "h": panel_h,
-                     "bg_color": bg, "border": True, "border_color": border, "border_width": 0.3, "radius": 2})
-        objs.append({"id": f"panel_{side}_header", "obj_type": "RECTANGLE",
-                     "x": margin, "y": panel_y, "w": w_mm - 2 * margin, "h": header_h,
-                     "bg_color": accent})
-        objs.append({"id": f"day_name_{side}", "obj_type": "TEXT", "semantic": "DAY_NAME",
-                     "value": "TERCA" if side == 0 else "QUARTA",
-                     "x": margin + 3, "y": panel_y + 2, "w": 50, "h": 7,
-                     "font_name": "Helvetica-Bold", "font_size": 8, "color": white, "bold": True})
-        objs.append({"id": f"day_num_{side}", "obj_type": "TEXT", "semantic": "DAY_NUMBER",
-                     "value": "15" if side == 0 else "16",
-                     "x": margin + 3, "y": panel_y + 9, "w": 20, "h": 12,
-                     "font_name": "Helvetica-Bold", "font_size": 22, "color": white, "bold": True})
-        objs.append({"id": f"month_{side}", "obj_type": "TEXT", "semantic": "MONTH_NAME",
-                     "value": "julho 2026" if side == 0 else "agosto 2026",
-                     "x": margin + 25, "y": panel_y + 12, "w": 40, "h": 6,
-                     "font_name": "Helvetica", "font_size": 7, "color": white})
+def _build_1dpp_floral(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, b, w, hi, bg = 10, "_accent_", "_text_", "_border_", "_white_", "_highlight_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "tl", "obj_type": "LINE", "x": m, "y": h_mm-8, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 0.5})
+    objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m, "y": h_mm-22, "w": 60, "h": 8, "font_name": "Times-Bold", "font_size": 12, "color": a, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": h_mm-42, "w": 25, "h": 16, "font_name": "Times-Bold", "font_size": 30, "color": t, "bold": True})
+    objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+28, "y": h_mm-36, "w": 50, "h": 6, "font_name": "Times-Italic", "font_size": 9, "color": t})
+    objs.append({"id": "bl", "obj_type": "LINE", "x": m, "y": h_mm-48, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 1})
+    objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "flower", "x": w_mm-m-14, "y": h_mm-44, "w": 12, "h": 12, "color": a})
+    by = h_mm - 56
+    objs.append({"id": "sp", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "PRIORIDADES", "x": m, "y": by, "w": 40, "h": 5, "font_name": "Times-Bold", "font_size": 6, "color": a, "bold": True})
+    for i in range(5):
+        cy = by - 8 - i * 10
+        objs.append({"id": f"d{i}", "obj_type": "DECORATION", "shape": "flower", "x": m, "y": cy, "w": 4, "h": 4, "color": a})
+        objs.append({"id": f"tk{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+6, "y": cy-0.5, "w": w_mm-2*m-10, "h": 5, "font_name": "Times-Roman", "font_size": 6, "color": t})
+    objs.append({"id": "hl", "obj_type": "LINE", "x": m, "y": by-60, "w": w_mm-2*m, "h": 0, "color": b, "border_width": 0.3})
+    objs.append({"id": "sa", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "HORARIOS", "x": m, "y": by-68, "w": 40, "h": 5, "font_name": "Times-Bold", "font_size": 6, "color": a, "bold": True})
+    for i, t_str in enumerate(["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]):
+        ty = by - 76 - i * 7
+        objs.append({"id": f"tm{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": m, "y": ty, "w": 12, "h": 4, "font_name": "Times-Roman", "font_size": 5, "color": t})
+        objs.append({"id": f"tl{i}", "obj_type": "LINE", "x": m+14, "y": ty+2, "w": w_mm-2*m-16, "h": 0, "color": b, "border_width": 0.15})
+    objs.append({"id": "bl2", "obj_type": "LINE", "x": m, "y": 20, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 0.5})
+    objs.append({"id": "d2", "obj_type": "DECORATION", "shape": "flower", "x": w_mm/2-6, "y": 4, "w": 12, "h": 12, "color": a})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": 24, "w": w_mm, "h": 4, "font_name": "Times-Roman", "font_size": 5, "color": t, "align": "center"})
+    return objs
 
-        body_y = panel_y + header_h + 2
-        body_h_inner = panel_h - header_h - 6
-        col_w = (w_mm - 2 * margin - 4) / 2
-        right_x = margin + col_w + 4
 
-        objs.append({"id": f"section_pri_{side}", "obj_type": "TEXT", "semantic": "SECTION_TITLE",
-                     "value": "TAREFAS",
-                     "x": margin + 2, "y": body_y, "w": 25, "h": 5,
-                     "font_name": "Helvetica-Bold", "font_size": 5, "color": accent, "bold": True})
-
+def _build_2dpp_minimalista(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, b, w, bg = 8, "_accent_", "_text_", "_border_", "_white_", "_background_"
+    pg = 6
+    ph = (h_mm - 26 - 2*m - pg) / 2
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "tb", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 20, "bg_color": a})
+    objs.append({"id": "tt", "obj_type": "TEXT", "value": "AGENDA DIARIA", "x": 0, "y": 5, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 10, "color": w, "align": "center"})
+    for s in range(2):
+        py = 20 + m + s * (ph + pg)
+        hh = 20
+        objs.append({"id": f"p{s}bg", "obj_type": "ROUNDED_RECTANGLE", "x": m, "y": py, "w": w_mm-2*m, "h": ph, "bg_color": bg, "border": True, "border_color": b, "border_width": 0.3, "radius": 2})
+        objs.append({"id": f"p{s}hd", "obj_type": "RECTANGLE", "x": m, "y": py, "w": w_mm-2*m, "h": hh, "bg_color": a})
+        objs.append({"id": f"dn{s}", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA" if s==0 else "QUARTA", "x": m+3, "y": py+2, "w": 50, "h": 7, "font_name": "Helvetica-Bold", "font_size": 8, "color": w, "bold": True})
+        objs.append({"id": f"dd{s}", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15" if s==0 else "16", "x": m+3, "y": py+9, "w": 20, "h": 12, "font_name": "Helvetica-Bold", "font_size": 22, "color": w, "bold": True})
+        objs.append({"id": f"my{s}", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026" if s==0 else "agosto 2026", "x": m+25, "y": py+12, "w": 40, "h": 6, "font_name": "Helvetica", "font_size": 7, "color": w})
+        by = py + hh + 2
+        cw = (w_mm - 2*m - 4) / 2
+        rx = m + cw + 4
+        objs.append({"id": f"st{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "TAREFAS", "x": m+2, "y": by, "w": 25, "h": 5, "font_name": "Helvetica-Bold", "font_size": 5, "color": a, "bold": True})
         for i in range(4):
-            cy = body_y + 7 + i * 8
-            objs.append({"id": f"cb_{side}_{i}", "obj_type": "CHECKBOX",
-                         "x": margin + 2, "y": cy, "w": 3, "h": 3, "color": accent})
-            objs.append({"id": f"task_{side}_{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "",
-                         "x": margin + 7, "y": cy - 0.5, "w": col_w - 10, "h": 4,
-                         "font_name": "Helvetica", "font_size": 5, "color": text})
-
-        objs.append({"id": f"vdiv_{side}", "obj_type": "LINE",
-                     "x": margin + col_w + 2, "y": body_y, "w": 0, "h": body_h_inner - 4,
-                     "color": border, "border_width": 0.3})
-
-        objs.append({"id": f"section_notes_{side}", "obj_type": "TEXT", "semantic": "SECTION_TITLE",
-                     "value": "ANOTACOES",
-                     "x": right_x, "y": body_y, "w": 25, "h": 5,
-                     "font_name": "Helvetica-Bold", "font_size": 5, "color": accent, "bold": True})
-
+            cy = by + 7 + i * 8
+            objs.append({"id": f"cb{s}{i}", "obj_type": "CHECKBOX", "x": m+2, "y": cy, "w": 3, "h": 3, "color": a})
+            objs.append({"id": f"tk{s}{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+7, "y": cy-0.5, "w": cw-10, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t})
+        objs.append({"id": f"vd{s}", "obj_type": "LINE", "x": m+cw+2, "y": by, "w": 0, "h": ph-hh-8, "color": b, "border_width": 0.3})
+        objs.append({"id": f"sn{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "ANOTACOES", "x": rx, "y": by, "w": 25, "h": 5, "font_name": "Helvetica-Bold", "font_size": 5, "color": a, "bold": True})
         for i in range(8):
-            ly = body_y + 8 + i * 5
-            if ly > panel_y + panel_h - 8:
-                break
-            objs.append({"id": f"rule_{side}_{i}", "obj_type": "LINE",
-                         "x": right_x, "y": ly, "w": col_w - 2, "h": 0,
-                         "color": border, "border_width": 0.2})
+            ly = by + 8 + i * 5
+            if ly > py + ph - 8: break
+            objs.append({"id": f"rl{s}{i}", "obj_type": "LINE", "x": rx, "y": ly, "w": cw-2, "h": 0, "color": b, "border_width": 0.2})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": h_mm-6, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 4, "color": t, "align": "center"})
+    return objs
 
-    objs.append({"id": "page_num", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365",
-                 "x": 0, "y": h_mm - 6, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 4,
-                 "color": text, "align": "center"})
 
+def _build_2dpp_executivo(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, b, w, bg = 8, "_accent_", "_text_", "_border_", "_white_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "tb", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 16, "bg_color": a})
+    objs.append({"id": "tt", "obj_type": "TEXT", "value": "AGENDA", "x": 0, "y": 3, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 9, "color": w, "align": "center"})
+    for s in range(2):
+        py = 20 + s * ((h_mm-24)/2)
+        objs.append({"id": f"p{s}hd", "obj_type": "RECTANGLE", "x": m, "y": py, "w": 24, "h": 24, "bg_color": a})
+        objs.append({"id": f"dd{s}", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15" if s==0 else "16", "x": m+2, "y": py+2, "w": 20, "h": 20, "font_name": "Helvetica-Bold", "font_size": 22, "color": w, "bold": True})
+        objs.append({"id": f"dn{s}", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA" if s==0 else "QUARTA", "x": m+28, "y": py+2, "w": 50, "h": 7, "font_name": "Helvetica-Bold", "font_size": 8, "color": t, "bold": True})
+        objs.append({"id": f"my{s}", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026" if s==0 else "agosto 2026", "x": m+28, "y": py+10, "w": 40, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": t})
+        by = py + 28
+        objs.append({"id": f"sp{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "TAREFAS", "x": m, "y": by, "w": 30, "h": 4, "font_name": "Helvetica-Bold", "font_size": 5, "color": a, "bold": True})
+        for i in range(3):
+            cy = by + 6 + i * 7
+            objs.append({"id": f"cb{s}{i}", "obj_type": "CHECKBOX", "x": m, "y": cy, "w": 3, "h": 3, "color": a})
+            objs.append({"id": f"tk{s}{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+5, "y": cy-0.5, "w": w_mm-2*m-8, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t})
+        sy = by + 30
+        objs.append({"id": f"hl{s}", "obj_type": "LINE", "x": m, "y": sy, "w": w_mm-2*m, "h": 0, "color": b, "border_width": 0.2})
+        for i, t_str in enumerate(["08:00","10:00","12:00","14:00","16:00","18:00"]):
+            ty = sy + 5 + i * 5
+            if ty > py + (h_mm-24)/2 - 10: break
+            objs.append({"id": f"tm{s}{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": m, "y": ty, "w": 10, "h": 4, "font_name": "Helvetica", "font_size": 4, "color": t})
+            objs.append({"id": f"tl{s}{i}", "obj_type": "LINE", "x": m+12, "y": ty+2, "w": w_mm-2*m-14, "h": 0, "color": b, "border_width": 0.15})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": h_mm-6, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 4, "color": t, "align": "center"})
+    return objs
+
+
+def _build_2dpp_kawaii(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, w, hi, bg = 10, "_accent_", "_text_", "_white_", "_highlight_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "heart", "x": w_mm/2-6, "y": h_mm-14, "w": 12, "h": 12, "color": a})
+    for s in range(2):
+        py = 6 + s * ((h_mm-18)/2)
+        ph2 = (h_mm-18)/2 - 6
+        objs.append({"id": f"p{s}bg", "obj_type": "ROUNDED_RECTANGLE", "x": m, "y": py, "w": w_mm-2*m, "h": ph2, "bg_color": hi, "border": True, "border_color": a, "border_width": 0.3, "radius": 4})
+        objs.append({"id": f"p{s}hd", "obj_type": "ROUNDED_RECTANGLE", "x": m, "y": py+ph2-18, "w": w_mm-2*m, "h": 18, "bg_color": a, "radius": 3})
+        objs.append({"id": f"dn{s}", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA" if s==0 else "QUARTA", "x": m+5, "y": py+ph2-16, "w": 45, "h": 6, "font_name": "Helvetica-Bold", "font_size": 7, "color": w, "bold": True})
+        objs.append({"id": f"dd{s}", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15" if s==0 else "16", "x": m+5, "y": py+ph2-10, "w": 18, "h": 10, "font_name": "Helvetica-Bold", "font_size": 18, "color": w, "bold": True})
+        objs.append({"id": f"my{s}", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026" if s==0 else "agosto 2026", "x": m+25, "y": py+ph2-8, "w": 40, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": w})
+        by = py + ph2 - 24
+        objs.append({"id": f"sp{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "tarefas", "x": m+5, "y": by, "w": 25, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": a})
+        for i in range(3):
+            cy = by - 6 - i * 7
+            objs.append({"id": f"cb{s}{i}", "obj_type": "CHECKBOX", "x": m+5, "y": cy, "w": 3, "h": 3, "color": a})
+            objs.append({"id": f"tk{s}{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+10, "y": cy-0.5, "w": w_mm-2*m-15, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": t})
+        objs.append({"id": f"sn{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "notas", "x": m+5, "y": py+5, "w": 20, "h": 4, "font_name": "Helvetica", "font_size": 5, "color": a})
+        for i in range(4):
+            ly = py + 1 + i * 4
+            objs.append({"id": f"rl{s}{i}", "obj_type": "LINE", "x": m+5, "y": ly, "w": w_mm-2*m-10, "h": 0, "color": "_border_", "border_width": 0.15})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": 2, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 4, "color": t, "align": "center"})
+    return objs
+
+
+def _build_2dpp_floral(palette, w_mm=148, h_mm=210):
+    objs = []
+    m, a, t, b, w, bg = 10, "_accent_", "_text_", "_border_", "_white_", "_background_"
+    objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "bl", "obj_type": "LINE", "x": m, "y": h_mm-6, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 0.5})
+    objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "flower", "x": 4, "y": h_mm-16, "w": 8, "h": 8, "color": a})
+    objs.append({"id": "d2", "obj_type": "DECORATION", "shape": "flower", "x": w_mm-12, "y": h_mm-16, "w": 8, "h": 8, "color": a})
+    for s in range(2):
+        py = 8 + s * ((h_mm-20)/2)
+        ph2 = (h_mm-20)/2 - 6
+        objs.append({"id": f"p{s}ln", "obj_type": "LINE", "x": m, "y": py+ph2, "w": w_mm-2*m, "h": 0, "color": b, "border_width": 0.3})
+        objs.append({"id": f"dn{s}", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA" if s==0 else "QUARTA", "x": m, "y": py+ph2-8, "w": 50, "h": 6, "font_name": "Times-Bold", "font_size": 8, "color": a, "bold": True})
+        objs.append({"id": f"dd{s}", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15" if s==0 else "16", "x": m, "y": py+ph2-20, "w": 20, "h": 12, "font_name": "Times-Bold", "font_size": 18, "color": t, "bold": True})
+        objs.append({"id": f"my{s}", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026" if s==0 else "agosto 2026", "x": m+22, "y": py+ph2-16, "w": 40, "h": 5, "font_name": "Times-Italic", "font_size": 6, "color": t})
+        objs.append({"id": f"fd{s}", "obj_type": "DECORATION", "shape": "flower", "x": w_mm-m-12, "y": py+ph2-16, "w": 10, "h": 10, "color": a})
+        by = py + ph2 - 26
+        objs.append({"id": f"sp{s}", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "PRIORIDADES", "x": m, "y": by, "w": 40, "h": 4, "font_name": "Times-Bold", "font_size": 5, "color": a, "bold": True})
+        for i in range(3):
+            cy = by - 6 - i * 7
+            objs.append({"id": f"d{s}{i}", "obj_type": "DECORATION", "shape": "flower", "x": m, "y": cy, "w": 3, "h": 3, "color": a})
+            objs.append({"id": f"tk{s}{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+5, "y": cy-0.5, "w": w_mm-2*m-10, "h": 4, "font_name": "Times-Roman", "font_size": 5, "color": t})
+        objs.append({"id": f"hl{s}", "obj_type": "LINE", "x": m, "y": py+4, "w": w_mm-2*m, "h": 0, "color": b, "border_width": 0.2})
+        for i, t_str in enumerate(["08:00","10:00","12:00","14:00","16:00"]):
+            ty = py - 2 - i * 4
+            if ty < py + 2: break
+            objs.append({"id": f"tm{s}{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": m, "y": ty, "w": 10, "h": 3, "font_name": "Times-Roman", "font_size": 4, "color": t})
+            objs.append({"id": f"tl{s}{i}", "obj_type": "LINE", "x": m+11, "y": ty+1.5, "w": w_mm-2*m-13, "h": 0, "color": b, "border_width": 0.15})
+    objs.append({"id": "pn", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365", "x": 0, "y": 4, "w": w_mm, "h": 4, "font_name": "Times-Roman", "font_size": 4, "color": t, "align": "center"})
     return objs
 
 
@@ -649,6 +747,7 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     bp = blueprint_dict
     palette = _get_palette(bp)
     editable = bp.get("editable_objects", [])
+    style = bp.get("style", "minimalista")
 
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
 
@@ -659,9 +758,9 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
 
     if not editable:
         if page_type == "2dpp":
-            editable = _build_2dpp_objects(palette)
+            editable = _build_2dpp_objects(palette, style=style)
         else:
-            editable = _build_1dpp_objects(palette)
+            editable = _build_1dpp_objects(palette, style=style)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))

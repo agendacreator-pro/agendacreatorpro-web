@@ -96,6 +96,14 @@
             <option value="1dpp">1 por pagina (1DPP)</option>
           </select>
         </div>
+        <div><label>Estilo:</label><br>
+          <select id="selStyle">
+            <option value="minimalista">Minimalista</option>
+            <option value="executivo">Executivo</option>
+            <option value="kawaii">Kawaii</option>
+            <option value="floral">Floral</option>
+          </select>
+        </div>
         <div><label>Dias:</label><br>
           <select id="selDays">
             <option value="7">7 dias</option>
@@ -131,14 +139,30 @@
         <div onclick="pickColor('#607D8B')" style="width:28px;height:28px;border-radius:50%;background:#607D8B;cursor:pointer;border:2px solid #eee;" title="Cinza azulado"></div>
         <div onclick="pickColor('#2D2D2D')" style="width:28px;height:28px;border-radius:50%;background:#2D2D2D;cursor:pointer;border:2px solid #eee;" title="Preto"></div>
       </div>
-      <button class="btn btn-secondary" onclick="resetAll()">Nova Imagem</button>
-      <button class="btn btn-success" id="btnGenerate" onclick="generatePDF()">Gerar Agenda</button>
+      <div style="text-align:center;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="resetAll()">Nova Imagem</button>
+        <button class="btn btn-success" id="btnGenerate" onclick="generatePDF()">Gerar Agenda</button>
+      </div>
+    </div>
+
+    <div id="shareSection" style="display:none;margin-top:24px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+      <h3 style="text-align:center;margin-bottom:16px;">Agenda Gerada com Sucesso!</h3>
+      <p style="text-align:center;color:#666;margin-bottom:16px;">Salve ou compartilhe:</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-success" onclick="downloadPDF()" id="btnDownload">&#128190; Baixar PDF</button>
+        <button class="btn" style="background:#25D366;color:#fff;" onclick="shareWhatsApp()">&#128172; WhatsApp</button>
+        <button class="btn" style="background:#EA4335;color:#fff;" onclick="shareEmail()">&#9993; Email</button>
+        <button class="btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;" onclick="shareInstagram()">&#128247; Instagram</button>
+      </div>
+      <p style="text-align:center;color:#aaa;font-size:0.8rem;margin-top:12px;">No celular use "Compartilhar" para enviar para qualquer app</p>
     </div>
   </div>
 
 <script>
 let myFile = null;
 let myPalette = null;
+let lastBlob = null;
+let lastUrl = null;
 
 document.getElementById("uploadZone").addEventListener("click", function() {
   document.getElementById("fileInput").click();
@@ -265,6 +289,7 @@ function generatePDF() {
     body: JSON.stringify({
       formato: document.getElementById("selFormat").value,
       layout: document.getElementById("selLayout").value,
+      style: document.getElementById("selStyle").value,
       num_pages: parseInt(document.getElementById("selDays").value),
       palette: palette
     })
@@ -272,14 +297,11 @@ function generatePDF() {
     if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || "Erro"); });
     return r.blob();
   }).then(function(blob) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "Agenda.pdf";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    lastBlob = blob;
+    if (lastUrl) URL.revokeObjectURL(lastUrl);
+    lastUrl = URL.createObjectURL(blob);
+    document.getElementById("configSection").style.display = "none";
+    document.getElementById("shareSection").style.display = "block";
     btn.disabled = false;
     btn.textContent = "Gerar Agenda";
   }).catch(function(err) {
@@ -296,13 +318,48 @@ function showError(msg) {
   document.getElementById("errorMsg").textContent = msg;
 }
 
+function downloadPDF() {
+  if (!lastUrl) return;
+  var a = document.createElement("a");
+  a.href = lastUrl;
+  a.download = "Agenda.pdf";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function shareWhatsApp() {
+  if (navigator.share && lastBlob) {
+    var file = new File([lastBlob], "Agenda.pdf", { type: "application/pdf" });
+    navigator.share({ files: [file], title: "Minha Agenda" }).catch(function() {});
+  } else {
+    alert("No celular, baixe o PDF e compartilhe pelo WhatsApp.");
+  }
+}
+
+function shareEmail() {
+  window.location.href = "mailto:?subject=Minha Agenda&body=Segue em anexo a agenda gerada pelo Agenda Creator Pro.";
+}
+
+function shareInstagram() {
+  if (navigator.share && lastBlob) {
+    var file = new File([lastBlob], "Agenda.pdf", { type: "application/pdf" });
+    navigator.share({ files: [file], title: "Minha Agenda" }).catch(function() {});
+  } else {
+    alert("No celular, baixe o PDF e compartilhe pelo Instagram.");
+  }
+}
+
 function resetAll() {
   myFile = null;
   myPalette = null;
+  lastBlob = null;
+  if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
   document.getElementById("uploadZone").style.display = "block";
   document.getElementById("previewSection").style.display = "none";
   document.getElementById("progressSection").style.display = "none";
   document.getElementById("configSection").style.display = "none";
+  document.getElementById("shareSection").style.display = "none";
   document.getElementById("errorSection").style.display = "none";
   document.getElementById("fileInput").value = "";
 }
