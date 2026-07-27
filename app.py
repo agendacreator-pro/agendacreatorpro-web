@@ -153,6 +153,38 @@ def logout():
     return redirect(url_for('landing'))
 
 
+@app.route('/api/change-password', methods=['POST'])
+@login_required
+def change_password():
+    data = request.json
+    old_password = data.get('old_password', '')
+    new_password = data.get('new_password', '')
+    confirm = data.get('confirm', '')
+
+    user = find_user(current_user.id)
+    if not user:
+        return jsonify({'success': False, 'message': 'Usuario nao encontrado'})
+
+    if not check_password_hash(user['password'], old_password):
+        return jsonify({'success': False, 'message': 'Senha atual incorreta'})
+
+    if len(new_password) < 6:
+        return jsonify({'success': False, 'message': 'Nova senha deve ter no minimo 6 caracteres'})
+
+    if new_password != confirm:
+        return jsonify({'success': False, 'message': 'As senhas nao coincidem'})
+
+    user['password'] = generate_password_hash(new_password)
+    _save_users()
+    return jsonify({'success': True, 'message': 'Senha alterada com sucesso'})
+
+
+def _save_users():
+    path = os.path.join(os.path.dirname(__file__), 'users.json')
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump({'users': list(USERS.values())}, f, indent=2, ensure_ascii=False)
+
+
 @app.route('/app')
 @login_required
 def index():
