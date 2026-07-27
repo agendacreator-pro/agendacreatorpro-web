@@ -163,6 +163,7 @@ def login():
     if user and user.get('ativo') and check_password_hash(user['password'], password):
         login_user(User(user['email']))
         return jsonify({'success': True, 'redirect': '/'})
+    print(f"[LOGIN FAIL] email={email} found={user is not None} active={user.get('ativo') if user else '-'}")
     return jsonify({'success': False, 'message': 'E-mail ou senha incorretos'})
 
 
