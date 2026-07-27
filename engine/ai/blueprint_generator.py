@@ -296,7 +296,6 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
     accent = _pc(_resolve_color("_accent_", palette) or "#4A90D9")
     text_c = _pc(_resolve_color("_text_", palette) or "#333333")
     border_c = _pc(_resolve_color("_border_", palette) or "#E0E0E0")
-    highlight = _pc(_resolve_color("_highlight_", palette) or "#F0F0F0")
     bg = _pc(_resolve_color("_background_", palette) or "#FFFFFF")
 
     pdf.setFillColor(bg)
@@ -307,35 +306,36 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
     pdf.rect(0, h - top_bar, w, top_bar, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFFFFF"))
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawCentredString(w / 2, h - 14 * mm, f"CALENDÁRIO {base_date.year}")
+    pdf.drawCentredString(w / 2, h - 14 * mm, f"CALENDARIO {base_date.year}")
 
-    margin = 10 * mm
+    margin = 8 * mm
+    gap = 3 * mm
     grid_w = w - 2 * margin
-    grid_h = h - top_bar - 2 * margin - 10 * mm
-    cell_w = grid_w / 4
-    cell_h = grid_h / 3
+    grid_h = h - top_bar - 2 * margin - 6 * mm
+    cell_w = (grid_w - 3 * gap) / 4
+    cell_h = (grid_h - 2 * gap) / 3
 
     for row in range(3):
         for col in range(4):
             month_idx = row * 4 + col
             if month_idx >= 12:
                 break
-            cx = margin + col * cell_w
-            cy = h - top_bar - margin - (row + 1) * cell_h
+            cx = margin + col * (cell_w + gap)
+            cy = h - top_bar - margin - (row + 1) * cell_h - row * gap
 
             pdf.setFillColor(accent)
-            pdf.rect(cx, cy + cell_h - 6 * mm, cell_w, 6 * mm, fill=1, stroke=0)
+            pdf.rect(cx, cy + cell_h - 5 * mm, cell_w, 5 * mm, fill=1, stroke=0)
             pdf.setFillColor(_pc("#FFFFFF"))
-            pdf.setFont("Helvetica-Bold", 6)
-            pdf.drawCentredString(cx + cell_w / 2, cy + cell_h - 4.5 * mm, MONTHS_PT[month_idx])
+            pdf.setFont("Helvetica-Bold", 5)
+            pdf.drawCentredString(cx + cell_w / 2, cy + cell_h - 3.8 * mm, MONTHS_PT[month_idx])
 
             pdf.setStrokeColor(border_c)
             pdf.setLineWidth(0.3)
             pdf.rect(cx, cy, cell_w, cell_h, fill=0, stroke=1)
 
             col_w = cell_w / 7
-            header_y = cy + cell_h - 9 * mm
-            pdf.setFont("Helvetica", 3.5)
+            header_y = cy + cell_h - 7 * mm
+            pdf.setFont("Helvetica", 3)
             pdf.setFillColor(text_c)
             for d in range(7):
                 pdf.drawCentredString(cx + col_w * d + col_w / 2, header_y, DAYS_SHORT[d])
@@ -351,13 +351,13 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
             except ValueError:
                 continue
 
-            pdf.setFont("Helvetica", 3.5)
+            pdf.setFont("Helvetica", 3)
             for day in range(1, days_in_month + 1):
                 pos = start_weekday + day - 1
                 dr = pos // 7
                 dc = pos % 7
                 dx = cx + col_w * dc + col_w / 2
-                dy = header_y - 3 * mm - dr * 3.8 * mm
+                dy = header_y - 3 * mm - dr * 3 * mm
                 if dy < cy + 1 * mm:
                     break
                 pdf.setFillColor(text_c)
@@ -373,36 +373,35 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
     pdf.setFillColor(bg)
     pdf.rect(0, 0, w, h, fill=1, stroke=0)
 
-    top_bar = 20 * mm
+    top_bar = 18 * mm
     pdf.setFillColor(accent)
     pdf.rect(0, h - top_bar, w, top_bar, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFFFFF"))
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawCentredString(w / 2, h - 14 * mm, f"PLANEJAMENTO {base_date.year}")
+    pdf.drawCentredString(w / 2, h - 13 * mm, f"PLANEJAMENTO {base_date.year}")
 
-    margin = 12 * mm
+    margin = 10 * mm
     y = h - top_bar - margin
-    row_h = 14 * mm
+    available_h = y - margin
+    row_h = available_h / 12
 
     for m in range(12):
-        if y - row_h < margin:
-            break
         pdf.setStrokeColor(border_c)
         pdf.setLineWidth(0.3)
         pdf.line(margin, y, w - margin, y)
         y -= row_h
 
         pdf.setFillColor(accent)
-        pdf.roundRect(margin, y + 2 * mm, 25 * mm, 8 * mm, 2 * mm, fill=1, stroke=0)
+        pdf.roundRect(margin, y + 1 * mm, 22 * mm, 6 * mm, 2 * mm, fill=1, stroke=0)
         pdf.setFillColor(_pc("#FFFFFF"))
         pdf.setFont("Helvetica-Bold", 5)
-        pdf.drawCentredString(margin + 12.5 * mm, y + 4.5 * mm, MONTHS_SHORT[m])
+        pdf.drawCentredString(margin + 11 * mm, y + 2.8 * mm, MONTHS_SHORT[m])
 
         pdf.setStrokeColor(border_c)
         pdf.setLineWidth(0.2)
-        for li in range(3):
-            ly = y + 2 * mm + li * 2.5 * mm
-            pdf.line(margin + 28 * mm, ly, w - margin, ly)
+        for li in range(2):
+            ly = y + 1.5 * mm + li * 2 * mm
+            pdf.line(margin + 24 * mm, ly, w - margin, ly)
 
     pdf.setFillColor(border_c)
     pdf.setFont("Helvetica", 5)

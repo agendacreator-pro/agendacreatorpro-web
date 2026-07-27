@@ -106,6 +106,31 @@
           </select>
         </div>
       </div>
+      <div class="config-row" style="align-items:center;">
+        <div style="text-align:center;">
+          <label>Cor da agenda:</label><br>
+          <input type="color" id="colorPicker" value="#4A90D9" style="width:50px;height:36px;border:none;cursor:pointer;border-radius:8px;margin-top:4px;">
+          <div style="font-size:0.7rem;color:#aaa;margin-top:2px;" id="colorHex">#4A90D9</div>
+        </div>
+        <div style="text-align:center;">
+          <label>Cor do texto:</label><br>
+          <input type="color" id="textColorPicker" value="#333333" style="width:50px;height:36px;border:none;cursor:pointer;border-radius:8px;margin-top:4px;">
+          <div style="font-size:0.7rem;color:#aaa;margin-top:2px;" id="textColorHex">#333333</div>
+        </div>
+      </div>
+      <div class="config-row" style="justify-content:center;gap:6px;margin-top:4px;">
+        <label style="font-size:0.8rem;width:100%;text-align:center;color:#888;">Cores rapidas:</label>
+        <div onclick="pickColor('#4A90D9')" style="width:28px;height:28px;border-radius:50%;background:#4A90D9;cursor:pointer;border:2px solid #eee;" title="Azul"></div>
+        <div onclick="pickColor('#FF5FA2')" style="width:28px;height:28px;border-radius:50%;background:#FF5FA2;cursor:pointer;border:2px solid #eee;" title="Rosa"></div>
+        <div onclick="pickColor('#4CAF50')" style="width:28px;height:28px;border-radius:50%;background:#4CAF50;cursor:pointer;border:2px solid #eee;" title="Verde"></div>
+        <div onclick="pickColor('#FF9800')" style="width:28px;height:28px;border-radius:50%;background:#FF9800;cursor:pointer;border:2px solid #eee;" title="Laranja"></div>
+        <div onclick="pickColor('#9C27B0')" style="width:28px;height:28px;border-radius:50%;background:#9C27B0;cursor:pointer;border:2px solid #eee;" title="Roxo"></div>
+        <div onclick="pickColor('#E91E63')" style="width:28px;height:28px;border-radius:50%;background:#E91E63;cursor:pointer;border:2px solid #eee;" title="Magenta"></div>
+        <div onclick="pickColor('#00BCD4')" style="width:28px;height:28px;border-radius:50%;background:#00BCD4;cursor:pointer;border:2px solid #eee;" title="Ciano"></div>
+        <div onclick="pickColor('#795548')" style="width:28px;height:28px;border-radius:50%;background:#795548;cursor:pointer;border:2px solid #eee;" title="Marrom"></div>
+        <div onclick="pickColor('#607D8B')" style="width:28px;height:28px;border-radius:50%;background:#607D8B;cursor:pointer;border:2px solid #eee;" title="Cinza azulado"></div>
+        <div onclick="pickColor('#2D2D2D')" style="width:28px;height:28px;border-radius:50%;background:#2D2D2D;cursor:pointer;border:2px solid #eee;" title="Preto"></div>
+      </div>
       <button class="btn btn-secondary" onclick="resetAll()">Nova Imagem</button>
       <button class="btn btn-success" id="btnGenerate" onclick="generatePDF()">Gerar Agenda</button>
     </div>
@@ -197,12 +222,42 @@ function showConfig() {
     d.innerHTML = '<div class="swatch-box" style="background:' + myPalette[key] + '"></div><div class="swatch-label">' + (names[key]||key) + '</div><div class="swatch-hex">' + myPalette[key] + '</div>';
     grid.appendChild(d);
   }
+
+  document.getElementById("colorPicker").value = myPalette.accent || "#4A90D9";
+  document.getElementById("colorHex").textContent = myPalette.accent || "#4A90D9";
+  document.getElementById("textColorPicker").value = myPalette.text || "#333333";
+  document.getElementById("textColorHex").textContent = myPalette.text || "#333333";
+}
+
+document.getElementById("colorPicker").addEventListener("input", function(e) {
+  document.getElementById("colorHex").textContent = e.target.value;
+});
+
+document.getElementById("textColorPicker").addEventListener("input", function(e) {
+  document.getElementById("textColorHex").textContent = e.target.value;
+});
+
+function pickColor(hex) {
+  document.getElementById("colorPicker").value = hex;
+  document.getElementById("colorHex").textContent = hex;
 }
 
 function generatePDF() {
   var btn = document.getElementById("btnGenerate");
   btn.disabled = true;
   btn.textContent = "Gerando...";
+
+  var palette = Object.assign({}, myPalette);
+  palette.accent = document.getElementById("colorPicker").value;
+  palette.text = document.getElementById("textColorPicker").value;
+  palette.primary = document.getElementById("textColorPicker").value;
+
+  var r = parseInt(palette.accent.substr(1,2),16);
+  var g = parseInt(palette.accent.substr(3,2),16);
+  var b = parseInt(palette.accent.substr(5,2),16);
+  palette.highlight = "#" + Math.min(255,r+40).toString(16).padStart(2,"0") + Math.min(255,g+40).toString(16).padStart(2,"0") + Math.min(255,b+40).toString(16).padStart(2,"0");
+  palette.secondary = "#" + Math.min(255,r+20).toString(16).padStart(2,"0") + Math.min(255,g+20).toString(16).padStart(2,"0") + Math.min(255,b+20).toString(16).padStart(2,"0");
+  palette.border = "#" + Math.min(255,r+80).toString(16).padStart(2,"0") + Math.min(255,g+80).toString(16).padStart(2,"0") + Math.min(255,b+80).toString(16).padStart(2,"0");
 
   fetch("/api/ia/generate", {
     method: "POST",
@@ -211,7 +266,7 @@ function generatePDF() {
       formato: document.getElementById("selFormat").value,
       layout: document.getElementById("selLayout").value,
       num_pages: parseInt(document.getElementById("selDays").value),
-      palette: myPalette
+      palette: palette
     })
   }).then(function(r) {
     if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || "Erro"); });
