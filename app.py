@@ -64,6 +64,19 @@ USERS = {
     },
 }
 
+_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
+if os.path.exists(_users_file):
+    try:
+        with open(_users_file, 'r', encoding='utf-8') as f:
+            _data = json.load(f)
+        for u in _data.get('users', []):
+            key = u['email'].lower()
+            if u.get('ativo') and 'password' in u:
+                USERS[key] = u
+        print(f"[STARTUP] Loaded {len(USERS)} users from users.json")
+    except Exception as e:
+        print(f"[STARTUP] Could not load users.json: {e}")
+
 
 class User(UserMixin):
     def __init__(self, email):
