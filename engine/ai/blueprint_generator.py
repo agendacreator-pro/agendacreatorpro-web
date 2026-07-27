@@ -409,6 +409,193 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
     pdf.drawCentredString(w / 2, 8 * mm, "Agenda Creator Pro")
 
 
+# ── Pre-built daily templates ──────────────────────────────────────────
+
+def _build_1dpp_objects(palette, w_mm=148, h_mm=210):
+    """Build a 1DPP page layout: header + 2-column body with checkboxes/schedule."""
+    objs = []
+    accent = "_accent_"
+    text = "_text_"
+    border = "_border_"
+    white = "_white_"
+    highlight = "_highlight_"
+    secondary = "_secondary_"
+    bg = "_background_"
+
+    margin = 8
+    col_gap = 4
+    header_h = 28
+    body_y = header_h + 3
+    body_h = h_mm - header_h - 16
+    left_w = (w_mm - 2 * margin - col_gap) * 0.6
+    right_x = margin + left_w + col_gap
+    right_w = w_mm - 2 * margin - left_w - col_gap
+
+    objs.append({"id": "bg_rect", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "header_bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": header_h, "bg_color": accent})
+    objs.append({"id": "day_name", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA",
+                 "x": margin, "y": 3, "w": 60, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10,
+                 "color": white, "bold": True})
+    objs.append({"id": "day_number", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15",
+                 "x": margin, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28,
+                 "color": white, "bold": True})
+    objs.append({"id": "month_year", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026",
+                 "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9,
+                 "color": white})
+    objs.append({"id": "accent_line", "obj_type": "LINE", "x": 0, "y": header_h, "w": w_mm, "h": 0,
+                 "color": accent, "border_width": 1.5})
+
+    objs.append({"id": "section_pri", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "PRIORIDADES",
+                 "x": margin, "y": body_y, "w": 35, "h": 6,
+                 "font_name": "Helvetica-Bold", "font_size": 7, "color": accent, "bold": True})
+
+    for i in range(5):
+        cy = body_y + 8 + i * 10
+        objs.append({"id": f"cb_{i}", "obj_type": "CHECKBOX", "x": margin, "y": cy, "w": 3.5, "h": 3.5, "color": accent})
+        objs.append({"id": f"task_{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "",
+                     "x": margin + 5, "y": cy - 0.5, "w": left_w - 8, "h": 5,
+                     "font_name": "Helvetica", "font_size": 6, "color": text})
+
+    objs.append({"id": "vdivider", "obj_type": "LINE", "x": margin + left_w + col_gap / 2, "y": body_y,
+                 "w": 0, "h": body_h, "color": border, "border_width": 0.5})
+
+    objs.append({"id": "section_sched", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "AGENDA",
+                 "x": right_x, "y": body_y, "w": 35, "h": 6,
+                 "font_name": "Helvetica-Bold", "font_size": 7, "color": accent, "bold": True})
+
+    times = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
+    for i, t in enumerate(times):
+        ty = body_y + 8 + i * 10
+        objs.append({"id": f"time_{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t,
+                     "x": right_x, "y": ty, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": text})
+        objs.append({"id": f"tline_{i}", "obj_type": "LINE", "x": right_x + 14, "y": ty + 3,
+                     "w": right_w - 16, "h": 0, "color": border, "border_width": 0.2})
+
+    objs.append({"id": "page_num", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365",
+                 "x": 0, "y": h_mm - 10, "w": w_mm, "h": 5, "font_name": "Helvetica", "font_size": 5,
+                 "color": text, "align": "center"})
+
+    return objs
+
+
+def _build_2dpp_objects(palette, w_mm=148, h_mm=210):
+    """Build a 2DPP page layout: two day panels stacked vertically."""
+    objs = []
+    accent = "_accent_"
+    text = "_text_"
+    border = "_border_"
+    white = "_white_"
+    bg = "_background_"
+
+    margin = 8
+    panel_gap = 6
+    top_bar = 20
+    panel_h = (h_mm - top_bar - 2 * margin - panel_gap) / 2
+
+    objs.append({"id": "bg_rect", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
+    objs.append({"id": "title_bar", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": top_bar, "bg_color": accent})
+    objs.append({"id": "title_text", "obj_type": "TEXT", "value": "AGENDA DIARIA",
+                 "x": 0, "y": 5, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 10,
+                 "color": white, "align": "center"})
+
+    for side in range(2):
+        panel_y = top_bar + margin + side * (panel_h + panel_gap)
+        header_h = 22
+
+        objs.append({"id": f"panel_{side}_bg", "obj_type": "ROUNDED_RECTANGLE",
+                     "x": margin, "y": panel_y, "w": w_mm - 2 * margin, "h": panel_h,
+                     "bg_color": bg, "border": True, "border_color": border, "border_width": 0.3, "radius": 2})
+        objs.append({"id": f"panel_{side}_header", "obj_type": "RECTANGLE",
+                     "x": margin, "y": panel_y, "w": w_mm - 2 * margin, "h": header_h,
+                     "bg_color": accent})
+        objs.append({"id": f"day_name_{side}", "obj_type": "TEXT", "semantic": "DAY_NAME",
+                     "value": "TERCA" if side == 0 else "QUARTA",
+                     "x": margin + 3, "y": panel_y + 2, "w": 50, "h": 7,
+                     "font_name": "Helvetica-Bold", "font_size": 8, "color": white, "bold": True})
+        objs.append({"id": f"day_num_{side}", "obj_type": "TEXT", "semantic": "DAY_NUMBER",
+                     "value": "15" if side == 0 else "16",
+                     "x": margin + 3, "y": panel_y + 9, "w": 20, "h": 12,
+                     "font_name": "Helvetica-Bold", "font_size": 22, "color": white, "bold": True})
+        objs.append({"id": f"month_{side}", "obj_type": "TEXT", "semantic": "MONTH_NAME",
+                     "value": "julho 2026" if side == 0 else "agosto 2026",
+                     "x": margin + 25, "y": panel_y + 12, "w": 40, "h": 6,
+                     "font_name": "Helvetica", "font_size": 7, "color": white})
+
+        body_y = panel_y + header_h + 2
+        body_h_inner = panel_h - header_h - 6
+        col_w = (w_mm - 2 * margin - 4) / 2
+        right_x = margin + col_w + 4
+
+        objs.append({"id": f"section_pri_{side}", "obj_type": "TEXT", "semantic": "SECTION_TITLE",
+                     "value": "TAREFAS",
+                     "x": margin + 2, "y": body_y, "w": 25, "h": 5,
+                     "font_name": "Helvetica-Bold", "font_size": 5, "color": accent, "bold": True})
+
+        for i in range(4):
+            cy = body_y + 7 + i * 8
+            objs.append({"id": f"cb_{side}_{i}", "obj_type": "CHECKBOX",
+                         "x": margin + 2, "y": cy, "w": 3, "h": 3, "color": accent})
+            objs.append({"id": f"task_{side}_{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "",
+                         "x": margin + 7, "y": cy - 0.5, "w": col_w - 10, "h": 4,
+                         "font_name": "Helvetica", "font_size": 5, "color": text})
+
+        objs.append({"id": f"vdiv_{side}", "obj_type": "LINE",
+                     "x": margin + col_w + 2, "y": body_y, "w": 0, "h": body_h_inner - 4,
+                     "color": border, "border_width": 0.3})
+
+        objs.append({"id": f"section_notes_{side}", "obj_type": "TEXT", "semantic": "SECTION_TITLE",
+                     "value": "ANOTACOES",
+                     "x": right_x, "y": body_y, "w": 25, "h": 5,
+                     "font_name": "Helvetica-Bold", "font_size": 5, "color": accent, "bold": True})
+
+        for i in range(8):
+            ly = body_y + 8 + i * 5
+            if ly > panel_y + panel_h - 8:
+                break
+            objs.append({"id": f"rule_{side}_{i}", "obj_type": "LINE",
+                         "x": right_x, "y": ly, "w": col_w - 2, "h": 0,
+                         "color": border, "border_width": 0.2})
+
+    objs.append({"id": "page_num", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365",
+                 "x": 0, "y": h_mm - 6, "w": w_mm, "h": 4, "font_name": "Helvetica", "font_size": 4,
+                 "color": text, "align": "center"})
+
+    return objs
+
+
+def _build_2dpp_substitutions(page_index, base_date):
+    days_pt = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"]
+    months_pt = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho",
+                 "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+
+    day_a = base_date + datetime.timedelta(days=page_index * 2)
+    day_b = base_date + datetime.timedelta(days=page_index * 2 + 1)
+
+    return {
+        "TERCA": days_pt[day_a.weekday()],
+        "15": str(day_a.day),
+        "julho 2026": f"{months_pt[day_a.month - 1]} {day_a.year}",
+        "QUARTA": days_pt[day_b.weekday()],
+        "16": str(day_b.day),
+        "agosto 2026": f"{months_pt[day_b.month - 1]} {day_b.year}",
+        "1 / 365": f"{page_index * 2 + 1} / {page_index * 2 + 2}",
+    }
+
+
+def _build_1dpp_substitutions(page_index, base_date):
+    days_pt = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"]
+    months_pt = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho",
+                 "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+
+    d = base_date + datetime.timedelta(days=page_index)
+    return {
+        "TERCA": days_pt[d.weekday()],
+        "15": str(d.day),
+        "julho 2026": f"{months_pt[d.month - 1]} {d.year}",
+        "1 / 365": f"{page_index + 1} / 365",
+    }
+
+
 # ── Substitutions ───────────────────────────────────────────────────────
 
 def _get_substitutions_for_page(page_index, page_type, base_date=None, lang="pt"):
@@ -463,19 +650,23 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     bp = blueprint_dict
     palette = _get_palette(bp)
     editable = bp.get("editable_objects", [])
-    if not editable:
-        editable = bp.get("elements", [])
 
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
 
     if base_date is None:
         base_date = datetime.date(2026, 1, 1)
 
+    page_type = bp.get("page_type", "1dpp")
+
+    if not editable:
+        if page_type == "2dpp":
+            editable = _build_2dpp_objects(palette)
+        else:
+            editable = _build_1dpp_objects(palette)
+
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
     pdf.setPageCompression(0)
-
-    page_type = bp.get("page_type", "1dpp")
 
     _draw_dados_pessoais(pdf, w, h, palette)
     pdf.showPage()
@@ -500,23 +691,12 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
         pdf.rect(0, 0, w, h, fill=1, stroke=0)
 
         if page_type == "2dpp":
-            subs = _get_substitutions_for_2dpp(page_idx, base_date)
+            subs = _build_2dpp_substitutions(page_idx, base_date)
         else:
-            subs = _get_substitutions_for_page(page_idx, page_type, base_date)
+            subs = _build_1dpp_substitutions(page_idx, base_date)
 
         for obj in editable:
             _draw_object(pdf, obj, h, palette, subs)
-
-        sections = bp.get("sections", [])
-        for sec in sections:
-            sec_children = sec.get("children", [])
-            for child in sec_children:
-                already_drawn = any(
-                    o.get("x") == child.get("x") and o.get("y") == child.get("y")
-                    for o in editable
-                )
-                if not already_drawn:
-                    _draw_object(pdf, child, h, palette, subs)
 
     pdf.save()
     buffer.seek(0)
