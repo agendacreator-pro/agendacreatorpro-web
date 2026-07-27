@@ -56,6 +56,44 @@
         .form-group input:focus {
             border-color: #667eea;
         }
+        .pwd-wrapper {
+            position: relative;
+        }
+        .pwd-wrapper input {
+            padding-right: 48px;
+        }
+        .pwd-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #888;
+            padding: 4px;
+            line-height: 1;
+        }
+        .pwd-toggle:hover { color: #555; }
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .remember-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+        .remember-row label {
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
         .btn-login {
             width: 100%;
             padding: 14px;
@@ -99,11 +137,18 @@
         <form id="loginForm">
             <div class="form-group">
                 <label>E-mail</label>
-                <input type="email" id="email" required autocomplete="email" placeholder="seu@email.com">
+                <input type="email" id="email" name="email" required autocomplete="email" placeholder="seu@email.com">
             </div>
             <div class="form-group">
                 <label>Senha</label>
-                <input type="password" id="password" required autocomplete="current-password" placeholder="Sua senha">
+                <div class="pwd-wrapper">
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Sua senha">
+                    <button type="button" class="pwd-toggle" id="pwdToggle" title="Mostrar senha">&#128065;</button>
+                </div>
+            </div>
+            <div class="remember-row">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Lembrar minha senha</label>
             </div>
             <button type="submit" class="btn-login" id="btnLogin">Entrar</button>
         </form>
@@ -115,25 +160,53 @@
             var dias = ['domingo','segunda-feira','terca-feira','quarta-feira','quinta-feira','sexta-feira','sabado'];
             var now = new Date();
             document.getElementById('dateDisplay').textContent = dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
+
+            var saved = localStorage.getItem('agc_login');
+            if (saved) {
+                try {
+                    var d = JSON.parse(saved);
+                    document.getElementById('email').value = d.email || '';
+                    document.getElementById('password').value = d.password || '';
+                    document.getElementById('remember').checked = true;
+                } catch(e) {}
+            }
         })();
+
+        document.getElementById('pwdToggle').addEventListener('click', function() {
+            var inp = document.getElementById('password');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                this.innerHTML = '&#128064;';
+            } else {
+                inp.type = 'password';
+                this.innerHTML = '&#128065;';
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = document.getElementById('btnLogin');
-            const errorMsg = document.getElementById('errorMsg');
+            var btn = document.getElementById('btnLogin');
+            var errorMsg = document.getElementById('errorMsg');
             btn.disabled = true;
             btn.textContent = 'Entrando...';
             errorMsg.classList.remove('show');
 
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+
+            if (document.getElementById('remember').checked) {
+                localStorage.setItem('agc_login', JSON.stringify({email: email, password: password}));
+            } else {
+                localStorage.removeItem('agc_login');
+            }
+
             try {
-                const resp = await fetch('/login', {
+                var resp = await fetch('/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        email: document.getElementById('email').value,
-                        password: document.getElementById('password').value
-                    })
+                    body: JSON.stringify({ email: email, password: password })
                 });
-                const data = await resp.json();
+                var data = await resp.json();
                 if (data.success) {
                     window.location.href = '/';
                 } else {
