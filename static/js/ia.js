@@ -213,11 +213,13 @@ function generateProject() {
   const pa = analysisResult.page_analysis || {};
   const formato = document.getElementById("formatSelect") ? document.getElementById("formatSelect").value : "A5";
   const numPages = document.getElementById("numPages") ? parseInt(document.getElementById("numPages").value) || 7 : 7;
+  const layoutOverride = document.getElementById("layoutSelect") ? document.getElementById("layoutSelect").value : "auto";
   const consistency = document.getElementById("consistencyPass") ? document.getElementById("consistencyPass").checked : false;
   const payload = {
     formato: formato,
     page_analysis: pa,
     num_pages: numPages,
+    layout: layoutOverride,
     consistency_pass: consistency,
     image_data_url: analysisResult.image_data_url || ""
   };

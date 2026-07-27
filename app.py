@@ -398,6 +398,7 @@ def ia_generate():
         formato = data.get('formato', 'A5')
         page_analysis = data.get('page_analysis', {})
         num_pages = int(data.get('num_pages', 7) or 7)
+        layout_override = data.get('layout', 'auto')
         run_consistency = data.get('consistency_pass', False)
 
         if not page_analysis:
@@ -419,16 +420,16 @@ def ia_generate():
                 except Exception as e:
                     print(f"[CONSISTENCY PASS ERROR] {e}")
 
-        inferred = blueprint.get("inferred_pages", [])
-        total_pages = 1 + min(len(inferred), 4)
-        actual_pages = max(total_pages, num_pages) if num_pages > total_pages else total_pages
+        page_type = blueprint.get('page_type', '1dpp')
+        if layout_override and layout_override != 'auto':
+            page_type = layout_override
+            blueprint['page_type'] = page_type
 
         from ai.blueprint_generator import gerar_pdf_blueprint
         from datetime import date
         base = date(2026, 1, 1)
-        buffer = gerar_pdf_blueprint(blueprint, formato=formato, num_pages=actual_pages, base_date=base)
+        buffer = gerar_pdf_blueprint(blueprint, formato=formato, num_pages=num_pages, base_date=base)
 
-        page_type = blueprint.get('page_type', '1dpp')
         nome = f"IA_Agenda_{page_type}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:

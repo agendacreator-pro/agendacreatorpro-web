@@ -220,13 +220,21 @@
             </select>
           </div>
           <div>
-            <label style="font-weight:600;margin-right:6px;">Paginas:</label>
+            <label style="font-weight:600;margin-right:6px;">Layout:</label>
+            <select id="layoutSelect" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
+              <option value="auto">Auto (detectado pela IA)</option>
+              <option value="1dpp">1 por página (1DPP)</option>
+              <option value="2dpp">2 por página (2DPP)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:600;margin-right:6px;">Dias:</label>
             <select id="numPages" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
               <option value="7">7 dias</option>
               <option value="14">14 dias</option>
               <option value="30">30 dias</option>
               <option value="90">90 dias</option>
-              <option value="365">365 dias</option>
+              <option value="365">365 dias (ano completo)</option>
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -243,7 +251,7 @@
     </div>
   </div>
 
-  <script src="/static/js/ia.js?v=4"></script>
+  <script src="/static/js/ia.js?v=5"></script>
   <script src="/static/js/i18n.js"></script>
 </body>
 </html>
