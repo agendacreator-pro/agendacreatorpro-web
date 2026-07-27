@@ -188,6 +188,22 @@ function showResult(data) {
 
   document.getElementById("inferredPages").textContent =
     (pa.inferred_pages || []).join(", ") || "Nenhuma pagina adicional inferida";
+
+  if (data.raw_response) {
+    const raw = data.raw_response;
+    const rawElCount = (raw.elements || []).length;
+    const maxY = Math.max(...(raw.elements || []).map(e => e.y || 0));
+    const typeCounts = {};
+    (raw.elements || []).forEach(e => {
+      typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+    });
+    const debugInfo = `Elements: ${rawElCount} | Max Y: ${maxY.toFixed(0)}mm | Types: ${JSON.stringify(typeCounts)}`;
+    const debugDiv = document.createElement("div");
+    debugDiv.className = "result-detail";
+    debugDiv.style.cssText = "background:#f0f0f0;padding:8px 12px;border-radius:8px;font-family:monospace;font-size:0.8rem;margin-top:8px;";
+    debugDiv.textContent = debugInfo;
+    document.getElementById("inferredPages").after(debugDiv);
+  }
 }
 
 function generateProject() {

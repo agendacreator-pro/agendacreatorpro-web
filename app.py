@@ -335,6 +335,8 @@ def ia_analyze():
             result = analyzer.analyze(image_bytes, content_type=image.content_type, on_progress=on_progress)
             result_dict = result.to_dict()
             result_dict["image_data_url"] = f"data:{ct};base64,{image_b64}"
+            if result.raw_response:
+                result_dict["raw_response"] = result.raw_response
             with IA_LOCK:
                 IA_TASKS[task_id]["result"] = result_dict
                 IA_TASKS[task_id]["status"] = "done"

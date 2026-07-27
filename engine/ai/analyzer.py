@@ -10,97 +10,47 @@ from .providers import get_provider
 
 logger = logging.getLogger(__name__)
 
-ANALYSIS_PROMPT = """You are an expert planner/agenda layout analyzer. You will map EVERY visual element on this page into JSON.
+ANALYSIS_PROMPT = """Analyze this planner/agenda page image. Return a JSON object describing every visual element.
 
-CRITICAL RULES:
-1. MINIMUM 30 elements. Most pages have 40-60. If under 25 you FAILED.
-2. You MUST cover the ENTIRE page from y=0 to y=210mm. If nothing below y=100mm you missed HALF the page.
-3. CIRCLES use type="circle". CHECKBOXES are circles. NEVER use type="rect" for a circle/checkbox.
-4. DECORATIVE elements (bees, hearts, flowers, stars, butterflies, dots, icons) use type="decorative" with a "shape" field.
-5. All coordinates in MILLIMETERS. A5 = 148mm wide × 210mm tall. (0,0)=top-left.
+PAGE: A5 = 148mm wide × 210mm tall. Origin (0,0) = top-left. All values in mm.
 
-VALID TYPES: "rect", "line", "circle", "text", "grid", "decorative", "strip"
-
-VALID SHAPES FOR decorative: "heart", "bee", "flower", "star", "butterfly", "dot", "leaf", "diamond", "circle_shape"
-
-Return ONLY valid JSON (no markdown):
+Return ONLY valid JSON:
 {
   "page_type": "1dpp",
   "page_type_label": "Um por Pagina",
-  "confidence": 0.95,
-  "title": "Title on page",
-  "description": "Describe full layout",
+  "confidence": 0.9,
+  "title": "Title visible on page",
+  "description": "What the page looks like",
   "margins": {"top": 8, "bottom": 8, "left": 8, "right": 8},
   "colors": [
-    {"name": "background", "hex": "#FFFFFF", "role": "background"},
+    {"name": "bg", "hex": "#FFFFFF", "role": "background"},
     {"name": "accent", "hex": "#FF5FA2", "role": "accent"},
-    {"name": "text_dark", "hex": "#2D2D2D", "role": "primary"},
-    {"name": "text_light", "hex": "#888888", "role": "text"},
+    {"name": "dark", "hex": "#2D2D2D", "role": "primary"},
+    {"name": "light", "hex": "#888888", "role": "text"},
     {"name": "border", "hex": "#E0E0E0", "role": "border"},
-    {"name": "highlight", "hex": "#FFF0F5", "role": "highlight"},
-    {"name": "fill", "hex": "#F5F5F5", "role": "secondary"}
+    {"name": "fill", "hex": "#FFF0F5", "role": "highlight"}
   ],
   "fonts_detected": ["Helvetica", "Helvetica-Bold"],
   "inferred_pages": ["planejamento", "semanal", "notas"],
   "elements": []
 }
 
-ELEMENT FORMAT - each element MUST have ALL fields:
+Each element in "elements" array:
 {"type":"TYPE","x":0,"y":0,"w":10,"h":10,"text":"","font_name":"","font_size":0,"color":"#000000","bg_color":"","border":false,"border_color":"","border_width":0.5,"bold":false,"italic":false,"align":"left","line_height":0,"opacity":1.0,"radius":0,"shape":"","cols":0,"rows":0}
 
-DETECT THESE ZONES (top to bottom, cover ALL 210mm):
+TYPES: rect, line, circle, text, grid, decorative, strip
 
-ZONE 1 — HEADER (y=0 to y=30mm):
-- Full-width colored rect (bg_color fills it, no text)
-- Day name text (bold, big, e.g. "TERCA")
-- Day number text (very bold, huge, e.g. "15")
-- Month/year text (e.g. "julho 2026")
-- Any decorative elements in header area
-- Accent line below header
-
-ZONE 2 — LEFT COLUMN TOP (x=5 to x=72mm, y=30 to y=100mm):
-- Section title "PRIORIDADES" (bold text)
-- Background rect behind priority boxes
-- Checkbox 1: type="circle" with x,y,w,h (small, ~3-4mm)
-- Task text next to checkbox 1
-- Checkbox 2: type="circle"
-- Task text next to checkbox 2
-- Checkbox 3: type="circle"
-- Task text next to checkbox 3
-- Divider line
-
-ZONE 3 — LEFT COLUMN BOTTOM (x=5 to x=72mm, y=100 to y=200mm):
-- Section title "ANOTACOES" (bold text)
-- Background rect for notes area
-- Each horizontal ruled line (type="line", w≈60mm, h=0)
-- You MUST count and create ALL ruled lines (typically 7-12)
-
-ZONE 4 — RIGHT COLUMN (x=75 to x=143mm, y=30 to y=200mm):
-- Section title "AGENDAMENTOS" (bold text)
-- For EACH time slot:
-  - Time text "08:00", "09:00", etc. (type="text", font_size=5-6)
-  - Horizontal line next to it (type="line", w≈55mm, h=0)
-- Minimum 8 time slots (08:00 to 15:00)
-
-ZONE 5 — BOTTOM (y=190 to y=210mm):
-- Any decorative elements (hearts, bees, flowers, stars)
-- Page number or footer text
-- Background fills
-
-SHAPE DETECTION:
-- Round checkbox → type="circle", shape=""
-- Heart illustration → type="decorative", shape="heart"
-- Bee illustration → type="decorative", shape="bee"
-- Flower illustration → type="decorative", shape="flower"
-- Star illustration → type="decorative", shape="star"
-- Small colored dot → type="circle", w=2, h=2
-
-FINAL CHECK before returning:
-- Count your elements. Under 25? Add more.
-- Highest y value in your elements? Must be > 180mm.
-- Any circle/checkbox marked as "rect"? Fix to "circle".
-- Any decorative illustration missing? Add it.
-- inferred_pages should have MAX 4 entries."""
+RULES:
+1. Detect EVERY visual element from top (y=0) to bottom (y=210). Missing the bottom half = FAILED.
+2. Checkboxes and small round things = type "circle", NOT "rect"
+3. Illustrations (bees, hearts, flowers, stars) = type "decorative", shape = "bee"/"heart"/"flower"/"star"
+4. For each time slot (08:00-17:00) create a text element AND a line element
+5. For each checkbox create a circle element AND a text element next to it
+6. For each ruled line in notes area create a line element
+7. MINIMUM 30 elements. Count before returning.
+8. inferred_pages: MAX 4 entries
+9. All coordinates must be accurate mm positions from the image edges
+10. Detect the ACTUAL colors, text, and positions visible in the image"""
 
 PAGE_TYPE_MAP = {
     "1dpp": PageType.ONE_PER_PAGE,
