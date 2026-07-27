@@ -68,13 +68,21 @@ class OpenAIProvider(AIProvider):
             )
 
             text = response.choices[0].message.content
+            finish = response.choices[0].finish_reason
+            print(f"[OPENAI ATTEMPT {attempt+1}] finish_reason={finish}, content_len={len(text) if text else 0}, content_preview={repr(text[:200]) if text else 'None'}")
             if text:
                 text = text.strip()
                 if text.startswith("```"):
                     lines = text.split("\n")
                     lines = [l for l in lines if not l.strip().startswith("```")]
                     text = "\n".join(lines)
-                return json.loads(text)
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError as je:
+                    last_err = f"JSON parse error: {je}, content_start={repr(text[:100])}"
+                    print(f"[OPENAI] {last_err}")
+            else:
+                last_err = f"empty content, finish_reason={finish}"
 
             finish = response.choices[0].finish_reason
             last_err = f"finish_reason={finish}"
