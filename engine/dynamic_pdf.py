@@ -226,21 +226,29 @@ def _draw(pdf, elements, page_w, page_h):
                     pdf.line(x, y_pdf + ri * rh, x + w, y_pdf + ri * rh)
 
         elif etype == "decorative":
-            shape = el.get("shape", "circle")
+            shape = el.get("shape", "circle_shape")
             if bg:
                 pdf.setFillColor(bg)
                 pdf.circle(x + w / 2, y_pdf + h / 2, min(w, h) / 2, fill=1, stroke=0)
-            pdf.setFillColor(color)
             cx = x + w / 2
             cy = y_pdf + h / 2
-            r = min(w, h) / 3
+            r = min(w, h) / 2.5
             if shape == "star":
                 _draw_star(pdf, cx, cy, r, 5, color)
             elif shape == "heart":
                 _draw_heart(pdf, cx, cy, r, color)
             elif shape == "flower":
                 _draw_flower(pdf, cx, cy, r, color)
+            elif shape == "bee":
+                _draw_bee(pdf, cx, cy, r, color)
+            elif shape == "butterfly":
+                _draw_butterfly(pdf, cx, cy, r, color)
+            elif shape == "leaf":
+                _draw_leaf(pdf, cx, cy, r, color)
+            elif shape == "diamond":
+                _draw_diamond(pdf, cx, cy, r, color)
             else:
+                pdf.setFillColor(color)
                 pdf.circle(cx, cy, r, fill=1, stroke=0)
 
         elif etype == "strip":
@@ -286,3 +294,48 @@ def _draw_flower(pdf, cx, cy, r, color):
         pdf.circle(px, py, r * 0.3, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFD700"))
     pdf.circle(cx, cy, r * 0.2, fill=1, stroke=0)
+
+
+def _draw_bee(pdf, cx, cy, r, color):
+    pdf.setFillColor(_pc("#FFD700"))
+    pdf.ellipse(cx - r * 0.4, cy - r * 0.3, r * 0.8, r * 0.6, fill=1, stroke=0)
+    pdf.setFillColor(_pc("#2D2D2D"))
+    pdf.ellipse(cx - r * 0.35, cy - r * 0.2, r * 0.25, r * 0.4, fill=1, stroke=0)
+    pdf.ellipse(cx + r * 0.1, cy - r * 0.2, r * 0.25, r * 0.4, fill=1, stroke=0)
+    pdf.setFillColor(_pc("#FFFFFF"))
+    pdf.ellipse(cx - r * 0.2, cy + r * 0.3, r * 0.35, r * 0.25, fill=1, stroke=0)
+    pdf.ellipse(cx + r * 0.05, cy + r * 0.35, r * 0.3, r * 0.2, fill=1, stroke=0)
+
+
+def _draw_butterfly(pdf, cx, cy, r, color):
+    pdf.setFillColor(color)
+    pdf.circle(cx - r * 0.45, cy + r * 0.2, r * 0.4, fill=1, stroke=0)
+    pdf.circle(cx + r * 0.45, cy + r * 0.2, r * 0.4, fill=1, stroke=0)
+    pdf.circle(cx - r * 0.35, cy - r * 0.3, r * 0.3, fill=1, stroke=0)
+    pdf.circle(cx + r * 0.35, cy - r * 0.3, r * 0.3, fill=1, stroke=0)
+    pdf.setFillColor(_pc("#2D2D2D"))
+    pdf.rect(cx - r * 0.05, cy - r * 0.6, r * 0.1, r * 1.2, fill=1, stroke=0)
+
+
+def _draw_leaf(pdf, cx, cy, r, color):
+    pdf.setFillColor(color)
+    path = pdf.beginPath()
+    path.moveTo(cx, cy + r)
+    path.curveTo(cx + r * 0.8, cy + r * 0.5, cx + r * 0.8, cy - r * 0.5, cx, cy - r)
+    path.curveTo(cx - r * 0.8, cy - r * 0.5, cx - r * 0.8, cy + r * 0.5, cx, cy + r)
+    path.close()
+    pdf.drawPath(path, fill=1, stroke=0)
+    pdf.setStrokeColor(_pc("#2D2D2D"))
+    pdf.setLineWidth(0.3)
+    pdf.line(cx, cy + r, cx, cy - r)
+
+
+def _draw_diamond(pdf, cx, cy, r, color):
+    pdf.setFillColor(color)
+    path = pdf.beginPath()
+    path.moveTo(cx, cy + r)
+    path.lineTo(cx + r * 0.6, cy)
+    path.lineTo(cx, cy - r)
+    path.lineTo(cx - r * 0.6, cy)
+    path.close()
+    pdf.drawPath(path, fill=1, stroke=0)
