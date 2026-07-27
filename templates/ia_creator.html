@@ -147,14 +147,12 @@
 
     <div id="shareSection" style="display:none;margin-top:24px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
       <h3 style="text-align:center;margin-bottom:16px;">Agenda Gerada com Sucesso!</h3>
-      <p style="text-align:center;color:#666;margin-bottom:16px;">Salve ou compartilhe:</p>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;">
         <button class="btn btn-success" onclick="downloadPDF()" id="btnDownload">&#128190; Baixar PDF</button>
-        <button class="btn" style="background:#25D366;color:#fff;" onclick="shareWhatsApp()">&#128172; WhatsApp</button>
-        <button class="btn" style="background:#EA4335;color:#fff;" onclick="shareEmail()">&#9993; Email</button>
-        <button class="btn" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;" onclick="shareInstagram()">&#128247; Instagram</button>
       </div>
-      <p style="text-align:center;color:#aaa;font-size:0.8rem;margin-top:12px;">No celular use "Compartilhar" para enviar para qualquer app</p>
+      <div style="text-align:center;margin-top:12px;">
+        <button class="btn btn-secondary" onclick="resetAll()">Nova Imagem</button>
+      </div>
     </div>
   </div>
 
@@ -326,28 +324,6 @@ function downloadPDF() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-}
-
-function shareWhatsApp() {
-  if (navigator.share && lastBlob) {
-    var file = new File([lastBlob], "Agenda.pdf", { type: "application/pdf" });
-    navigator.share({ files: [file], title: "Minha Agenda" }).catch(function() {});
-  } else {
-    alert("No celular, baixe o PDF e compartilhe pelo WhatsApp.");
-  }
-}
-
-function shareEmail() {
-  window.location.href = "mailto:?subject=Minha Agenda&body=Segue em anexo a agenda gerada pelo Agenda Creator Pro.";
-}
-
-function shareInstagram() {
-  if (navigator.share && lastBlob) {
-    var file = new File([lastBlob], "Agenda.pdf", { type: "application/pdf" });
-    navigator.share({ files: [file], title: "Minha Agenda" }).catch(function() {});
-  } else {
-    alert("No celular, baixe o PDF e compartilhe pelo Instagram.");
-  }
 }
 
 function resetAll() {
