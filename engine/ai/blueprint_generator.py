@@ -451,7 +451,7 @@ def _build_1dpp_minimalista(palette, w_mm=148, h_mm=210):
         objs.append({"id": f"cb{i}", "obj_type": "CHECKBOX", "x": m, "y": cy, "w": 3.5, "h": 3.5, "color": ac})
         objs.append({"id": f"tk{i}", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "", "x": m+5, "y": cy-0.5, "w": lh-8, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": tx})
     objs.append({"id": "vd", "obj_type": "LINE", "x": m+lh+2, "y": by, "w": 0, "h": bh, "color": bd, "border_width": 0.5})
-    objs.append({"id": "sa", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "AGENDA", "x": rx, "y": by, "w": 35, "h": 6, "font_name": "Helvetica-Bold", "font_size": 7, "color": ac, "bold": True})
+    objs.append({"id": "sa", "obj_type": "TEXT", "semantic": "SECTION_TITLE", "value": "AGENDA CREATOR PRO", "x": rx, "y": by, "w": 35, "h": 6, "font_name": "Helvetica-Bold", "font_size": 7, "color": ac, "bold": True})
     for i, t_str in enumerate(["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]):
         ty = by + 8 + i * 10
         objs.append({"id": f"tm{i}", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": t_str, "x": rx, "y": ty, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": tx})
@@ -578,7 +578,7 @@ def _build_2dpp_executivo(palette, w_mm=148, h_mm=210):
     m, a, t, b, w, bg = 8, "_accent_", "_text_", "_border_", "_white_", "_background_"
     objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
     objs.append({"id": "tb", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 16, "bg_color": a})
-    objs.append({"id": "tt", "obj_type": "TEXT", "value": "AGENDA", "x": 0, "y": 3, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 9, "color": w, "align": "center"})
+    objs.append({"id": "tt", "obj_type": "TEXT", "value": "AGENDA CREATOR PRO", "x": 0, "y": 3, "w": w_mm, "h": 10, "font_name": "Helvetica-Bold", "font_size": 9, "color": w, "align": "center"})
     for s in range(2):
         py = 20 + s * ((h_mm-24)/2)
         objs.append({"id": f"p{s}hd", "obj_type": "RECTANGLE", "x": m, "y": py, "w": 24, "h": 24, "bg_color": a})
