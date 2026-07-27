@@ -11,256 +11,75 @@ from .providers import get_provider
 
 logger = logging.getLogger(__name__)
 
-ANALYSIS_PROMPT = """You are an expert layout architect analyzing a planner/agenda page.
+ANALYSIS_PROMPT = """You are an expert layout architect analyzing a planner/agenda page image.
 
-Do NOT treat this as a photograph to copy pixel-by-pixel.
-Treat this as a LAYOUT DOCUMENT to reverse-engineer structurally.
+Treat this as a LAYOUT DOCUMENT to reverse-engineer structurally (not pixel-by-pixel).
+Page is A5 = 148mm wide x 210mm tall. (0,0) = top-left.
 
-Perform this 8-stage analysis:
+Analyze:
+1. STRUCTURAL GEOMETRY: margins, columns, lines, boxes, grids, spacing
+2. ELEMENT CLASSification: TEXT, LINE, RECTANGLE, ROUNDED_RECTANGLE, CIRCLE, CHECKBOX, SECTION_TITLE, DECORATION, GRID, TABLE
+3. EDITABLE OBJECTS: each element as independent object with x,y,w,h in mm
+4. OCR SEMANTIC: extract meaning (DAY_NAME, MONTH_NAME, DAY_NUMBER, SECTION_TITLE, TASK_TEXT, TIME_SLOT, PAGE_NUMBER)
+5. STYLE: color family, border thickness, border radius, style type
+6. PAGE TYPE: 1dpp, 2dpp, semanal, mensal, calendario, checklist, planejamento, metas, dados_pessoais, notas
 
-ETAPA 1 — STRUCTURAL GEOMETRY
-Detect: margins, columns, lines, boxes, grids, content areas, alignments, spacing, hierarchy.
-The page is A5 = 148mm wide × 210mm tall. (0,0) = top-left.
-
-ETAPA 2 — ELEMENT CLASSIFICATION
-Every visual element must be classified as one of:
-TEXT, LINE, RECTANGLE, ROUNDED_RECTANGLE, CIRCLE, ICON, DECORATION,
-HEADER, FOOTER, TABLE, CHECKBOX, BULLET, SECTION
-
-Each element has: x, y, w, h (in mm), color, border_width, layer, align
-
-ETAPA 3 — EDITABLE OBJECTS
-Every element becomes an independent editable object.
-Never draw the page as a single image. Every object is independent.
-
-ETAPA 4 — OCR (Semantic Extraction)
-Extract the SEMANTIC MEANING of text, not literal text:
-- "Segunda-feira" → DAY_NAME
-- "Janeiro" → MONTH_NAME
-- "15" → DAY_NUMBER
-- "PRIORIDADES" → SECTION_TITLE
-- "Revisar material" → TASK_TEXT
-- "08:00" → TIME_SLOT
-- "ANOTACOES" → SECTION_TITLE
-- "Notas" → NOTES_LABEL
-
-ETAPA 5 — STYLE ANALYSIS
-Detect: color family, visual weight, border thickness, border radius,
-style type (minimalist/floral/modern/childish/elegant/executive/kawaii)
-
-ETAPA 6 — PAGE TYPE INFERENCE
-Classify as: 1dpp, 2dpp, semanal, mensal, calendario, checklist, planejamento, metas, dados_pessoais, notas
-
-ETAPA 7 — BLUEPRINT GENERATION
-Generate a Blueprint JSON that captures the COMPLETE structural layout.
-This Blueprint will be used to generate all pages of this type.
-
-ETAPA 8 — INFERRED PAGES
-List which other page types should be generated from this Blueprint style.
-
-Return ONLY valid JSON (no markdown):
+Return ONLY valid JSON:
 {
   "page_type": "1dpp",
   "page_type_label": "Um por Pagina",
   "confidence": 0.9,
-  "description": "Describe the visual style and layout structure",
-  "grid": {
-    "columns": 2,
-    "rows": 1,
-    "gutter": 4,
-    "column_widths": [66, 66],
-    "row_heights": []
-  },
+  "description": "Visual style and layout structure description",
+  "grid": {"columns": 2, "rows": 1, "gutter": 4, "column_widths": [66, 66], "row_heights": []},
   "margins": {"top": 8, "bottom": 8, "left": 8, "right": 8},
   "typography": {
-    "header_font": "Helvetica-Bold",
-    "body_font": "Helvetica",
-    "header_size": 14,
-    "day_number_size": 28,
-    "section_title_size": 7,
-    "body_size": 6,
-    "small_size": 5
+    "header_font": "Helvetica-Bold", "body_font": "Helvetica",
+    "header_size": 14, "day_number_size": 28, "section_title_size": 7,
+    "body_size": 6, "small_size": 5
   },
-  "decorations": ["heart", "bee", "flower"],
+  "decorations": ["heart", "bee"],
   "palette": {
-    "background": "#FFFFFF",
-    "accent": "#FF5FA2",
-    "primary": "#2D2D2D",
-    "text": "#555555",
-    "border": "#E0E0E0",
-    "highlight": "#FFF0F5",
-    "secondary": "#F5F5F5"
+    "background": "#FFFFFF", "accent": "#FF5FA2", "primary": "#2D2D2D",
+    "text": "#555555", "border": "#E0E0E0", "highlight": "#FFF0F5", "secondary": "#F5F5F5"
   },
   "sections": [
-    {
-      "id": "header",
-      "section_type": "HEADER",
-      "title": "",
-      "x": 0, "y": 0, "w": 148, "h": 28,
-      "bg_color": "_accent_",
-      "border": false,
-      "children": [
-        {"id": "day_name", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA",
-         "x": 10, "y": 3, "w": 50, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10,
-         "color": "_white_", "bold": true, "align": "left"},
-        {"id": "day_number", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15",
-         "x": 10, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28,
-         "color": "_white_", "bold": true, "align": "left"},
-        {"id": "month_year", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026",
-         "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9,
-         "color": "_white_", "align": "left"}
-      ]
-    },
-    {
-      "id": "priorities",
-      "section_type": "SECTION",
-      "title": "PRIORIDADES",
-      "x": 8, "y": 31, "w": 62, "h": 40,
-      "children": []
-    }
+    {"id": "header", "section_type": "HEADER", "title": "", "x": 0, "y": 0, "w": 148, "h": 28,
+     "bg_color": "_accent_", "border": false,
+     "children": [
+       {"id": "day_name", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA",
+        "x": 10, "y": 3, "w": 50, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10,
+        "color": "_white_", "bold": true, "align": "left"},
+       {"id": "day_number", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15",
+        "x": 10, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28,
+        "color": "_white_", "bold": true, "align": "left"},
+       {"id": "month_year", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026",
+        "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9,
+        "color": "_white_", "align": "left"}
+     ]},
+    {"id": "priorities", "section_type": "SECTION", "title": "PRIORIDADES",
+     "x": 8, "y": 31, "w": 62, "h": 40, "children": []}
   ],
   "editable_objects": [
+    {"id": "header_bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": 148, "h": 28, "bg_color": "_accent_"},
     {"id": "day_name", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA",
      "x": 10, "y": 3, "w": 50, "h": 8, "font_name": "Helvetica-Bold", "font_size": 10,
      "color": "_white_", "bold": true, "align": "left"},
     {"id": "day_number", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15",
      "x": 10, "y": 11, "w": 25, "h": 14, "font_name": "Helvetica-Bold", "font_size": 28,
      "color": "_white_", "bold": true, "align": "left"},
-    {"id": "month_year", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026",
-     "x": 38, "y": 14, "w": 50, "h": 7, "font_name": "Helvetica", "font_size": 9,
-     "color": "_white_", "align": "left"},
-    {"id": "header_bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": 148, "h": 28,
-     "bg_color": "_accent_"},
     {"id": "accent_line", "obj_type": "LINE", "x": 0, "y": 28, "w": 148, "h": 0,
      "color": "_accent_", "border_width": 1.5},
     {"id": "section_priorities", "obj_type": "SECTION_TITLE", "semantic": "SECTION_TITLE",
      "value": "PRIORIDADES", "x": 8, "y": 31, "w": 35, "h": 6,
      "font_name": "Helvetica-Bold", "font_size": 7, "color": "_accent_", "bold": true},
-    {"id": "priority_bg", "obj_type": "ROUNDED_RECTANGLE", "x": 8, "y": 38, "w": 62, "h": 10,
-     "bg_color": "_highlight_", "border": true, "border_color": "_accent_", "border_width": 0.3, "radius": 2},
-    {"id": "checkbox_1", "obj_type": "CHECKBOX", "x": 10, "y": 40.5, "w": 3.5, "h": 3.5,
-     "color": "_accent_"},
+    {"id": "checkbox_1", "obj_type": "CHECKBOX", "x": 10, "y": 40.5, "w": 3.5, "h": 3.5, "color": "_accent_"},
     {"id": "task_1", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "Revisar material",
-     "x": 15, "y": 40, "w": 52, "h": 5, "font_name": "Helvetica", "font_size": 6,
-     "color": "_text_"},
-    {"id": "checkbox_2", "obj_type": "CHECKBOX", "x": 10, "y": 52.5, "w": 3.5, "h": 3.5,
-     "color": "_accent_"},
-    {"id": "task_2", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "Enviar trabalho",
-     "x": 15, "y": 52, "w": 52, "h": 5, "font_name": "Helvetica", "font_size": 6,
-     "color": "_text_"},
-    {"id": "checkbox_3", "obj_type": "CHECKBOX", "x": 10, "y": 64.5, "w": 3.5, "h": 3.5,
-     "color": "_accent_"},
-    {"id": "task_3", "obj_type": "TEXT", "semantic": "TASK_TEXT", "value": "Preparar apresentacao",
-     "x": 15, "y": 64, "w": 52, "h": 5, "font_name": "Helvetica", "font_size": 6,
-     "color": "_text_"},
-    {"id": "divider_1", "obj_type": "LINE", "x": 8, "y": 76, "w": 62, "h": 0,
-     "color": "_border_", "border_width": 0.5},
-    {"id": "section_notes", "obj_type": "SECTION_TITLE", "semantic": "SECTION_TITLE",
-     "value": "ANOTACOES", "x": 8, "y": 79, "w": 35, "h": 6,
-     "font_name": "Helvetica-Bold", "font_size": 7, "color": "_accent_", "bold": true},
-    {"id": "notes_bg", "obj_type": "ROUNDED_RECTANGLE", "x": 8, "y": 87, "w": 62, "h": 115,
-     "bg_color": "_white_", "border": true, "border_color": "_border_", "border_width": 0.3},
-    {"id": "ruled_1", "obj_type": "LINE", "x": 10, "y": 95, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_2", "obj_type": "LINE", "x": 10, "y": 103, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_3", "obj_type": "LINE", "x": 10, "y": 111, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_4", "obj_type": "LINE", "x": 10, "y": 119, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_5", "obj_type": "LINE", "x": 10, "y": 127, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_6", "obj_type": "LINE", "x": 10, "y": 135, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_7", "obj_type": "LINE", "x": 10, "y": 143, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_8", "obj_type": "LINE", "x": 10, "y": 151, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_9", "obj_type": "LINE", "x": 10, "y": 159, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_10", "obj_type": "LINE", "x": 10, "y": 167, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_11", "obj_type": "LINE", "x": 10, "y": 175, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_12", "obj_type": "LINE", "x": 10, "y": 183, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_13", "obj_type": "LINE", "x": 10, "y": 191, "w": 58, "h": 0,
-     "color": "_border_", "border_width": 0.2},
+     "x": 15, "y": 40, "w": 52, "h": 5, "font_name": "Helvetica", "font_size": 6, "color": "_text_"},
     {"id": "vdivider", "obj_type": "LINE", "x": 74, "y": 31, "w": 0, "h": 172,
      "color": "_border_", "border_width": 0.5},
-    {"id": "section_schedule", "obj_type": "SECTION_TITLE", "semantic": "SECTION_TITLE",
-     "value": "AGENDAMENTOS", "x": 78, "y": 31, "w": 35, "h": 6,
-     "font_name": "Helvetica-Bold", "font_size": 7, "color": "_accent_", "bold": true},
     {"id": "time_08", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "08:00",
-     "x": 78, "y": 40, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
+     "x": 78, "y": 40, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5, "color": "_text_"},
     {"id": "line_08", "obj_type": "LINE", "x": 92, "y": 44, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_09", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "09:00",
-     "x": 78, "y": 48, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_09", "obj_type": "LINE", "x": 92, "y": 52, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_10", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "10:00",
-     "x": 78, "y": 56, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_10", "obj_type": "LINE", "x": 92, "y": 60, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_11", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "11:00",
-     "x": 78, "y": 64, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_11", "obj_type": "LINE", "x": 92, "y": 68, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_12", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "12:00",
-     "x": 78, "y": 72, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_12", "obj_type": "LINE", "x": 92, "y": 76, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_13", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "13:00",
-     "x": 78, "y": 80, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_13", "obj_type": "LINE", "x": 92, "y": 84, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_14", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "14:00",
-     "x": 78, "y": 88, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_14", "obj_type": "LINE", "x": 92, "y": 92, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_15", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "15:00",
-     "x": 78, "y": 96, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_15", "obj_type": "LINE", "x": 92, "y": 100, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_16", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "16:00",
-     "x": 78, "y": 104, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_16", "obj_type": "LINE", "x": 92, "y": 108, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_17", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "17:00",
-     "x": 78, "y": 112, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_17", "obj_type": "LINE", "x": 92, "y": 116, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "time_18", "obj_type": "TEXT", "semantic": "TIME_SLOT", "value": "18:00",
-     "x": 78, "y": 120, "w": 12, "h": 5, "font_name": "Helvetica", "font_size": 5,
-     "color": "_text_"},
-    {"id": "line_18", "obj_type": "LINE", "x": 92, "y": 124, "w": 48, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "bottom_notes_bg", "obj_type": "ROUNDED_RECTANGLE", "x": 78, "y": 134, "w": 60, "h": 68,
-     "bg_color": "_secondary_", "border": true, "border_color": "_border_", "border_width": 0.3},
-    {"id": "ruled_b1", "obj_type": "LINE", "x": 80, "y": 142, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b2", "obj_type": "LINE", "x": 80, "y": 150, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b3", "obj_type": "LINE", "x": 80, "y": 158, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b4", "obj_type": "LINE", "x": 80, "y": 166, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b5", "obj_type": "LINE", "x": 80, "y": 174, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b6", "obj_type": "LINE", "x": 80, "y": 182, "w": 56, "h": 0,
-     "color": "_border_", "border_width": 0.2},
-    {"id": "ruled_b7", "obj_type": "LINE", "x": 80, "y": 190, "w": 56, "h": 0,
      "color": "_border_", "border_width": 0.2},
     {"id": "page_number", "obj_type": "TEXT", "semantic": "PAGE_NUMBER", "value": "1 / 365",
      "x": 60, "y": 203, "w": 28, "h": 5, "font_name": "Helvetica", "font_size": 5,
@@ -271,15 +90,13 @@ Return ONLY valid JSON (no markdown):
 
 CRITICAL RULES:
 1. Every editable_object MUST have ALL position fields (x, y, w, h) with accurate mm values
-2. Color references use "_accent_", "_primary_", "_text_", "_white_", "_border_", "_highlight_", "_secondary_"
-3. semantic field tells the generator what kind of data this object holds
+2. Color references: "_accent_", "_primary_", "_text_", "_white_", "_border_", "_highlight_", "_secondary_"
+3. Include ALL ruled lines, ALL time slots, ALL checkboxes as individual objects
 4. The Blueprint must cover the ENTIRE page (y from 0 to ~200mm)
-5. Include ALL ruled lines, ALL time slots, ALL checkboxes as individual objects
-6. decorative_objects list what decorative elements exist in the image
-7. sections describe the logical grouping of objects
-8. inferred_pages lists what other page types to generate (max 4)
-9. Every section child must be a full object with all fields, not just a reference
-10. Include BOTTOM elements (footer, page number, decorative items at bottom)"""
+5. inferred_pages lists what other page types to generate (max 4)
+6. Every section child must be a full object with all fields, not just a reference
+7. Include BOTTOM elements (footer, page number, decorative items at bottom)
+8. Do NOT include time slots or ruled lines you are unsure about - only what you clearly see in the image"""
 
 
 PAGE_TYPE_MAP = {
