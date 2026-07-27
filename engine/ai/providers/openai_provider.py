@@ -40,12 +40,16 @@ class OpenAIProvider(AIProvider):
         b64 = self.encode_image(image_bytes)
         content_type = kwargs.get("content_type", "image/png")
 
-        max_retries = 2
+        max_retries = 3
         last_err = None
         for attempt in range(max_retries + 1):
             response = client.chat.completions.create(
                 model=self.model,
                 messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a layout architect. Always respond with valid JSON only, no markdown, no code fences.",
+                    },
                     {
                         "role": "user",
                         "content": [
@@ -61,11 +65,15 @@ class OpenAIProvider(AIProvider):
                     }
                 ],
                 max_tokens=16384,
-                response_format={"type": "json_object"},
             )
 
             text = response.choices[0].message.content
             if text:
+                text = text.strip()
+                if text.startswith("```"):
+                    lines = text.split("\n")
+                    lines = [l for l in lines if not l.strip().startswith("```")]
+                    text = "\n".join(lines)
                 return json.loads(text)
 
             finish = response.choices[0].finish_reason
@@ -76,5 +84,5 @@ class OpenAIProvider(AIProvider):
 
         raise RuntimeError(
             f"OpenAI returned empty content after {max_retries+1} attempts ({last_err}). "
-            f"The prompt may be too complex. Try a simpler image."
+            f"Try a simpler image or different provider."
         )
