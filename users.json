@@ -2,15 +2,33 @@
   "users": [
     {
       "email": "agendacreatorpro@gmail.com",
-      "password": "scrypt:32768:8:1$gx01oSxp3rxjXvF0$6e5b9ce2b44c795eaad9f442560353a8e3aa568c14a3b966270d342e51d69b6f74246bb08bc242af940ebfa18dca29bdf95aafa24a4d7b954edbc5bb06202deb",
+      "password": "scrypt:32768:8:1$b2rx3iqHq1Qm2GQj$53309a0c567dc5a72631137f55e1efd6834de6872db206fd3086b526848896b733195d60096ba6601d1d2a1dc42b7763291601a31aa67593bfbb5fb836c557c3",
+      "token": "",
       "ativo": true
     },
     {
-      "email": "cliente@teste.com",
-      "password": "scrypt:32768:8:1$IUXD2nuwgYsuA4eI$953e63ccc264ff95bfd0d8529b81fc97cf82d419a51a54997de2878ffa8a3f2dcd8b9270e9ea427d824ef91d4fdd6ebdecba9faca4da12b46ebb25b21aad5404",
-      "access_token": "KCS6zjK6rAhWUNbK7aU7pQrBhxrrCgAb_XBMoamkkW0",
-      "ativo": true,
-      "criado_em": "2026-07-26T07:41:46.026563"
+      "email": "sammy.paschoalin@gmail.com",
+      "password": "scrypt:32768:8:1$aBTy9viEGqUgo3zd$85b698dc15b3d17eb15b176641eee9fb8932d8a16a9377f7677d3d7e4b44ad9206cc668b605895da06045e7d4698ce87104055ce60bb92862d7ba9f6b64c8534",
+      "token": "",
+      "ativo": true
+    },
+    {
+      "email": "strelakadente@gmail.com",
+      "password": "scrypt:32768:8:1$UWO3iBpJ5iHt31yL$2ef960495c0680a8b4de27921951ecc068f2797b7351a7cd8758c51166c10cd358e4fa4ca4f6098024f6849a6d6eddce09c9f88533dc022bae8023bacf58b0dc",
+      "token": "",
+      "ativo": true
+    },
+    {
+      "email": "magaliduarte16@gmail.com",
+      "password": "scrypt:32768:8:1$MbmrfK7RSKW4jp8J$ea986f2cc19a9a75c2a0d72b808ed5b27a8ce8256ea99fb4a8b58682557e59c116456a8f47c05b5ce853b8b872b4fc29c1b424df266355e12badc9a3f77305e0",
+      "token": "",
+      "ativo": true
+    },
+    {
+      "email": "aline.277@hotmail.com",
+      "password": "scrypt:32768:8:1$jgAJbB1KgbjH3TFQ$b636dbe9387fdb2e2f62327163f374ec23f38619da4ea46f7a926e407fb62cb1aed95c2ef66dd4df1e80c7986e159af331d6ec8dd97468083f8107046c8d857b",
+      "token": "rhVFhHgfBNekQkvOCCovXCccGT3-6KdY8JFh2bYKaXc",
+      "ativo": true
     }
   ]
 }
