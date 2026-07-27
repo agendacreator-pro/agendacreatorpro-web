@@ -74,7 +74,7 @@ class PageAnalysis:
     inferred_pages: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "page_type": self.page_type.value,
             "page_type_label": self.page_type_label,
             "confidence": self.confidence,
@@ -86,6 +86,9 @@ class PageAnalysis:
             "description": self.description,
             "inferred_pages": self.inferred_pages,
         }
+        if hasattr(self, "_blueprint_raw") and self._blueprint_raw:
+            d["_blueprint_raw"] = self._blueprint_raw
+        return d
 
 
 @dataclass

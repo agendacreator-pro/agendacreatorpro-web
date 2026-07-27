@@ -191,13 +191,10 @@ function showResult(data) {
 
   if (data.raw_response) {
     const raw = data.raw_response;
-    const rawElCount = (raw.elements || []).length;
-    const maxY = Math.max(...(raw.elements || []).map(e => e.y || 0));
-    const typeCounts = {};
-    (raw.elements || []).forEach(e => {
-      typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
-    });
-    const debugInfo = `Elements: ${rawElCount} | Max Y: ${maxY.toFixed(0)}mm | Types: ${JSON.stringify(typeCounts)}`;
+    const objCount = (raw.editable_objects || raw.elements || []).length;
+    const secCount = (raw.sections || []).length;
+    const decos = (raw.decorations || raw.decorative_elements || []).join(", ") || "nenhuma";
+    const debugInfo = `Blueprint: ${objCount} objetos | ${secCount} secoes | Decoracoes: ${decos}`;
     const debugDiv = document.createElement("div");
     debugDiv.className = "result-detail";
     debugDiv.style.cssText = "background:#f0f0f0;padding:8px 12px;border-radius:8px;font-family:monospace;font-size:0.8rem;margin-top:8px;";
@@ -215,9 +212,11 @@ function generateProject() {
 
   const pa = analysisResult.page_analysis || {};
   const formato = document.getElementById("formatSelect") ? document.getElementById("formatSelect").value : "A5";
+  const numPages = document.getElementById("numPages") ? parseInt(document.getElementById("numPages").value) || 7 : 7;
   const payload = {
     formato: formato,
-    page_analysis: pa
+    page_analysis: pa,
+    num_pages: numPages
   };
 
   fetch("/api/ia/generate", {

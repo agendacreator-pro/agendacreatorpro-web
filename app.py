@@ -397,14 +397,25 @@ def ia_generate():
         data = request.json
         formato = data.get('formato', 'A5')
         page_analysis = data.get('page_analysis', {})
+        num_pages = int(data.get('num_pages', 7) or 7)
 
         if not page_analysis:
             return jsonify({"error": "No analysis data"}), 400
 
-        from dynamic_pdf import gerar_pdf_da_analise
-        buffer = gerar_pdf_da_analise({"page_analysis": page_analysis}, formato=formato)
+        blueprint = page_analysis.get('_blueprint_raw', page_analysis)
+        if not blueprint.get("editable_objects") and not blueprint.get("elements"):
+            return jsonify({"error": "No editable objects in Blueprint"}), 400
 
-        page_type = page_analysis.get('page_type', '1dpp')
+        inferred = blueprint.get("inferred_pages", [])
+        total_pages = 1 + min(len(inferred), 4)
+        actual_pages = max(total_pages, num_pages) if num_pages > total_pages else total_pages
+
+        from ai.blueprint_generator import gerar_pdf_blueprint
+        from datetime import date
+        base = date(2026, 1, 1)
+        buffer = gerar_pdf_blueprint(blueprint, formato=formato, num_pages=actual_pages, base_date=base)
+
+        page_type = blueprint.get('page_type', '1dpp')
         nome = f"IA_Agenda_{page_type}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
