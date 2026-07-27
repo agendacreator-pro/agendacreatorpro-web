@@ -19,15 +19,15 @@ body {
 
 .header-row {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    position: relative;
     margin-bottom: 5px;
 }
 
-.header-row .btn-logout {
-    position: absolute;
-    right: 0;
+.header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .btn-logout {
