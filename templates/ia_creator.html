@@ -3,178 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IA Smart Creator - Agenda Creator Pro</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css?v=9">
+  <title>Criador Inteligente - Agenda Creator Pro</title>
   <style>
-    .ia-creator { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-    .ia-creator h1 { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
-    .ia-creator .subtitle { text-align: center; color: #888; margin-bottom: 40px; font-size: 0.95rem; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+    .container { max-width: 700px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+    h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    .subtitle { color: #888; margin-bottom: 30px; }
 
-    .upload-zone {
-      border: 2px dashed #ccc; border-radius: 16px; padding: 60px 20px;
-      text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;
+    #uploadZone {
+      border: 2px dashed #ccc; border-radius: 16px; padding: 50px 20px;
+      background: #fafafa; cursor: pointer; transition: all 0.3s;
     }
-    .upload-zone:hover, .upload-zone.dragover { border-color: #4A90D9; background: #f0f6ff; }
-    .upload-zone input[type="file"] { display: none; }
-    .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
-    .upload-zone p { color: #666; margin: 4px 0; }
-    .upload-zone .hint { font-size: 0.8rem; color: #aaa; }
-    .upload-zone .browse { color: #4A90D9; font-weight: 600; text-decoration: underline; }
+    #uploadZone:hover { border-color: #4A90D9; background: #f0f6ff; }
+    #uploadZone p { color: #666; margin: 4px 0; }
 
-    .preview-container { display: none; margin-top: 24px; text-align: center; }
-    .preview-container img {
-      max-width: 100%; max-height: 400px; border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    #previewSection { display: none; margin-top: 20px; }
+    #previewSection img { max-width: 100%; max-height: 350px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    #progressSection { display: none; margin-top: 24px; }
+    .bar-bg { background: #e0e0e0; border-radius: 20px; height: 12px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #4A90D9, #7B61FF); border-radius: 20px; transition: width 0.4s; }
+    #progressMsg { margin-top: 10px; color: #666; font-size: 0.9rem; }
+
+    #configSection { display: none; margin-top: 24px; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .config-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .config-row label { font-weight: 600; font-size: 0.85rem; }
+    .config-row select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.9rem; }
+
+    .color-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+    .swatch { text-align: center; }
+    .swatch-box { width: 44px; height: 44px; border-radius: 8px; border: 2px solid #eee; margin: 0 auto 4px; }
+    .swatch-label { font-size: 0.65rem; color: #888; }
+    .swatch-hex { font-size: 0.6rem; color: #aaa; font-family: monospace; }
+
+    .btn {
+      padding: 12px 32px; border: none; border-radius: 10px; font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: all 0.2s; margin: 4px;
     }
-    .preview-container .file-info { margin-top: 8px; color: #888; font-size: 0.85rem; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #4A90D9, #7B61FF); color: #fff; }
+    .btn-success { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff; }
+    .btn-secondary { background: #f0f0f0; color: #666; }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
 
-    .provider-select { margin-top: 24px; text-align: center; }
-    .provider-select label { font-weight: 600; margin-right: 8px; }
-
-    .btn-analyze {
-      display: inline-block; margin-top: 20px; padding: 14px 40px;
-      background: linear-gradient(135deg, #4A90D9, #7B61FF); color: #fff;
-      border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
-      cursor: pointer; transition: all 0.3s; opacity: 0.5; pointer-events: none;
-    }
-    .btn-analyze.active { opacity: 1; pointer-events: all; }
-    .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,144,217,0.4); }
-
-    .progress-container { display: none; margin-top: 32px; }
-    .progress-bar-wrapper { background: #e8e8e8; border-radius: 20px; height: 12px; overflow: hidden; }
-    .progress-bar-fill {
-      height: 100%; width: 0%; background: linear-gradient(90deg, #4A90D9, #7B61FF);
-      border-radius: 20px; transition: width 0.5s ease;
-    }
-    .progress-stage { margin-top: 12px; font-size: 0.9rem; color: #666; text-align: center; }
-
-    .result-container { display: none; margin-top: 32px; }
-    .result-card {
-      background: #fff; border-radius: 16px; padding: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 16px;
-    }
-    .result-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
-    .result-detail { margin: 8px 0; font-size: 0.9rem; color: #555; }
-    .color-palette { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-
-    .btn-generate {
-      display: inline-block; margin-top: 16px; padding: 14px 40px;
-      background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff;
-      border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
-      cursor: pointer; transition: all 0.3s;
-    }
-    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76,175,80,0.4); }
-
-    .btn-back {
-      display: inline-block; margin-top: 16px; padding: 10px 24px;
-      background: #f0f0f0; color: #666; border: none; border-radius: 8px;
-      font-size: 0.9rem; cursor: pointer; margin-right: 8px;
-    }
-    .btn-back:hover { background: #e0e0e0; }
-
-    .error-container { display: none; margin-top: 24px; text-align: center; }
-    .error-card { background: #FFF3E0; border-radius: 12px; padding: 24px; border: 1px solid #FFE0B2; }
-    .error-card h3 { color: #E65100; margin-bottom: 8px; }
-    .error-card p { color: #BF360C; font-size: 0.9rem; }
-
-    .result-image-compare {
-      text-align: center; margin-bottom: 20px; padding: 16px;
-      background: #f8f9fa; border-radius: 12px;
-    }
-    .result-image-compare .compare-label { font-size: 0.8rem; color: #888; margin-bottom: 8px; font-weight: 600; }
+    #errorSection { display: none; margin-top: 20px; background: #FFF3E0; border-radius: 12px; padding: 20px; }
+    #errorSection h3 { color: #E65100; margin-bottom: 8px; }
+    #errorSection p { color: #BF360C; font-size: 0.9rem; }
   </style>
 </head>
 <body>
-  <div class="ia-creator">
+  <div class="container">
     <h1>Criador Inteligente</h1>
     <p class="subtitle">Envie uma imagem de referencia e gere sua agenda completa</p>
 
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg">
-      <div class="icon">&#128229;</div>
-      <p>Arraste sua imagem aqui ou <span class="browse">clique para selecionar</span></p>
-      <p class="hint">PNG ou JPG — max. 20MB</p>
+    <div id="uploadZone">
+      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg" style="display:none">
+      <p style="font-size:2rem;margin-bottom:8px;">&#128229;</p>
+      <p>Arraste ou <b>clique para selecionar</b></p>
+      <p style="font-size:0.8rem;color:#aaa;">PNG ou JPG — max. 20MB</p>
     </div>
 
-    <div class="preview-container" id="previewContainer">
-      <img id="previewImage" alt="Preview">
-      <div class="file-info" id="fileInfo"></div>
+    <div id="previewSection">
+      <img id="previewImg" alt="Preview">
+      <p id="fileInfo" style="color:#888;font-size:0.85rem;margin-top:8px;"></p>
     </div>
 
-    <div class="provider-select">
-      <label>Cores serao extraidas automaticamente da imagem</label>
+    <div id="progressSection">
+      <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+      <p id="progressMsg">Extraindo cores...</p>
     </div>
 
-    <div style="text-align: center;">
-      <button class="btn-analyze" id="btnAnalyze" onclick="startAnalysis()">Extrair Cores e Gerar</button>
+    <div id="errorSection">
+      <h3>Erro</h3>
+      <p id="errorMsg"></p>
+      <button class="btn btn-secondary" onclick="resetAll()">Tentar Novamente</button>
     </div>
 
-    <div class="progress-container" id="progressContainer">
-      <div class="progress-bar-wrapper">
-        <div class="progress-bar-fill" id="progressBar"></div>
-      </div>
-      <div class="progress-stage" id="progressStage">Preparando...</div>
-    </div>
-
-    <div class="error-container" id="errorContainer">
-      <div class="error-card">
-        <h3>Erro</h3>
-        <p id="errorMessage"></p>
-        <button class="btn-back" onclick="resetIA()">Tentar Novamente</button>
-      </div>
-    </div>
-
-    <div class="result-container" id="resultContainer">
-      <div class="result-card">
-        <h3>Cores Extraidas</h3>
-        <div class="result-image-compare" id="resultImageCompare" style="display:none;">
-          <div class="compare-label">Sua Imagem</div>
-          <img id="resultOriginalImage" alt="Imagem original" style="max-width:100%;max-height:300px;border-radius:12px;">
+    <div id="configSection">
+      <div class="color-grid" id="colorGrid"></div>
+      <div class="config-row">
+        <div><label>Formato:</label><br>
+          <select id="selFormat">
+            <option value="A5">A5 (148x210mm)</option>
+            <option value="A4">A4 (210x297mm)</option>
+            <option value="QUADRADO">Quadrado (150x150mm)</option>
+          </select>
         </div>
-        <div class="result-detail" id="resultDescription"></div>
-        <div class="color-palette" id="colorPalette"></div>
-      </div>
-
-      <div class="result-card">
-        <h3>Configurar Agenda</h3>
-        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-          <div>
-            <label style="font-weight:600;margin-right:6px;">Formato:</label>
-            <select id="formatSelect" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
-              <option value="A5">A5 (148x210mm)</option>
-              <option value="A4">A4 (210x297mm)</option>
-              <option value="QUADRADO">Quadrado (150x150mm)</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-weight:600;margin-right:6px;">Layout:</label>
-            <select id="layoutSelect" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
-              <option value="2dpp">2 por pagina (2DPP)</option>
-              <option value="1dpp">1 por pagina (1DPP)</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-weight:600;margin-right:6px;">Dias:</label>
-            <select id="numPages" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;">
-              <option value="7">7 dias</option>
-              <option value="14">14 dias</option>
-              <option value="30">30 dias</option>
-              <option value="90">90 dias</option>
-              <option value="365">365 dias (ano completo)</option>
-            </select>
-          </div>
+        <div><label>Layout:</label><br>
+          <select id="selLayout">
+            <option value="2dpp">2 por pagina (2DPP)</option>
+            <option value="1dpp">1 por pagina (1DPP)</option>
+          </select>
         </div>
-
-        <div style="text-align:center;margin-top:16px;">
-          <button class="btn-back" onclick="resetIA()">Nova Imagem</button>
-          <button class="btn-generate" id="btnGenerate">Gerar Agenda</button>
+        <div><label>Dias:</label><br>
+          <select id="selDays">
+            <option value="7">7 dias</option>
+            <option value="14">14 dias</option>
+            <option value="30" selected>30 dias</option>
+            <option value="90">90 dias</option>
+            <option value="365">365 dias (ano completo)</option>
+          </select>
         </div>
       </div>
+      <button class="btn btn-secondary" onclick="resetAll()">Nova Imagem</button>
+      <button class="btn btn-success" id="btnGenerate" onclick="generatePDF()">Gerar Agenda</button>
     </div>
   </div>
 
-  <script src="/static/js/ia.js?v=7"></script>
+<script>
+let myFile = null;
+let myPalette = null;
+
+document.getElementById("uploadZone").addEventListener("click", function() {
+  document.getElementById("fileInput").click();
+});
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+  if (e.target.files.length) handleFileSelect(e.target.files[0]);
+});
+
+document.getElementById("uploadZone").addEventListener("dragover", function(e) {
+  e.preventDefault();
+  this.style.borderColor = "#4A90D9";
+  this.style.background = "#f0f6ff";
+});
+document.getElementById("uploadZone").addEventListener("dragleave", function() {
+  this.style.borderColor = "#ccc";
+  this.style.background = "#fafafa";
+});
+document.getElementById("uploadZone").addEventListener("drop", function(e) {
+  e.preventDefault();
+  this.style.borderColor = "#ccc";
+  this.style.background = "#fafafa";
+  if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+});
+
+function handleFileSelect(file) {
+  if (!file.type.match(/^image\/(png|jpe?g)$/)) {
+    alert("Use PNG ou JPG");
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    alert("Maximo 20MB");
+    return;
+  }
+  myFile = file;
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById("previewImg").src = e.target.result;
+    document.getElementById("fileInfo").textContent = file.name + " — " + (file.size / 1024).toFixed(1) + "KB";
+    document.getElementById("previewSection").style.display = "block";
+    extractColors(file);
+  };
+  reader.readAsDataURL(file);
+}
+
+function extractColors(file) {
+  document.getElementById("uploadZone").style.display = "none";
+  document.getElementById("progressSection").style.display = "block";
+  document.getElementById("barFill").style.width = "30%";
+  document.getElementById("progressMsg").textContent = "Extraindo cores da imagem...";
+
+  var fd = new FormData();
+  fd.append("image", file);
+
+  fetch("/api/ia/analyze", { method: "POST", body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.success) {
+        showError(data.error || "Erro ao extrair cores");
+        return;
+      }
+      myPalette = data.palette;
+      document.getElementById("barFill").style.width = "100%";
+      document.getElementById("progressMsg").textContent = "Cores extraidas com sucesso!";
+      setTimeout(showConfig, 600);
+    })
+    .catch(function(err) { showError(err.message); });
+}
+
+function showConfig() {
+  document.getElementById("progressSection").style.display = "none";
+  document.getElementById("configSection").style.display = "block";
+
+  var grid = document.getElementById("colorGrid");
+  grid.innerHTML = "";
+  var names = {accent:"Destaque",primary:"Principal",text:"Texto",border:"Borda",highlight:"Fundo",secondary:"Secund.",background:"Fundo"};
+  for (var key in myPalette) {
+    var d = document.createElement("div");
+    d.className = "swatch";
+    d.innerHTML = '<div class="swatch-box" style="background:' + myPalette[key] + '"></div><div class="swatch-label">' + (names[key]||key) + '</div><div class="swatch-hex">' + myPalette[key] + '</div>';
+    grid.appendChild(d);
+  }
+}
+
+function generatePDF() {
+  var btn = document.getElementById("btnGenerate");
+  btn.disabled = true;
+  btn.textContent = "Gerando...";
+
+  fetch("/api/ia/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      formato: document.getElementById("selFormat").value,
+      layout: document.getElementById("selLayout").value,
+      num_pages: parseInt(document.getElementById("selDays").value),
+      palette: myPalette
+    })
+  }).then(function(r) {
+    if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || "Erro"); });
+    return r.blob();
+  }).then(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "Agenda.pdf";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    btn.disabled = false;
+    btn.textContent = "Gerar Agenda";
+  }).catch(function(err) {
+    showError(err.message);
+    btn.disabled = false;
+    btn.textContent = "Gerar Agenda";
+  });
+}
+
+function showError(msg) {
+  document.getElementById("progressSection").style.display = "none";
+  document.getElementById("configSection").style.display = "none";
+  document.getElementById("errorSection").style.display = "block";
+  document.getElementById("errorMsg").textContent = msg;
+}
+
+function resetAll() {
+  myFile = null;
+  myPalette = null;
+  document.getElementById("uploadZone").style.display = "block";
+  document.getElementById("previewSection").style.display = "none";
+  document.getElementById("progressSection").style.display = "none";
+  document.getElementById("configSection").style.display = "none";
+  document.getElementById("errorSection").style.display = "none";
+  document.getElementById("fileInput").value = "";
+}
+</script>
 </body>
 </html>
