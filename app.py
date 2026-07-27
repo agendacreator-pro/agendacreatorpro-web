@@ -56,6 +56,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'aline.277@hotmail.com': {
+        'email': 'aline.277@hotmail.com',
+        'password': generate_password_hash('Matheus13'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 
