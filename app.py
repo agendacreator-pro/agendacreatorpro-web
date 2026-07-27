@@ -74,6 +74,7 @@ if os.path.exists(_users_file):
             if u.get('ativo') and 'password' in u:
                 USERS[key] = u
         print(f"[STARTUP] Loaded {len(USERS)} users from users.json")
+        print(f"[STARTUP] Users: {list(USERS.keys())}")
     except Exception as e:
         print(f"[STARTUP] Could not load users.json: {e}")
 

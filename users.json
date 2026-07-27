@@ -26,7 +26,7 @@
     },
     {
       "email": "aline.277@hotmail.com",
-      "password": "scrypt:32768:8:1$unx5nEe1aOmkuSoC$c1674981cf9d8c1c97e83ae2d1d4d16286e972a910ed10884f1cfe869267fe5f83ad6c15d7300dc37d98d88069549a30eff165afa37e6474cf93a6d4c8d9b3c0",
+      "password": "scrypt:32768:8:1$r65gEp2MV5geWTsy$8415f8be722ddd8eccb905983348bd0989f7e9ebcb32a7e41cf63e4dbda34b73dc5d16457bcc6253634272ace34fb66163384e772aab2b1b1dbba3698153230c",
       "token": "rhVFhHgfBNekQkvOCCovXCccGT3-6KdY8JFh2bYKaXc",
       "ativo": true
     }
