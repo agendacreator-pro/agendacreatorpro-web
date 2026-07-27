@@ -46,9 +46,18 @@ class DetectedElement:
     align: str = "left"
     bold: bool = False
     italic: bool = False
+    radius: float = 0
+    shape: str = ""
+    cols: int = 0
+    rows: int = 0
 
     def to_dict(self) -> dict:
-        return {k: v for k, v in self.__dict__.items() if v is not None and v != ""}
+        d = {k: v for k, v in self.__dict__.items() if v is not None and v != ""}
+        if self.cols:
+            d["cols"] = self.cols
+        if self.rows:
+            d["rows"] = self.rows
+        return d
 
 
 @dataclass

@@ -303,6 +303,10 @@ class SmartAnalyzer:
                 align=e.get("align", "left"),
                 line_height=_float(e.get("line_height"), 14),
                 opacity=_float(e.get("opacity"), 1.0),
+                radius=_float(e.get("radius"), 0),
+                shape=e.get("shape", ""),
+                cols=int(e.get("cols", 0) or 0),
+                rows=int(e.get("rows", 0) or 0),
             ))
 
         return analysis
