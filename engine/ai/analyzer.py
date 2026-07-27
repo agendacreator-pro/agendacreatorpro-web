@@ -378,10 +378,42 @@ class SmartAnalyzer:
             result.error = f"Parse error: {str(e)}"
             result.raw_response = raw
             return result
+
+        if on_progress:
+            on_progress({"stage": "structure", "progress": 70, "message": "Layout Completion - filling gaps..."})
+
+        try:
+            from .layout_completion import complete_layout
+            bp = parsed._blueprint_raw
+            if bp:
+                bp = complete_layout(bp)
+                parsed._blueprint_raw = bp
+                parsed.elements = []
+                for e in bp.get("editable_objects", []):
+                    parsed.elements.append(DetectedElement(
+                        type=e.get("obj_type", "rect").lower().replace("rounded_rectangle", "rect").replace("rectangle", "rect").replace("section_title", "text").replace("checkbox", "circle"),
+                        x=float(e.get("x", 0) or 0),
+                        y=float(e.get("y", 0) or 0),
+                        w=float(e.get("w", 0) or 0),
+                        h=float(e.get("h", 0) or 0),
+                        text=e.get("value", e.get("text", "")),
+                        font_name=e.get("font_name", "Helvetica"),
+                        font_size=float(e.get("font_size", 6) or 6),
+                        color=e.get("color", "#000000"),
+                        bg_color=e.get("bg_color"),
+                        border=bool(e.get("border")),
+                        border_color=e.get("border_color"),
+                        border_width=float(e.get("border_width", 0.5) or 0.5),
+                        bold=bool(e.get("bold")),
+                        align=e.get("align", "left"),
+                    ))
+        except Exception as e:
+            print(f"[LAYOUT COMPLETION ERROR] {e}")
+
         result.page_analysis = parsed
 
         if on_progress:
-            on_progress({"stage": "colors", "progress": 80, "message": "Extracting palette..."})
+            on_progress({"stage": "colors", "progress": 85, "message": "Extracting palette..."})
 
         if on_progress:
             on_progress({"stage": "structure", "progress": 90, "message": "Building Blueprint..."})

@@ -213,10 +213,13 @@ function generateProject() {
   const pa = analysisResult.page_analysis || {};
   const formato = document.getElementById("formatSelect") ? document.getElementById("formatSelect").value : "A5";
   const numPages = document.getElementById("numPages") ? parseInt(document.getElementById("numPages").value) || 7 : 7;
+  const consistency = document.getElementById("consistencyPass") ? document.getElementById("consistencyPass").checked : false;
   const payload = {
     formato: formato,
     page_analysis: pa,
-    num_pages: numPages
+    num_pages: numPages,
+    consistency_pass: consistency,
+    image_data_url: analysisResult.image_data_url || ""
   };
 
   fetch("/api/ia/generate", {

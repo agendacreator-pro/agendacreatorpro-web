@@ -398,6 +398,7 @@ def ia_generate():
         formato = data.get('formato', 'A5')
         page_analysis = data.get('page_analysis', {})
         num_pages = int(data.get('num_pages', 7) or 7)
+        run_consistency = data.get('consistency_pass', False)
 
         if not page_analysis:
             return jsonify({"error": "No analysis data"}), 400
@@ -405,6 +406,18 @@ def ia_generate():
         blueprint = page_analysis.get('_blueprint_raw', page_analysis)
         if not blueprint.get("editable_objects") and not blueprint.get("elements"):
             return jsonify({"error": "No editable objects in Blueprint"}), 400
+
+        if run_consistency:
+            image_b64 = data.get('image_data_url', '')
+            if image_b64 and 'base64,' in image_b64:
+                import base64 as b64mod
+                img_data = image_b64.split('base64,', 1)[1]
+                img_bytes = b64mod.b64decode(img_data)
+                try:
+                    from ai.consistency_pass import consistency_pass
+                    blueprint = consistency_pass(blueprint, img_bytes, max_iterations=3, threshold=0.05)
+                except Exception as e:
+                    print(f"[CONSISTENCY PASS ERROR] {e}")
 
         inferred = blueprint.get("inferred_pages", [])
         total_pages = 1 + min(len(inferred), 4)
