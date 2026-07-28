@@ -29,6 +29,12 @@
       "password": "scrypt:32768:8:1$Jtt5Eymx2yDD82UH$4cfea5f1f53e152206c8634991bb32b902f284dfb89f36411cfaf969012df4ecd0e13a695fd292916e6ee56108deb52f57f4eae2305a70db87f39e99c5aa1dd7",
       "token": "rhVFhHgfBNekQkvOCCovXCccGT3-6KdY8JFh2bYKaXc",
       "ativo": true
+    },
+    {
+      "email": "meellcriativa@gmail.com",
+      "password": "scrypt:32768:8:1$W6md8Q0A3vWeF4ao$178ddc606b4b91cb89b30f73126beabb316244bbbe43fc641dabd96fc1073fd6045b52c1674167f14b283ce9e0e7e47041e13b33f87aa25849f7fbfed0dfeb7b",
+      "token": "",
+      "ativo": true
     }
   ]
 }

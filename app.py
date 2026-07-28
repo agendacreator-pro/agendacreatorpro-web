@@ -62,6 +62,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'meellcriativa@gmail.com': {
+        'email': 'meellcriativa@gmail.com',
+        'password': generate_password_hash('Gean3691*'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 _users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
