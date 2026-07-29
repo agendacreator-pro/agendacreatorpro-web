@@ -30,11 +30,11 @@ def desenhar_pagina_semanal(pdf, com_agendamentos=False):
     ph = ALTURA / mm
 
     if com_agendamentos:
-        est.pagina_semanal_prioridades(pdf, 8, ph - 102, 132, 36)
-        est.caixa_agendamentos(pdf, 8, 104, 132, 40)
-        est.pagina_semanal_escrita(pdf, 8, 12, 132, ph - 120)
+        est.pagina_semanal_prioridades(pdf, 8, ph - 88, 132, 28)
+        est.caixa_agendamentos(pdf, 8, ph - 124, 132, 32)
+        est.pagina_semanal_escrita(pdf, 8, 10, 132, ph - 138)
     else:
-        est.pagina_semanal_prioridades(pdf, 8, ph - 102, 132, 36)
-        est.pagina_semanal_escrita(pdf, 8, 12, 132, ph - 118)
+        est.pagina_semanal_prioridades(pdf, 8, ph - 88, 132, 30)
+        est.pagina_semanal_escrita(pdf, 8, 10, 132, ph - 102)
 
     pdf.showPage()
