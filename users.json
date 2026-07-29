@@ -35,6 +35,12 @@
       "password": "scrypt:32768:8:1$W6md8Q0A3vWeF4ao$178ddc606b4b91cb89b30f73126beabb316244bbbe43fc641dabd96fc1073fd6045b52c1674167f14b283ce9e0e7e47041e13b33f87aa25849f7fbfed0dfeb7b",
       "token": "",
       "ativo": true
+    },
+    {
+      "email": "somarisil@gmail.com",
+      "password": "scrypt:32768:8:1$uPnkMHPDIaf5iUKQ$c4a8d3efbb48a902ce3f91e773bfce984b79fcb1f1547b6e1216ff386e891e1c786af947bfb487974cef485ecfd8ed8386e23484a5f1a4f612b1cc489ccc67da",
+      "token": "",
+      "ativo": true
     }
   ]
 }
