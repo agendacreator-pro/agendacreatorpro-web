@@ -11,7 +11,7 @@ import layouts_a5
 import layouts_permanente_a5
 
 
-def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
+def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5", com_agendamentos=False):
     definir(tema)
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
@@ -27,7 +27,7 @@ def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5"):
     layouts_a5.pagina_planejamento(pdf)
 
     for _ in range(quantidade_paginas):
-        layouts_permanente_a5.desenhar_pagina_semanal(pdf)
+        layouts_permanente_a5.desenhar_pagina_semanal(pdf, com_agendamentos=com_agendamentos)
 
     pdf.save()
     buffer.seek(0)

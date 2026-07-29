@@ -297,7 +297,7 @@ def gerar_pdf():
             buffer = gerar_pdf_datada(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
             nome = f"Agenda_{ano}_{tema_nome}_{formato}.pdf"
         else:
-            buffer = gerar_pdf_permanente(paginas, tema, ano, formato)
+            buffer = gerar_pdf_permanente(paginas, tema, ano, formato, com_agendamentos=com_agendamentos)
             nome = f"Agenda_Permanente_{tema_nome}_{formato}.pdf"
 
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)

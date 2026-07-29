@@ -13,7 +13,7 @@ def _est():
     return obter_estilo()
 
 
-def desenhar_pagina_semanal(pdf):
+def desenhar_pagina_semanal(pdf, com_agendamentos=False):
     est = _est()
 
     est.pagina_semanal_titulo(pdf)
@@ -29,7 +29,12 @@ def desenhar_pagina_semanal(pdf):
     pw = LARGURA / mm
     ph = ALTURA / mm
 
-    est.pagina_semanal_prioridades(pdf, 8, ph - 102, 132, 36)
-    est.pagina_semanal_escrita(pdf, 8, 12, 132, ph - 118)
+    if com_agendamentos:
+        est.pagina_semanal_prioridades(pdf, 8, ph - 102, 132, 36)
+        est.caixa_agendamentos(pdf, 8, 104, 132, 40)
+        est.pagina_semanal_escrita(pdf, 8, 12, 132, ph - 120)
+    else:
+        est.pagina_semanal_prioridades(pdf, 8, ph - 102, 132, 36)
+        est.pagina_semanal_escrita(pdf, 8, 12, 132, ph - 118)
 
     pdf.showPage()
