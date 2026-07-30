@@ -492,7 +492,7 @@ def _build_1dpp_kawaii(palette, w_mm=148, h_mm=210):
     objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
     objs.append({"id": "hdr", "obj_type": "ROUNDED_RECTANGLE", "x": m, "y": h_mm-30, "w": w_mm-2*m, "h": 26, "bg_color": a, "radius": 5})
     objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m+8, "y": h_mm-28, "w": 60, "h": 7, "font_name": "Helvetica-Bold", "font_size": 10, "color": w, "bold": True})
-    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m+8, "y": h_mm-20, "w": 20, "h": 14, "font_name": "Helvetica-Bold", "font_size": 18, "color": w, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m+8, "y": h_mm-24, "w": 20, "h": 14, "font_name": "Helvetica-Bold", "font_size": 14, "color": w, "bold": True})
     objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+30, "y": h_mm-16, "w": 50, "h": 6, "font_name": "Helvetica", "font_size": 8, "color": w})
     objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "heart", "x": w_mm-m-16, "y": h_mm-26, "w": 10, "h": 10, "color": w})
     by = h_mm - 36
