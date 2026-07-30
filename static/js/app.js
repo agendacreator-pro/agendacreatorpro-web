@@ -69,15 +69,23 @@ function _getPayload() {
     };
 }
 
+function _binding() {
+    var el = document.querySelector('input[name="binding"]:checked');
+    return el ? el.value : 'espiral';
+}
+
 function gerar() {
     var btn = document.getElementById('btn-gerar');
     var status = document.getElementById('status');
     var payload = _getPayload();
+    var binding = _binding();
+    var url = binding === 'copta' ? '/api/gerar-copta' : '/gerar';
+    var suffix = binding === 'copta' ? '_Copta' : '';
 
     btn.disabled = true;
     status.textContent = 'Gerando PDF...';
 
-    fetch('/gerar', {
+    fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -92,7 +100,7 @@ function gerar() {
         var url = window.URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'Agenda_' + payload.ano + '_' + payload.tema + '_' + payload.formato + '.pdf';
+        a.download = 'Agenda' + suffix + '_' + payload.ano + '_' + payload.tema + '_' + payload.formato + '.pdf';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -110,10 +118,12 @@ function preview() {
     var btn = document.getElementById('btn-preview');
     var status = document.getElementById('status');
     var payload = _getPayload();
+    var binding = _binding();
+    var url = binding === 'copta' ? '/api/preview-copta' : '/preview';
     btn.disabled = true;
     status.textContent = 'Carregando previa...';
 
-    fetch('/preview', {
+    fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

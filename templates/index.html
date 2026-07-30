@@ -88,9 +88,16 @@
             </div>
 
             <div class="field">
-                <label>
-                    <input type="checkbox" id="agendamentos"> <span data-i18n="incluir_agendamentos">Incluir agenda de compromissos (08:00-18:00)</span>
-                </label>
+                <label data-i18n="incluir_agendamentos">Incluir agenda de compromissos (08:00-18:00)</label>
+                <input type="checkbox" id="agendamentos">
+            </div>
+
+            <div class="field">
+                <label data-i18n="encadernacao">Tipo de Encadernacao</label>
+                <div class="radio-group" id="binding-group">
+                    <label><input type="radio" name="binding" value="espiral" checked> <span data-i18n="espiral">Espiral</span></label>
+                    <label><input type="radio" name="binding" value="copta"> <span data-i18n="copta">Copta (cadernos A4)</span></label>
+                </div>
             </div>
 
             <button id="btn-gerar" onclick="gerar()" data-i18n="gerar_pdf">GERAR PDF</button>
@@ -121,6 +128,8 @@ pt: {
     agenda_permanente: "Agenda Permanente", qtd_paginas: "Quantidade de Paginas Semanais",
     formato: "Formato", quadrado: "Quadrado", tema: "Tema", estilo: "Estilo",
     incluir_agendamentos: "Incluir agenda de compromissos (08:00-18:00)",
+    encadernacao: "Tipo de Encadernacao",
+    espiral: "Espiral", copta: "Copta (cadernos A4)",
     gerar_pdf: "GERAR PDF", visualizar_previa: "VISUALIZAR PREVIA",
     previa_pdf: "Previa do PDF", baixar_pdf: "BAIXAR PDF",
     rosa: "Rosa", azul: "Azul", verde: "Verde", amarelo: "Amarelo",
@@ -133,6 +142,8 @@ en: {
     agenda_permanente: "Permanent Planner", qtd_paginas: "Number of Weekly Pages",
     formato: "Format", quadrado: "Square", tema: "Theme", estilo: "Style",
     incluir_agendamentos: "Include schedule (08:00-18:00)",
+    encadernacao: "Binding Type",
+    espiral: "Spiral", copta: "Coptic (A4 booklet)",
     gerar_pdf: "GENERATE PDF", visualizar_previa: "PREVIEW",
     previa_pdf: "PDF Preview", baixar_pdf: "DOWNLOAD PDF",
     rosa: "Pink", azul: "Blue", verde: "Green", amarelo: "Yellow",
@@ -145,6 +156,8 @@ es: {
     agenda_permanente: "Agenda Permanente", qtd_paginas: "Cantidad de Paginas Semanales",
     formato: "Formato", quadrado: "Cuadrado", tema: "Tema", estilo: "Estilo",
     incluir_agendamentos: "Incluir agenda de citas (08:00-18:00)",
+    encadernacao: "Tipo de Encuadernacion",
+    espiral: "Espiral", copta: "Copta (cuadernillos A4)",
     gerar_pdf: "GENERAR PDF", visualizar_previa: "VISTA PREVIA",
     previa_pdf: "Vista Previa del PDF", baixar_pdf: "DESCARGAR PDF",
     rosa: "Rosa", azul: "Azul", verde: "Verde", amarelo: "Amarillo",

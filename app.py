@@ -313,6 +313,42 @@ def gerar_pdf():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/gerar-copta', methods=['POST'])
+@login_required
+def gerar_pdf_copta():
+    try:
+        data = request.json
+        tipo = data.get('tipo', 'datada')
+        ano = int(data.get('ano', 2026))
+        paginas = int(data.get('paginas', 52))
+        tema_nome = data.get('tema', 'rosa')
+        estilo = data.get('estilo', 'minimalista')
+        formato = data.get('formato', 'A5')
+        layout = data.get('layout', '1')
+        com_agendamentos = data.get('agendamentos', False)
+        idioma = data.get('idioma', 'pt')
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        from styles.manager import definir as definir_estilo
+        definir_estilo(estilo)
+        localization.definir_idioma(idioma)
+
+        from copta_binding import gerar_pdf_permanente_copta, gerar_pdf_datada_copta, gerar_preview_copta
+
+        if tipo == 'datada':
+            buffer = gerar_pdf_datada_copta(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+            nome = f"Agenda_Copta_{ano}_{tema_nome}_{formato}.pdf"
+        else:
+            buffer = gerar_pdf_permanente_copta(paginas, tema, ano, formato, com_agendamentos=com_agendamentos)
+            nome = f"Agenda_Permanente_Copta_{tema_nome}_{formato}.pdf"
+
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/preview', methods=['POST'])
 @login_required
 def preview_pdf():
@@ -332,6 +368,33 @@ def preview_pdf():
         localization.definir_idioma(idioma)
 
         buffer = gerar_preview(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+        return send_file(buffer, mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/preview-copta', methods=['POST'])
+@login_required
+def preview_pdf_copta():
+    try:
+        data = request.json
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        estilo = data.get('estilo', 'minimalista')
+        formato = data.get('formato', 'A5')
+        layout = data.get('layout', '1')
+        com_agendamentos = data.get('agendamentos', False)
+        idioma = data.get('idioma', 'pt')
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        from styles.manager import definir as definir_estilo
+        definir_estilo(estilo)
+        localization.definir_idioma(idioma)
+
+        from copta_binding import gerar_preview_copta
+        buffer = gerar_preview_copta(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:
         import traceback
