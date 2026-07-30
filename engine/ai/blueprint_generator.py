@@ -517,7 +517,7 @@ def _build_1dpp_floral(palette, w_mm=148, h_mm=210):
     objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
     objs.append({"id": "tl", "obj_type": "LINE", "x": m, "y": h_mm-8, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 0.5})
     objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m, "y": h_mm-22, "w": 60, "h": 8, "font_name": "Times-Bold", "font_size": 12, "color": a, "bold": True})
-    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": h_mm-42, "w": 25, "h": 16, "font_name": "Times-Bold", "font_size": 22, "color": t, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": h_mm-46, "w": 25, "h": 16, "font_name": "Times-Bold", "font_size": 16, "color": t, "bold": True})
     objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+28, "y": h_mm-36, "w": 50, "h": 6, "font_name": "Times-Italic", "font_size": 9, "color": t})
     objs.append({"id": "bl", "obj_type": "LINE", "x": m, "y": h_mm-48, "w": w_mm-2*m, "h": 0, "color": a, "border_width": 1})
     objs.append({"id": "d1", "obj_type": "DECORATION", "shape": "flower", "x": w_mm-m-14, "y": h_mm-44, "w": 12, "h": 12, "color": a})
