@@ -465,7 +465,7 @@ def _build_1dpp_executivo(palette, w_mm=148, h_mm=210):
     m, a, t, b, w, bg = 10, "_accent_", "_text_", "_border_", "_white_", "_background_"
     objs.append({"id": "bg", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": h_mm, "bg_color": bg})
     objs.append({"id": "hdr", "obj_type": "RECTANGLE", "x": 0, "y": 0, "w": w_mm, "h": 24, "bg_color": a})
-    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": 5, "w": 22, "h": 18, "font_name": "Helvetica-Bold", "font_size": 20, "color": w, "bold": True})
+    objs.append({"id": "dd", "obj_type": "TEXT", "semantic": "DAY_NUMBER", "value": "15", "x": m, "y": 8, "w": 22, "h": 18, "font_name": "Helvetica-Bold", "font_size": 20, "color": w, "bold": True})
     objs.append({"id": "dn", "obj_type": "TEXT", "semantic": "DAY_NAME", "value": "TERCA", "x": m+24, "y": 4, "w": 50, "h": 8, "font_name": "Helvetica-Bold", "font_size": 12, "color": w, "bold": True})
     objs.append({"id": "my", "obj_type": "TEXT", "semantic": "MONTH_NAME", "value": "julho 2026", "x": m+24, "y": 13, "w": 50, "h": 6, "font_name": "Helvetica", "font_size": 8, "color": w})
     objs.append({"id": "al", "obj_type": "LINE", "x": 0, "y": 24, "w": w_mm, "h": 0, "color": a, "border_width": 2})

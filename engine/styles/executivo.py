@@ -89,7 +89,7 @@ class Executivo(EstiloBase):
             pdf.rect(sx(x * mm), sy((y + h - 12) * mm), sx(w * mm), sy(12 * mm), fill=1, stroke=0)
             pdf.setFont(_FONT_B, 28)
             pdf.setFillColor(BRANCO)
-            pdf.drawRightString(sx((x + w - 5) * mm), sy((y + h - 6) * mm), data.strftime("%d"))
+            pdf.drawRightString(sx((x + w - 5) * mm), sy((y + h - 3) * mm), data.strftime("%d"))
             pdf.setFont(_FONT_B, 10)
             pdf.setFillColor(HexColor("#374151"))
             pdf.drawRightString(sx((x + w - 5) * mm), sy((y + 16) * mm), localization.nome_dia(data).upper())
