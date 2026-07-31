@@ -1,7 +1,7 @@
 """
-Encadernacao Copta: margem de lombada extra + paginas em ordem sequencial.
-Usa os geradores existentes e pos-processa com pypdf para deslocar
-o conteudo 2mm a direita (margem esquerda = 10mm).
+Encadernacao Copta: paginas A5 agrupadas duas a duas, lado a lado,
+em folhas A4 paisagem, na ordem sequencial (1-2, 3-4, 5-6, ...).
+Ao dobrar cada folha ao meio e costurar na lombada, a ordem fica correta.
 Preview comeca de 1o de janeiro.
 """
 
@@ -20,18 +20,22 @@ from datetime import date
 from pdf_generator import gerar_pdf_permanente, gerar_pdf_datada, gerar_preview
 
 
-DESLOCAMENTO = 2  # mm extras na lombada
+A5_LARGURA = 148 * mm
+A5_ALTURA = 210 * mm
+FOLHA_LARGURA = 297 * mm
+FOLHA_ALTURA = 210 * mm
 
 
-def _aplicar_lombada(buf):
-    """Desloca todo o conteudo DESLOCAMENTO mm a direita."""
+def _montar_cadernilha(buf):
+    """Junta as paginas A5 duas a duas em folhas A4 paisagem (ordem sequencial)."""
     reader = PdfReader(buf)
     writer = PdfWriter()
-    a5_w = 148 * mm
-    a5_h = 210 * mm
-    for page in reader.pages:
-        np = writer.add_blank_page(a5_w, a5_h)
-        np.merge_translated_page(page, DESLOCAMENTO * mm, 0)
+    paginas = reader.pages
+    for i in range(0, len(paginas), 2):
+        folha = writer.add_blank_page(FOLHA_LARGURA, FOLHA_ALTURA)
+        folha.merge_translated_page(paginas[i], 0, 0)
+        if i + 1 < len(paginas):
+            folha.merge_translated_page(paginas[i + 1], A5_LARGURA, 0)
     out = BytesIO()
     writer.write(out)
     out.seek(0)
@@ -40,12 +44,12 @@ def _aplicar_lombada(buf):
 
 def gerar_pdf_permanente_copta(quantidade_paginas, tema, ano, formato="A5", com_agendamentos=False):
     buf = gerar_pdf_permanente(quantidade_paginas, tema, ano, formato, com_agendamentos=com_agendamentos)
-    return _aplicar_lombada(buf)
+    return _montar_cadernilha(buf)
 
 
 def gerar_pdf_datada_copta(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False):
     buf = gerar_pdf_datada(ano, tema, layout_pagina, formato, com_agendamentos=com_agendamentos)
-    return _aplicar_lombada(buf)
+    return _montar_cadernilha(buf)
 
 
 def gerar_preview_copta(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=False):
@@ -71,4 +75,4 @@ def gerar_preview_copta(ano, tema, layout_pagina="1", formato="A5", com_agendame
 
     pdf.save()
     buffer.seek(0)
-    return buffer
+    return _montar_cadernilha(buffer)
