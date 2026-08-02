@@ -100,6 +100,12 @@ h1 {
     align-items: center;
 }
 
+#binding-group {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .radio-group label {
     font-weight: normal;
     cursor: pointer;
