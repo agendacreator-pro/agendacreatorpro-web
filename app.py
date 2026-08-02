@@ -246,6 +246,26 @@ def _save_users():
         json.dump({'users': list(USERS.values())}, f, indent=2, ensure_ascii=False)
 
 
+@app.route('/api/debug-persist', methods=['GET'])
+@login_required
+def debug_persist():
+    try:
+        with open(_USERS_FILE, 'r', encoding='utf-8') as f:
+            file_users = json.load(f).get('users', [])
+        n_file = len(file_users)
+    except Exception as e:
+        n_file = f"erro: {e}"
+    return jsonify({
+        'users_file': _USERS_FILE,
+        'volume_mount': os.environ.get('RAILWAY_VOLUME_MOUNT_PATH') or '',
+        'users_path_env': os.environ.get('USERS_PATH') or '',
+        'exists': os.path.exists(_USERS_FILE),
+        'writable': os.access(os.path.dirname(_USERS_FILE) or '.', os.W_OK) if os.path.exists(os.path.dirname(_USERS_FILE) or '.') else False,
+        'users_in_memory': len(USERS),
+        'users_in_file': n_file,
+    })
+
+
 @app.route('/app')
 @login_required
 def index():
