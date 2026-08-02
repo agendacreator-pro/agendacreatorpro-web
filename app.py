@@ -268,17 +268,6 @@ def admin_users():
     return jsonify(list(USERS.values()))
 
 
-@app.route('/admin/users/<email>', methods=['DELETE'])
-@login_required
-def admin_delete_user(email):
-    key = email.lower()
-    if key not in USERS:
-        return jsonify({'error': 'Usuario nao encontrado'}), 404
-    del USERS[key]
-    _save_users()
-    return jsonify({'success': True})
-
-
 @app.route('/admin/users', methods=['POST'])
 @login_required
 def admin_create_user():
