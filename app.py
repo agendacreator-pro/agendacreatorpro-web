@@ -88,7 +88,13 @@ USERS = {
     },
 }
 
-_USERS_FILE = os.environ.get('USERS_PATH') or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
+_repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
+_volume_mount = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH') or ''
+_USERS_FILE = (
+    os.environ.get('USERS_PATH')
+    or (os.path.join(_volume_mount, 'users.json') if _volume_mount else '')
+    or _repo_users_file
+)
 
 
 def _load_users_file(path):
@@ -100,7 +106,6 @@ def _load_users_file(path):
             USERS[key] = u
 
 
-_repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
 try:
     if os.path.exists(_repo_users_file):
         _load_users_file(_repo_users_file)
