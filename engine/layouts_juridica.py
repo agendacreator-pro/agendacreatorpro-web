@@ -126,12 +126,14 @@ def gerar_paginas_mensais(pdf, ano):
 
 
 def gerar_paginas_semanais(pdf, ano):
-    data = date(ano, 1, 1)
-    primeira = data - timedelta(days=data.weekday())
-    while primeira.year == ano or primeira < date(ano, 1, 1):
-        if primeira.year >= ano and primeira <= date(ano, 12, 31):
-            pagina_semanal(pdf, primeira)
-        primeira += timedelta(days=7)
+    primeira = date(ano, 1, 1)
+    pagina_semanal(pdf, primeira)
+    proxima = primeira + timedelta(days=(7 - primeira.weekday()) % 7)
+    if proxima == primeira:
+        proxima += timedelta(days=7)
+    while proxima.year == ano:
+        pagina_semanal(pdf, proxima)
+        proxima += timedelta(days=7)
 
 
 def gerar_paginas_diarias(pdf, ano, com_agendamentos=False, incluir_maximas=True):

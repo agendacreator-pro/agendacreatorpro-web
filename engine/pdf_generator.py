@@ -108,7 +108,8 @@ def gerar_pdf_juridica(ano, tema, formato="A5", com_agendamentos=False,
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
     config.AREA_UTIL = config.LARGURA - config.MARGEM_ESQ - config.MARGEM_DIR
-    config.atualizar_escala()
+    config.ESCALA_X = 1.0
+    config.ESCALA_Y = 1.0
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(config.LARGURA, config.ALTURA))
@@ -119,8 +120,7 @@ def gerar_pdf_juridica(ano, tema, formato="A5", com_agendamentos=False,
     if preview:
         layouts_juridica.pagina_calendario_anual(pdf, ano)
         layouts_juridica.pagina_mensal(pdf, date(ano, 1, 1))
-        primeira_seg = date(ano, 1, 1) - timedelta(days=date(ano, 1, 1).weekday())
-        layouts_juridica.pagina_semanal(pdf, primeira_seg)
+        layouts_juridica.pagina_semanal(pdf, date(ano, 1, 1))
         from data.legal_maxims import obter_maximas, obter_maxima_do_dia
         preview_maxima = obter_maxima_do_dia(15) if incluir_maximas else None
         layouts_juridica.pagina_diaria(pdf, date(ano, 1, 15),

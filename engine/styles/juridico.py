@@ -239,7 +239,7 @@ class Juridico(EstiloBase):
                         else:
                             pdf.setFillColor(COR_NAVY_CLARO)
                         pdf.setFont(_FONT, 4.5)
-                        pdf.drawCentredString(sx(dx * mm), sy(dy * mm), str(day))
+                        pdf.drawCentredString(sx(dx * mm), sy((dy - 5) * mm), str(day))
 
         pdf.showPage()
 
@@ -258,9 +258,16 @@ class Juridico(EstiloBase):
         cal = calendar.monthcalendar(data.year, data.month)
 
         gx = 12
-        gy = ph - 26
         gw = pw - 24
-        gh = 112
+
+        self._moldura_caixa(pdf, 12, ph - 44, gw, 22, "PRAZOS E AUDIENCIAS DO MES")
+        self._linhas(pdf, 12, ph - 44, gw, 22, intervalo=5)
+        self._moldura_caixa(pdf, 12, ph - 70, gw, 22, "OBSERVACOES DO MES")
+        self._linhas(pdf, 12, ph - 70, gw, 22, intervalo=5)
+
+        gy = 8
+        grid_top = ph - 76
+        gh = grid_top - gy
         pdf.setStrokeColor(COR_LINHA_FORTE)
         pdf.setLineWidth(0.3)
         pdf.rect(sx(gx * mm), sy(gy * mm), sx(gw * mm), sy(gh * mm), fill=0, stroke=1)
@@ -269,30 +276,26 @@ class Juridico(EstiloBase):
         header_h = 7
         for d in range(7):
             pdf.setFillColor(COR_NAVY)
-            pdf.rect(sx((gx + d * col_w) * mm), sy((gy + gh - header_h) * mm),
+            pdf.rect(sx((gx + d * col_w) * mm), sy((grid_top - header_h) * mm),
                      sx(col_w * mm), sy(header_h * mm), fill=1, stroke=0)
             pdf.setFont(_FONT_B, 5.5)
             pdf.setFillColor(COR_BRANCO)
             pdf.drawCentredString(sx((gx + d * col_w + col_w / 2) * mm),
-                                  sy((gy + gh - header_h + 2.2) * mm), dias_curto[d])
+                                  sy((grid_top - header_h + 2.2) * mm), dias_curto[d])
 
         row_h = (gh - header_h) / max(len(cal), 1)
         for wi, week in enumerate(cal):
             for di, day in enumerate(week):
                 if day != 0:
                     dx = gx + di * col_w
-                    dy = gy + gh - header_h - (wi + 1) * row_h
+                    cell_top = grid_top - header_h - wi * row_h
                     pdf.setFont(_FONT_B, 6)
                     if di == 6:
                         pdf.setFillColor(COR_GOLD)
                     else:
                         pdf.setFillColor(COR_NAVY)
-                    pdf.drawString(sx((dx + 1.5) * mm), sy((dy + row_h - 3) * mm), str(day))
+                    pdf.drawString(sx((dx + 1.5) * mm), sy((cell_top - 8) * mm), str(day))
 
-        self._moldura_caixa(pdf, 12, 40, gw, 26, "PRAZOS E AUDIENCIAS DO MES")
-        self._linhas(pdf, 12, 40, gw, 26, intervalo=5)
-        self._moldura_caixa(pdf, 12, 9, gw, 27, "OBSERVACOES DO MES")
-        self._linhas(pdf, 12, 9, gw, 27, intervalo=5)
         pdf.showPage()
 
     # ------------------------------------------------------------ semanal
@@ -302,9 +305,7 @@ class Juridico(EstiloBase):
         pw = config.LARGURA / mm
         ph = config.ALTURA / mm
 
-        domingo = data_segunda
-        while domingo.weekday() != 6:
-            domingo = domingo + timedelta(days=1)
+        domingo = data_segunda + timedelta(days=(6 - data_segunda.weekday()))
         titulo = ("SEMANA %02d/%02d A %02d/%02d DE %d" %
                   (data_segunda.day, data_segunda.month, domingo.day, domingo.month, domingo.year))
         self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, titulo)
@@ -319,17 +320,19 @@ class Juridico(EstiloBase):
         header_h = 8
         gy = grid_top - grid_h
 
+        segunda = data_segunda - timedelta(days=data_segunda.weekday())
         for d in range(7):
-            dia_data = data_segunda + timedelta(days=d)
+            dia_data = segunda + timedelta(days=d)
             cx = gx + d * col_w
             pdf.setFillColor(COR_NAVY)
             pdf.rect(sx(cx * mm), sy((grid_top - header_h) * mm),
                      sx(col_w * mm), sy(header_h * mm), fill=1, stroke=0)
             pdf.setFont(_FONT_B, 5.5)
             pdf.setFillColor(COR_BRANCO)
+            rotulo = dias_curto[d] + " " + str(dia_data.day) if dia_data >= data_segunda else dias_curto[d]
             pdf.drawCentredString(sx((cx + col_w / 2) * mm),
-                                  sy((grid_top - header_h + 2.2) * mm),
-                                  dias_curto[d] + " " + str(dia_data.day))
+                                  sy((grid_top - header_h - 2.8) * mm),
+                                  rotulo)
             pdf.setStrokeColor(COR_LINHA)
             pdf.setLineWidth(0.15)
             for i in range(int((grid_h - header_h) / 5)):
@@ -365,7 +368,7 @@ class Juridico(EstiloBase):
         pdf.rect(sx(8 * mm), sy((ph - 24) * mm), sx(2.2 * mm), sy(16 * mm), fill=1, stroke=0)
         pdf.setFont(_FONT_B, 30)
         pdf.setFillColor(COR_BRANCO)
-        pdf.drawString(sx(15 * mm), sy((ph - 14) * mm), data.strftime("%d"))
+        pdf.drawString(sx(15 * mm), sy((ph - 19) * mm), data.strftime("%d"))
         pdf.setFont(_FONT_B, 10)
         pdf.setFillColor(COR_GOLD_CLARO)
         pdf.drawString(sx(33 * mm), sy((ph - 16) * mm), localization.nome_dia(data).upper())
