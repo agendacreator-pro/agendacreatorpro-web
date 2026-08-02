@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('estilo-field') : null;
             if (estiloField) estiloField.style.display = isJuridica ? 'none' : 'block';
             var bindingField = document.getElementById('binding-group');
-            if (bindingField) bindingField.style.display = isJuridica ? 'none' : 'block';
+            if (bindingField) bindingField.style.display = 'block';
         }
     }
 
@@ -96,6 +96,7 @@ function _getPayload() {
         });
         payload.juridica_secoes = secoes;
     }
+    payload.binding = _binding();
     return payload;
 }
 
@@ -112,8 +113,8 @@ function gerar() {
     var url;
     var suffix = '';
     if (payload.tipo === 'juridica') {
-        url = '/gerar-juridica';
-        suffix = '_Juridica';
+        if (binding === 'copta') { url = '/api/gerar-copta-juridica'; suffix = '_Juridica_Copta'; }
+        else { url = '/gerar-juridica'; suffix = '_Juridica'; }
     } else if (binding === 'copta') {
         url = '/api/gerar-copta';
         suffix = '_Copta';
@@ -160,7 +161,8 @@ function preview() {
     var binding = _binding();
     var url;
     if (payload.tipo === 'juridica') {
-        url = '/preview-juridica';
+        if (binding === 'copta') { url = '/api/preview-copta-juridica'; }
+        else { url = '/preview-juridica'; }
     } else if (binding === 'copta') {
         url = '/api/preview-copta';
     } else {

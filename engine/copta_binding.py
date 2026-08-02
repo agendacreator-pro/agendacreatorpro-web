@@ -18,6 +18,7 @@ import layouts_a5
 from datetime import date
 
 from pdf_generator import gerar_pdf_permanente, gerar_pdf_datada, gerar_preview
+from pdf_generator import gerar_pdf_juridica, gerar_preview_juridica
 
 
 A5_LARGURA = 148 * mm
@@ -40,6 +41,30 @@ def _montar_cadernilha(buf):
     writer.write(out)
     out.seek(0)
     return out
+
+
+def gerar_pdf_juridica_copta(ano, tema, formato="A5", com_agendamentos=False,
+                             incluir_maximas=True, incluir_anual=True,
+                             incluir_mensais=True, incluir_semanais=True,
+                             incluir_diarias=True, secoes=None, secoes_paginas=2):
+    buf = gerar_pdf_juridica(ano, tema, formato=formato,
+                             com_agendamentos=com_agendamentos,
+                             incluir_maximas=incluir_maximas,
+                             incluir_anual=incluir_anual,
+                             incluir_mensais=incluir_mensais,
+                             incluir_semanais=incluir_semanais,
+                             incluir_diarias=incluir_diarias,
+                             secoes=secoes, secoes_paginas=secoes_paginas)
+    return _montar_cadernilha(buf)
+
+
+def gerar_preview_juridica_copta(ano, tema, formato="A5", com_agendamentos=False,
+                                 incluir_maximas=True, secoes=None):
+    buf = gerar_preview_juridica(ano, tema, formato=formato,
+                                 com_agendamentos=com_agendamentos,
+                                 incluir_maximas=incluir_maximas,
+                                 secoes=secoes)
+    return _montar_cadernilha(buf)
 
 
 def gerar_pdf_permanente_copta(quantidade_paginas, tema, ano, formato="A5", com_agendamentos=False):
