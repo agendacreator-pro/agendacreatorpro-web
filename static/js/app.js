@@ -22,7 +22,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function atualizarPaginas() {
         var tipo = document.querySelector('input[name="tipo"]:checked');
         if (tipo) {
-            paginasField.style.display = tipo.value === 'permanente' ? 'block' : 'none';
+            var isJuridica = tipo.value === 'juridica';
+            paginasField.style.display = (tipo.value === 'permanente') ? 'block' : 'none';
+            var juridicaField = document.getElementById('juridica-field');
+            if (juridicaField) {
+                juridicaField.style.display = isJuridica ? 'block' : 'none';
+            }
+            var layoutFieldEl = document.getElementById('layout-field');
+            if (layoutFieldEl) layoutFieldEl.style.display = isJuridica ? 'none' : 'block';
+            var estiloField = document.querySelector('.field input[name="estilo"]') ?
+                document.getElementById('estilo-field') : null;
+            if (estiloField) estiloField.style.display = isJuridica ? 'none' : 'block';
+            var bindingField = document.getElementById('binding-group');
+            if (bindingField) bindingField.style.display = isJuridica ? 'none' : 'block';
         }
     }
 
@@ -61,12 +73,30 @@ function _getPayload() {
     var estilo = document.querySelector('input[name="estilo"]:checked').value;
     var formato = document.querySelector('input[name="formato"]:checked').value;
     var layout = document.querySelector('input[name="layout"]:checked').value;
-    return {
+    var payload = {
         tipo: tipo, ano: ano, paginas: paginas, tema: tema,
         estilo: estilo, formato: formato, layout: layout,
         agendamentos: document.getElementById('agendamentos').checked,
         idioma: document.getElementById('idioma').value
     };
+    if (tipo === 'juridica') {
+        payload.estilo = 'juridico';
+        var layoutEl = document.querySelector('input[name="juridica_layout"]:checked');
+        payload.juridica_layout = layoutEl ? layoutEl.value : 'diaria';
+        payload.juridica_agendamentos = document.getElementById('juridica_agendamentos') ? document.getElementById('juridica_agendamentos').checked : false;
+        payload.juridica_maximas = document.getElementById('juridica_maximas') ? document.getElementById('juridica_maximas').checked : true;
+        payload.juridica_anual = document.getElementById('juridica_anual') ? document.getElementById('juridica_anual').checked : true;
+        payload.juridica_mensais = document.getElementById('juridica_mensais') ? document.getElementById('juridica_mensais').checked : true;
+        payload.juridica_semanais = document.getElementById('juridica_semanais') ? document.getElementById('juridica_semanais').checked : true;
+        payload.juridica_diarias = document.getElementById('juridica_diarias') ? document.getElementById('juridica_diarias').checked : true;
+        payload.juridica_secoes_paginas = document.getElementById('juridica_secoes_paginas') ? document.getElementById('juridica_secoes_paginas').value : 2;
+        var secoes = [];
+        document.querySelectorAll('.juridica-secao:checked').forEach(function(cb) {
+            secoes.push(cb.value);
+        });
+        payload.juridica_secoes = secoes;
+    }
+    return payload;
 }
 
 function _binding() {
@@ -79,8 +109,17 @@ function gerar() {
     var status = document.getElementById('status');
     var payload = _getPayload();
     var binding = _binding();
-    var url = binding === 'copta' ? '/api/gerar-copta' : '/gerar';
-    var suffix = binding === 'copta' ? '_Copta' : '';
+    var url;
+    var suffix = '';
+    if (payload.tipo === 'juridica') {
+        url = '/gerar-juridica';
+        suffix = '_Juridica';
+    } else if (binding === 'copta') {
+        url = '/api/gerar-copta';
+        suffix = '_Copta';
+    } else {
+        url = '/gerar';
+    }
 
     btn.disabled = true;
     status.textContent = 'Gerando PDF...';
@@ -119,7 +158,14 @@ function preview() {
     var status = document.getElementById('status');
     var payload = _getPayload();
     var binding = _binding();
-    var url = binding === 'copta' ? '/api/preview-copta' : '/preview';
+    var url;
+    if (payload.tipo === 'juridica') {
+        url = '/preview-juridica';
+    } else if (binding === 'copta') {
+        url = '/api/preview-copta';
+    } else {
+        url = '/preview';
+    }
     btn.disabled = true;
     status.textContent = 'Carregando previa...';
 

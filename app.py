@@ -15,6 +15,7 @@ from themes import (
     LaranjaTheme, VermelhoTheme, LilasTheme, PretoTheme
 )
 from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente, gerar_preview
+from pdf_generator import gerar_pdf_juridica, gerar_preview_juridica
 import localization
 
 app = Flask(__name__)
@@ -427,6 +428,77 @@ def preview_pdf_copta():
 
         from copta_binding import gerar_preview_copta
         buffer = gerar_preview_copta(ano, tema, layout, formato, com_agendamentos=com_agendamentos)
+        return send_file(buffer, mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/gerar-juridica', methods=['POST'])
+@login_required
+def gerar_pdf_juridica_route():
+    try:
+        data = request.json
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('juridica_agendamentos', False)
+        incluir_maximas = data.get('juridica_maximas', True)
+        incluir_anual = data.get('juridica_anual', True)
+        incluir_mensais = data.get('juridica_mensais', True)
+        incluir_semanais = data.get('juridica_semanais', True)
+        incluir_diarias = data.get('juridica_diarias', True)
+        layout_juridica = data.get('juridica_layout', 'diaria')
+        secoes = data.get('juridica_secoes', None) or None
+        secoes_paginas = int(data.get('juridica_secoes_paginas', 2) or 2)
+
+        if layout_juridica == 'semanal':
+            incluir_semanais = True
+        elif layout_juridica == 'mensal':
+            incluir_mensais = True
+        else:
+            incluir_diarias = True
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        buffer = gerar_pdf_juridica(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
+            incluir_maximas=incluir_maximas,
+            incluir_anual=incluir_anual,
+            incluir_mensais=incluir_mensais,
+            incluir_semanais=incluir_semanais,
+            incluir_diarias=incluir_diarias,
+            secoes=secoes,
+            secoes_paginas=secoes_paginas,
+        )
+        nome = f"Agenda_Juridica_{ano}_{tema_nome}_{formato}.pdf"
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/preview-juridica', methods=['POST'])
+@login_required
+def preview_pdf_juridica_route():
+    try:
+        data = request.json
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('juridica_agendamentos', False)
+        incluir_maximas = data.get('juridica_maximas', True)
+        secoes = data.get('juridica_secoes', None) or None
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        buffer = gerar_preview_juridica(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
+            incluir_maximas=incluir_maximas,
+            secoes=secoes,
+        )
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:
         import traceback

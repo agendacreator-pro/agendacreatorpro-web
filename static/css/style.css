@@ -108,6 +108,25 @@ h1 {
     gap: 6px;
 }
 
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 16px;
+    text-align: left;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.checkbox-grid label {
+    font-weight: normal;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #444;
+}
+
 button {
     width: 100%;
     padding: 16px;

@@ -9,6 +9,7 @@ import themes
 from themes import definir
 import layouts_a5
 import layouts_permanente_a5
+import layouts_juridica
 
 
 def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5", com_agendamentos=False):
@@ -93,3 +94,76 @@ def gerar_preview(ano, tema, layout_pagina="1", formato="A5", com_agendamentos=F
     pdf.save()
     buffer.seek(0)
     return buffer
+
+
+def gerar_pdf_juridica(ano, tema, formato="A5", com_agendamentos=False,
+                       incluir_maximas=True, incluir_anual=True,
+                       incluir_mensais=True, incluir_semanais=True,
+                       incluir_diarias=True, secoes=None, secoes_paginas=2,
+                       preview=False):
+    """Gera a Agenda Juridica. Se preview=True, gera apenas paginas de exemplo."""
+    from styles.manager import definir as definir_estilo
+    definir_estilo('juridico')
+    definir(tema)
+    config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
+    config.FORMATO = formato.upper()
+    config.AREA_UTIL = config.LARGURA - config.MARGEM_ESQ - config.MARGEM_DIR
+    config.atualizar_escala()
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=(config.LARGURA, config.ALTURA))
+    pdf.setPageCompression(0)
+
+    layouts_juridica.pagina_dados(pdf)
+
+    if preview:
+        layouts_juridica.pagina_calendario_anual(pdf, ano)
+        layouts_juridica.pagina_mensal(pdf, date(ano, 1, 1))
+        primeira_seg = date(ano, 1, 1) - timedelta(days=date(ano, 1, 1).weekday())
+        layouts_juridica.pagina_semanal(pdf, primeira_seg)
+        from data.legal_maxims import obter_maximas, obter_maxima_do_dia
+        preview_maxima = obter_maxima_do_dia(15) if incluir_maximas else None
+        layouts_juridica.pagina_diaria(pdf, date(ano, 1, 15),
+                                       com_agendamentos=com_agendamentos,
+                                       maxima=preview_maxima)
+        layouts_juridica.pagina_maximas(pdf, obter_maximas()[:22])
+        if secoes:
+            for secao in secoes:
+                layouts_juridica.desenhar_secao(pdf, secao, paginas=1, num_linhas=22)
+        pdf.save()
+        buffer.seek(0)
+        return buffer
+
+    if incluir_anual:
+        layouts_juridica.pagina_calendario_anual(pdf, ano)
+    if incluir_mensais:
+        layouts_juridica.gerar_paginas_mensais(pdf, ano)
+    if incluir_semanais:
+        layouts_juridica.gerar_paginas_semanais(pdf, ano)
+    if incluir_diarias:
+        layouts_juridica.gerar_paginas_diarias(pdf, ano,
+                                               com_agendamentos=com_agendamentos,
+                                               incluir_maximas=incluir_maximas)
+    if secoes:
+        for secao in secoes:
+            layouts_juridica.desenhar_secao(pdf, secao, paginas=secoes_paginas)
+
+    if incluir_maximas:
+        from data.legal_maxims import obter_maximas
+        todas = obter_maximas()
+        passo = 20
+        for i in range(0, len(todas), passo):
+            layouts_juridica.pagina_maximas(pdf, todas[i:i + passo])
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+
+def gerar_preview_juridica(ano, tema, formato="A5", com_agendamentos=False,
+                           incluir_maximas=True, secoes=None):
+    return gerar_pdf_juridica(ano, tema, formato=formato,
+                              com_agendamentos=com_agendamentos,
+                              incluir_maximas=incluir_maximas,
+                              secoes=secoes,
+                              preview=True)
