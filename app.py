@@ -256,34 +256,6 @@ def _save_users():
         json.dump({'users': list(USERS.values())}, f, indent=2, ensure_ascii=False)
 
 
-@app.route('/api/debug-persist', methods=['GET'])
-@login_required
-def debug_persist():
-    try:
-        with open(_USERS_FILE, 'r', encoding='utf-8') as f:
-            file_users = json.load(f).get('users', [])
-        n_file = len(file_users)
-    except Exception as e:
-        n_file = f"erro: {e}"
-    try:
-        _mounts = open('/proc/mounts', 'r', encoding='utf-8', errors='ignore').read().splitlines()[:50]
-    except Exception as e:
-        _mounts = [f"erro: {e}"]
-    return jsonify({
-        'users_file': _USERS_FILE,
-        'volume_mount': os.environ.get('RAILWAY_VOLUME_MOUNT_PATH') or '',
-        'users_path_env': os.environ.get('USERS_PATH') or '',
-        'data_dir_exists': os.path.isdir('/data'),
-        'data_dir_writable': os.path.isdir('/data') and os.access('/data', os.W_OK),
-        'roots': [d for d in os.listdir('/') if os.path.isdir(os.path.join('/', d))],
-        'mounts': _mounts,
-        'exists': os.path.exists(_USERS_FILE),
-        'writable': os.access(os.path.dirname(_USERS_FILE) or '.', os.W_OK) if os.path.exists(os.path.dirname(_USERS_FILE) or '.') else False,
-        'users_in_memory': len(USERS),
-        'users_in_file': n_file,
-    })
-
-
 @app.route('/app')
 @login_required
 def index():
@@ -294,6 +266,17 @@ def index():
 @login_required
 def admin_users():
     return jsonify(list(USERS.values()))
+
+
+@app.route('/admin/users/<email>', methods=['DELETE'])
+@login_required
+def admin_delete_user(email):
+    key = email.lower()
+    if key not in USERS:
+        return jsonify({'error': 'Usuario nao encontrado'}), 404
+    del USERS[key]
+    _save_users()
+    return jsonify({'success': True})
 
 
 @app.route('/admin/users', methods=['POST'])
