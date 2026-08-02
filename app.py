@@ -90,9 +90,19 @@ USERS = {
 
 _repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
 _volume_mount = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH') or ''
+
+
+def _find_volume_users_path():
+    for p in ('/data', '/persist', '/vol'):
+        if os.path.isdir(p) and os.access(p, os.W_OK):
+            return os.path.join(p, 'users.json')
+    return ''
+
+
 _USERS_FILE = (
     os.environ.get('USERS_PATH')
     or (os.path.join(_volume_mount, 'users.json') if _volume_mount else '')
+    or _find_volume_users_path()
     or _repo_users_file
 )
 
@@ -259,6 +269,9 @@ def debug_persist():
         'users_file': _USERS_FILE,
         'volume_mount': os.environ.get('RAILWAY_VOLUME_MOUNT_PATH') or '',
         'users_path_env': os.environ.get('USERS_PATH') or '',
+        'data_dir_exists': os.path.isdir('/data'),
+        'data_dir_writable': os.path.isdir('/data') and os.access('/data', os.W_OK),
+        'roots': [d for d in os.listdir('/') if os.path.isdir(os.path.join('/', d))],
         'exists': os.path.exists(_USERS_FILE),
         'writable': os.access(os.path.dirname(_USERS_FILE) or '.', os.W_OK) if os.path.exists(os.path.dirname(_USERS_FILE) or '.') else False,
         'users_in_memory': len(USERS),
