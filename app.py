@@ -88,18 +88,27 @@ USERS = {
     },
 }
 
-_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
-if os.path.exists(_users_file):
-    try:
-        with open(_users_file, 'r', encoding='utf-8') as f:
-            _data = json.load(f)
-        for u in _data.get('users', []):
-            key = u['email'].lower()
-            if u.get('ativo') and 'password' in u:
-                USERS[key] = u
-        print(f"[STARTUP] Loaded {len(USERS)} users from users.json")
-        print(f"[STARTUP] Users: {list(USERS.keys())}")
-    except Exception as e:
+_USERS_FILE = os.environ.get('USERS_PATH') or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
+
+
+def _load_users_file(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        _data = json.load(f)
+    for u in _data.get('users', []):
+        key = u['email'].lower()
+        if u.get('ativo') and 'password' in u:
+            USERS[key] = u
+
+
+_repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
+try:
+    if os.path.exists(_repo_users_file):
+        _load_users_file(_repo_users_file)
+    if _USERS_FILE != _repo_users_file and os.path.exists(_USERS_FILE):
+        _load_users_file(_USERS_FILE)
+    print(f"[STARTUP] Loaded {len(USERS)} users (persist: {_USERS_FILE})")
+    print(f"[STARTUP] Users: {list(USERS.keys())}")
+except Exception as e:
         print(f"[STARTUP] Could not load users.json: {e}")
 
 
@@ -225,8 +234,10 @@ def change_password():
 
 
 def _save_users():
-    path = os.path.join(os.path.dirname(__file__), 'users.json')
-    with open(path, 'w', encoding='utf-8') as f:
+    _dir = os.path.dirname(_USERS_FILE)
+    if _dir:
+        os.makedirs(_dir, exist_ok=True)
+    with open(_USERS_FILE, 'w', encoding='utf-8') as f:
         json.dump({'users': list(USERS.values())}, f, indent=2, ensure_ascii=False)
 
 
