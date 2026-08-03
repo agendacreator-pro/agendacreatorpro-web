@@ -53,6 +53,12 @@
       "password": "scrypt:32768:8:1$titKtXPnVRtiHPMM$39c412291ee5f2e942777734f775b2c17b13af84c2e26e7c46470643c9b46a1451911c5831095d0de5591f370d6e31db2cacc00d974609d2f7b390e4d6450cf9",
       "token": "",
       "ativo": true
+    },
+    {
+      "email": "lucianedossantosmartins005@gmail.com",
+      "password": "scrypt:32768:8:1$QKDOBbgZc1sH6rVw$e90db4d733bdf65c3f38555d02c57ba231a33938f60327063e451b0e1b6ad211716bc155b944cfb0eb73a950495a142b5c1fd184384183c32d6666050ddfc25b",
+      "token": "",
+      "ativo": true
     }
   ]
 }

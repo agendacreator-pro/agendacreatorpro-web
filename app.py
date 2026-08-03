@@ -87,6 +87,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'lucianedossantosmartins005@gmail.com': {
+        'email': 'lucianedossantosmartins005@gmail.com',
+        'password': generate_password_hash('Rhay041279'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 _repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
