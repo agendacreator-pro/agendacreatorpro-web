@@ -13,9 +13,11 @@ from .tema import Tema
 from .estilo_base import EstiloBase
 import localization
 import themes
+from frases_prosperidade import FRASES
 
 _FONT_B = "Helvetica-Bold"
 _FONT = "Helvetica"
+_FONT_O = "Helvetica-Oblique"
 
 tema = Tema(
     nome="Juridico",
@@ -346,8 +348,11 @@ class Juridico(EstiloBase):
 
         segunda = data_segunda - timedelta(days=data_segunda.weekday())
         domingo = segunda + timedelta(days=6)
-        titulo = ("SEMANA %02d/%02d A %02d/%02d DE %d" %
-                  (segunda.day, segunda.month, domingo.day, domingo.month, domingo.year))
+        inicio_ano = date(data_segunda.year, 1, 1)
+        primeira_segunda = inicio_ano - timedelta(days=inicio_ano.weekday())
+        n_semana = ((segunda - primeira_segunda).days // 7) + 1
+        titulo = ("SEMANA %02d - %02d/%02d A %02d/%02d DE %d" %
+                  (n_semana, segunda.day, segunda.month, domingo.day, domingo.month, domingo.year))
         self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, titulo)
 
         dias_curto = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"]
@@ -369,7 +374,7 @@ class Juridico(EstiloBase):
             pdf.setFont(_FONT_B, 5.5)
             pdf.setFillColor(COR_BRANCO)
             pdf.drawCentredString(sx((cx + col_w / 2) * mm),
-                                  sy((grid_top - header_h - 2.8) * mm),
+                                  sy((grid_top - header_h + 2.2) * mm),
                                   dias_curto[d] + " " + str(dia_data.day))
             pdf.setStrokeColor(COR_LINHA)
             pdf.setLineWidth(0.15)
@@ -417,6 +422,12 @@ class Juridico(EstiloBase):
         pdf.setFillColor(COR_TEXTO_CABECALHO)
         pdf.drawRightString(sx((pw - 12) * mm), sy((ph - 15) * mm),
                             localization.nome_mes(data.month).upper() + " " + str(data.year))
+
+        # frase de prosperidade do dia
+        frase = FRASES[(data.timetuple().tm_yday - 1) % len(FRASES)]
+        pdf.setFont(_FONT_O, 6.5)
+        pdf.setFillColor(COR_GOLD)
+        pdf.drawCentredString(sx((pw / 2) * mm), sy((ph - 29) * mm), frase[:110])
 
         # rodape: maxima juridica
         if maxima:
