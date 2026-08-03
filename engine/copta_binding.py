@@ -29,15 +29,23 @@ FOLHA_ALTURA = 210 * mm
 
 
 def _montar_cadernilha(buf):
-    """Junta as paginas A5 duas a duas em folhas A4 paisagem (ordem sequencial)."""
+    """Junta as paginas duas a duas, lado a lado, em folhas paisagem (ordem sequencial).
+    As dimensoes da folha e o offset sao calculados a partir do tamanho real das paginas,
+    suportando A5, A4 e QUADRADO."""
     reader = PdfReader(buf)
     writer = PdfWriter()
     paginas = reader.pages
+    if not paginas:
+        return buf
+    pw = float(paginas[0].mediabox.width)
+    ph = float(paginas[0].mediabox.height)
+    folha_w = 2 * pw
+    folha_h = ph
     for i in range(0, len(paginas), 2):
-        folha = writer.add_blank_page(FOLHA_LARGURA, FOLHA_ALTURA)
+        folha = writer.add_blank_page(folha_w, folha_h)
         folha.merge_translated_page(paginas[i], 0, 0)
         if i + 1 < len(paginas):
-            folha.merge_translated_page(paginas[i + 1], A5_LARGURA, 0)
+            folha.merge_translated_page(paginas[i + 1], pw, 0)
     out = BytesIO()
     writer.write(out)
     out.seek(0)
