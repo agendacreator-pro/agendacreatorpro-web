@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('estilo-field') : null;
             if (estiloField) estiloField.style.display = isJuridica ? 'none' : 'block';
             var bindingField = document.getElementById('binding-group');
-            if (bindingField) bindingField.style.display = 'block';
+            if (bindingField) bindingField.style.display = 'flex';
         }
     }
 
