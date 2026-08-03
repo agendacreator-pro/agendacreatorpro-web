@@ -132,6 +132,22 @@ class Crista(EstiloBase):
         pdf.setFillColor(COR_GOLD)
         pdf.circle(sx(x * mm), sy((mouth - 0.9) * mm), 0.4 * mm, stroke=0, fill=1)
 
+    def _biblia(self, pdf, x, y, size):
+        """Biblia aberta dourada: lombada central com paginas inclinadas."""
+        pdf.setStrokeColor(COR_GOLD)
+        pdf.setLineWidth(0.55)
+        top = y + size
+        half = size * 0.55
+        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx(x * mm), sy(top * mm))
+        pdf.line(sx(x * mm), sy(top * mm), sx((x - half) * mm), sy((y + size * 0.30) * mm))
+        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx((x - half) * mm), sy((y + size * 0.18) * mm))
+        pdf.line(sx((x - half) * mm), sy((y + size * 0.30) * mm),
+                 sx((x - half) * mm), sy((y + size * 0.18) * mm))
+        pdf.line(sx(x * mm), sy(top * mm), sx((x + half) * mm), sy((y + size * 0.30) * mm))
+        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx((x + half) * mm), sy((y + size * 0.18) * mm))
+        pdf.line(sx((x + half) * mm), sy((y + size * 0.30) * mm),
+                 sx((x + half) * mm), sy((y + size * 0.18) * mm))
+
     def _canto(self, pdf, x, y, corner):
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.45)
@@ -341,7 +357,10 @@ class Crista(EstiloBase):
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.5)
         pdf.rect(sx(8 * mm), sy((ph - 41) * mm), sx((pw - 16) * mm), sy(14 * mm), fill=1, stroke=1)
-        self._cruz(pdf, 14, ph - 34, 3)
+        biblia_size = 4.5
+        biblia_y = ph - 34 - biblia_size / 2
+        self._biblia(pdf, 14, biblia_y, biblia_size)
+        self._biblia(pdf, pw - 14, biblia_y, biblia_size)
         pdf.setFont(_FONT_O, 7.5)
         pdf.setFillColor(COR_BORDO)
         linhas = self._quebrar(pdf, versiculo["texto"], _FONT_O, 7.5, pw - 30)[:2]
@@ -446,6 +465,9 @@ class Crista(EstiloBase):
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.4)
         pdf.rect(sx(8 * mm), sy(verse_y * mm), sx((pw - 16) * mm), sy(verse_h * mm), fill=1, stroke=1)
+        biblia_size = 4.5
+        self._biblia(pdf, 14, verse_y + (verse_h - biblia_size) / 2, biblia_size)
+        self._biblia(pdf, pw - 14, verse_y + (verse_h - biblia_size) / 2, biblia_size)
         pdf.setFont(_FONT_O, 6.5)
         pdf.setFillColor(COR_BORDO)
         linhas = self._quebrar(pdf, versiculo["texto"], _FONT_O, 6.5, pw - 28)[:2]
