@@ -73,7 +73,7 @@ def atualizar_cores():
     COR_GOLD_CLARO = _clarear(base, 0.70)
     COR_TEXTO_CABECALHO = _clarear(base, 0.55)
     COR_CREME = _clarear(base, 0.94)
-    COR_LINHA = _clarear(base, 0.83)
+    COR_LINHA = _clarear(base, 0.60)
     COR_LINHA_FORTE = _escurecer(base, 0.42)
 
 
@@ -106,12 +106,31 @@ class Crista(EstiloBase):
         pdf.drawCentredString(sx((x + w / 2) * mm), sy((y + h / 2 - 1.2) * mm), texto)
 
     def _cruz(self, pdf, x, y, size):
-        """Cruz dourada simples."""
+        """Cruz latina dourada (haste inferior mais longa, estilo igreja catolica)."""
         pdf.setStrokeColor(COR_GOLD)
-        pdf.setLineWidth(0.6)
+        pdf.setLineWidth(0.7)
         pdf.line(sx(x * mm), sy(y * mm), sx(x * mm), sy((y + size) * mm))
-        pdf.line(sx((x - size / 3) * mm), sy((y + size / 3) * mm),
-                 sx((x + size / 3) * mm), sy((y + size / 3) * mm))
+        bar_y = y + size * 0.70
+        half_w = size * 0.28
+        pdf.line(sx((x - half_w) * mm), sy(bar_y * mm),
+                 sx((x + half_w) * mm), sy(bar_y * mm))
+
+    def _sino(self, pdf, x, y, size):
+        """Sino de Belem: campainha dourada estilizada com alca, aba e badalo."""
+        pdf.setStrokeColor(COR_GOLD)
+        pdf.setLineWidth(0.5)
+        top = y + size
+        half = size * 0.42
+        mouth = y + size * 0.35
+        pdf.circle(sx(x * mm), sy((top - 0.5) * mm), 0.55 * mm, stroke=1, fill=0)
+        pdf.line(sx((x - half) * mm), sy(mouth * mm), sx(x * mm), sy((top - 1.2) * mm))
+        pdf.line(sx((x + half) * mm), sy(mouth * mm), sx(x * mm), sy((top - 1.2) * mm))
+        pdf.line(sx((x - half - 0.7) * mm), sy(mouth * mm),
+                 sx((x + half + 0.7) * mm), sy(mouth * mm))
+        pdf.line(sx((x - half - 0.7) * mm), sy((mouth - 0.7) * mm),
+                 sx((x + half + 0.7) * mm), sy((mouth - 0.7) * mm))
+        pdf.setFillColor(COR_GOLD)
+        pdf.circle(sx(x * mm), sy((mouth - 0.9) * mm), 0.4 * mm, stroke=0, fill=1)
 
     def _canto(self, pdf, x, y, corner):
         pdf.setStrokeColor(COR_GOLD)
@@ -341,10 +360,11 @@ class Crista(EstiloBase):
             sched_h = ph - 46 - 8 - sched_y
             pdf.setStrokeColor(COR_LINHA)
             pdf.setLineWidth(0.2)
-            n_slots = int(sched_h / 7)
+            n_slots = 11
+            slot_h = sched_h / n_slots
             for i in range(n_slots):
                 hora = 8 + i
-                slot_y = ph - 46 - 8 - i * 7
+                slot_y = ph - 46 - 8 - i * slot_h
                 pdf.setFont(_FONT_B, 5.5)
                 pdf.setFillColor(COR_BORDO)
                 pdf.drawString(sx(11 * mm), sy((slot_y - 1.5) * mm), "%02d:00" % hora)
@@ -362,8 +382,9 @@ class Crista(EstiloBase):
         # rodape
         pdf.setFont(_FONT_B, 5.5)
         pdf.setFillColor(COR_GOLD)
-        pdf.drawCentredString(sx((pw / 2) * mm), sy(9 * mm), versiculo["referencia"])
-        self._cruz(pdf, pw / 2, 12, 2.5)
+        pdf.drawCentredString(sx((pw / 2 - 4) * mm), sy(9 * mm), versiculo["referencia"])
+        self._cruz(pdf, pw / 2 - 4, 12, 3.5)
+        self._sino(pdf, pw / 2 + 13, 14, 4.5)
 
         pdf.showPage()
 
@@ -444,11 +465,12 @@ class Crista(EstiloBase):
             sched_x = 8 + (pw - 16) - sched_w
             notes_w = (pw - 16) - sched_w - 3
             self._moldura_caixa(pdf, sched_x, notes_y, sched_w, notes_h, localization.label("agendamentos"))
-            n_slots = int((notes_h - 8) / 6)
+            n_slots = 11
+            slot_h = (notes_h - 9) / n_slots
             for i in range(n_slots):
                 hora = 8 + i
-                slot_y = notes_y + notes_h - 9 - i * 6
-                pdf.setFont(_FONT_B, 5)
+                slot_y = notes_y + notes_h - 9 - i * slot_h
+                pdf.setFont(_FONT_B, 4.5)
                 pdf.setFillColor(COR_BORDO)
                 pdf.drawString(sx((sched_x + 2) * mm), sy((slot_y - 1.5) * mm), "%02d:00" % hora)
                 pdf.setStrokeColor(COR_LINHA)
