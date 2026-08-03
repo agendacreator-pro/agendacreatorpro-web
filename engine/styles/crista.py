@@ -133,20 +133,28 @@ class Crista(EstiloBase):
         pdf.circle(sx(x * mm), sy((mouth - 0.9) * mm), 0.4 * mm, stroke=0, fill=1)
 
     def _biblia(self, pdf, x, y, size):
-        """Biblia aberta dourada: lombada central com paginas inclinadas."""
+        """Livro/agenda aberta dourada: duas paginas abertas com lombada central."""
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.55)
         top = y + size
-        half = size * 0.55
-        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx(x * mm), sy(top * mm))
-        pdf.line(sx(x * mm), sy(top * mm), sx((x - half) * mm), sy((y + size * 0.30) * mm))
-        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx((x - half) * mm), sy((y + size * 0.18) * mm))
-        pdf.line(sx((x - half) * mm), sy((y + size * 0.30) * mm),
-                 sx((x - half) * mm), sy((y + size * 0.18) * mm))
-        pdf.line(sx(x * mm), sy(top * mm), sx((x + half) * mm), sy((y + size * 0.30) * mm))
-        pdf.line(sx(x * mm), sy((y + size * 0.10) * mm), sx((x + half) * mm), sy((y + size * 0.18) * mm))
-        pdf.line(sx((x + half) * mm), sy((y + size * 0.30) * mm),
-                 sx((x + half) * mm), sy((y + size * 0.18) * mm))
+        half = size * 0.45
+        slope = size * 0.18
+        pdf.line(sx(x * mm), sy(y * mm), sx(x * mm), sy(top * mm))
+        pdf.line(sx(x * mm), sy(top * mm), sx((x - half) * mm), sy((top - slope) * mm))
+        pdf.line(sx((x - half) * mm), sy((top - slope) * mm), sx((x - half) * mm), sy((y + slope) * mm))
+        pdf.line(sx((x - half) * mm), sy((y + slope) * mm), sx(x * mm), sy(y * mm))
+        pdf.line(sx(x * mm), sy(top * mm), sx((x + half) * mm), sy((top - slope) * mm))
+        pdf.line(sx((x + half) * mm), sy((top - slope) * mm), sx((x + half) * mm), sy((y + slope) * mm))
+        pdf.line(sx((x + half) * mm), sy((y + slope) * mm), sx(x * mm), sy(y * mm))
+        pdf.setLineWidth(0.25)
+        for d in (0.5, 1.0, 1.5):
+            y_in = top - slope * 0.10 - d
+            y_out = top - slope * 0.88 - d
+            pdf.line(sx((x - half * 0.10) * mm), sy(y_in * mm),
+                     sx((x - half * 0.88) * mm), sy(y_out * mm))
+            pdf.line(sx((x + half * 0.10) * mm), sy(y_in * mm),
+                     sx((x + half * 0.88) * mm), sy(y_out * mm))
+        pdf.setLineWidth(0.5)
 
     def _canto(self, pdf, x, y, corner):
         pdf.setStrokeColor(COR_GOLD)
@@ -357,7 +365,7 @@ class Crista(EstiloBase):
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.5)
         pdf.rect(sx(8 * mm), sy((ph - 41) * mm), sx((pw - 16) * mm), sy(14 * mm), fill=1, stroke=1)
-        biblia_size = 4.5
+        biblia_size = 5.0
         biblia_y = ph - 34 - biblia_size / 2
         self._biblia(pdf, 14, biblia_y, biblia_size)
         self._biblia(pdf, pw - 14, biblia_y, biblia_size)
@@ -430,7 +438,7 @@ class Crista(EstiloBase):
             pdf.rect(sx((pw - 10.2) * mm), sy(header_y * mm), sx(2.2 * mm), sy(header_h * mm), fill=1, stroke=0)
             pdf.setFont(_FONT_B, 20)
             pdf.setFillColor(COR_BRANCO)
-            pdf.drawRightString(sx((pw - 12) * mm), sy((header_y + header_h * 0.45) * mm), data.strftime("%d"))
+            pdf.drawRightString(sx((pw - 17) * mm), sy((header_y + header_h * 0.45) * mm), data.strftime("%d"))
             pdf.setFont(_FONT_B, 8)
             pdf.setFillColor(COR_GOLD_CLARO)
             pdf.drawString(sx(14 * mm), sy((header_y + header_h * 0.62) * mm), localization.nome_dia(data).upper())
@@ -465,7 +473,7 @@ class Crista(EstiloBase):
         pdf.setStrokeColor(COR_GOLD)
         pdf.setLineWidth(0.4)
         pdf.rect(sx(8 * mm), sy(verse_y * mm), sx((pw - 16) * mm), sy(verse_h * mm), fill=1, stroke=1)
-        biblia_size = 4.5
+        biblia_size = 5.0
         self._biblia(pdf, 14, verse_y + (verse_h - biblia_size) / 2, biblia_size)
         self._biblia(pdf, pw - 14, verse_y + (verse_h - biblia_size) / 2, biblia_size)
         pdf.setFont(_FONT_O, 6.5)
