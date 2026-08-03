@@ -19,6 +19,7 @@ from datetime import date
 
 from pdf_generator import gerar_pdf_permanente, gerar_pdf_datada, gerar_preview
 from pdf_generator import gerar_pdf_juridica, gerar_preview_juridica
+from pdf_generator import gerar_pdf_crista, gerar_preview_crista
 
 
 A5_LARGURA = 148 * mm
@@ -64,6 +65,18 @@ def gerar_preview_juridica_copta(ano, tema, formato="A5", com_agendamentos=False
                                  com_agendamentos=com_agendamentos,
                                  incluir_maximas=incluir_maximas,
                                  secoes=secoes)
+    return _montar_cadernilha(buf)
+
+
+def gerar_pdf_crista_copta(ano, tema, formato="A5", com_agendamentos=False):
+    buf = gerar_pdf_crista(ano, tema, formato=formato,
+                           com_agendamentos=com_agendamentos)
+    return _montar_cadernilha(buf)
+
+
+def gerar_preview_crista_copta(ano, tema, formato="A5", com_agendamentos=False):
+    buf = gerar_preview_crista(ano, tema, formato=formato,
+                               com_agendamentos=com_agendamentos)
     return _montar_cadernilha(buf)
 
 

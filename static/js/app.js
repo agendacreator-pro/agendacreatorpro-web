@@ -23,16 +23,21 @@ document.addEventListener('DOMContentLoaded', function() {
         var tipo = document.querySelector('input[name="tipo"]:checked');
         if (tipo) {
             var isJuridica = tipo.value === 'juridica';
+            var isCrista = tipo.value === 'crista';
             paginasField.style.display = (tipo.value === 'permanente') ? 'block' : 'none';
             var juridicaField = document.getElementById('juridica-field');
             if (juridicaField) {
                 juridicaField.style.display = isJuridica ? 'block' : 'none';
             }
+            var cristaField = document.getElementById('crista-field');
+            if (cristaField) {
+                cristaField.style.display = isCrista ? 'block' : 'none';
+            }
             var layoutFieldEl = document.getElementById('layout-field');
-            if (layoutFieldEl) layoutFieldEl.style.display = isJuridica ? 'none' : 'block';
+            if (layoutFieldEl) layoutFieldEl.style.display = (isJuridica || isCrista) ? 'none' : 'block';
             var estiloField = document.querySelector('.field input[name="estilo"]') ?
                 document.getElementById('estilo-field') : null;
-            if (estiloField) estiloField.style.display = isJuridica ? 'none' : 'block';
+            if (estiloField) estiloField.style.display = (isJuridica || isCrista) ? 'none' : 'block';
             var bindingField = document.getElementById('binding-group');
             if (bindingField) bindingField.style.display = 'flex';
         }
@@ -96,6 +101,10 @@ function _getPayload() {
         });
         payload.juridica_secoes = secoes;
     }
+    if (tipo === 'crista') {
+        payload.estilo = 'crista';
+        payload.crista_agendamentos = document.getElementById('crista_agendamentos') ? document.getElementById('crista_agendamentos').checked : false;
+    }
     payload.binding = _binding();
     return payload;
 }
@@ -115,6 +124,9 @@ function gerar() {
     if (payload.tipo === 'juridica') {
         if (binding === 'copta') { url = '/api/gerar-copta-juridica'; suffix = '_Juridica_Copta'; }
         else { url = '/gerar-juridica'; suffix = '_Juridica'; }
+    } else if (payload.tipo === 'crista') {
+        if (binding === 'copta') { url = '/api/gerar-copta-crista'; suffix = '_Crista_Copta'; }
+        else { url = '/gerar-crista'; suffix = '_Crista'; }
     } else if (binding === 'copta') {
         url = '/api/gerar-copta';
         suffix = '_Copta';
@@ -163,6 +175,9 @@ function preview() {
     if (payload.tipo === 'juridica') {
         if (binding === 'copta') { url = '/api/preview-copta-juridica'; }
         else { url = '/preview-juridica'; }
+    } else if (payload.tipo === 'crista') {
+        if (binding === 'copta') { url = '/api/preview-copta-crista'; }
+        else { url = '/preview-crista'; }
     } else if (binding === 'copta') {
         url = '/api/preview-copta';
     } else {

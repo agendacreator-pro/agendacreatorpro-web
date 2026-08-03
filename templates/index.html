@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Creator Pro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=12">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=13">
 </head>
 <body>
     <div class="container">
@@ -39,6 +39,7 @@
                     <label><input type="radio" name="tipo" value="datada" checked> <span data-i18n="agenda_datada">Agenda Datada</span></label>
                     <label><input type="radio" name="tipo" value="permanente"> <span data-i18n="agenda_permanente">Agenda Permanente</span></label>
                     <label><input type="radio" name="tipo" value="juridica"> <span data-i18n="agenda_juridica">Agenda Juridica</span></label>
+                    <label><input type="radio" name="tipo" value="crista"> <span data-i18n="agenda_crista">Agenda Cristã</span></label>
                 </div>
             </div>
 
@@ -94,6 +95,15 @@
                 <div class="field">
                     <label data-i18n="juridica_secoes_paginas">Paginas por secao de registro</label>
                     <input type="number" id="juridica_secoes_paginas" value="2" min="0" max="20">
+                </div>
+            </div>
+
+            <div class="field" id="crista-field" style="display:none; border:1px solid #e0e0e0; border-radius:12px; padding:16px; background:#fafbfc;">
+                <label style="font-weight:700; font-size:0.95rem;" data-i18n="crista_config">Configuracoes da Agenda Cristã</label>
+
+                <div class="field">
+                    <label data-i18n="crista_horarios">Incluir agenda de horarios (08:00-18:00)</label>
+                    <input type="checkbox" id="crista_agendamentos">
                 </div>
             </div>
 
@@ -206,7 +216,10 @@ pt: {
     juridica_custas: "Custas",
     juridica_protocolos: "Protocolos",
     juridica_reunioes: "Reunioes",
-    juridica_secoes_paginas: "Paginas por secao de registro"
+    juridica_secoes_paginas: "Paginas por secao de registro",
+    agenda_crista: "Agenda Cristã",
+    crista_config: "Configuracoes da Agenda Cristã",
+    crista_horarios: "Incluir agenda de horarios (08:00-18:00)"
 },
 en: {
     subtitulo: "Professional Planner Generator", sair: "Logout", ano_agenda: "Planner Year",
@@ -241,7 +254,10 @@ en: {
     juridica_custas: "Costs",
     juridica_protocolos: "Filings",
     juridica_reunioes: "Meetings",
-    juridica_secoes_paginas: "Pages per register section"
+    juridica_secoes_paginas: "Pages per register section",
+    agenda_crista: "Christian Agenda",
+    crista_config: "Christian Agenda Settings",
+    crista_horarios: "Include schedule (08:00-18:00)"
 },
 es: {
     subtitulo: "Generador de Agendas Profesionales", sair: "Salir", ano_agenda: "Ano de la Agenda",
@@ -276,10 +292,13 @@ es: {
     juridica_custas: "Costas",
     juridica_protocolos: "Protocolos",
     juridica_reunioes: "Reuniones",
-    juridica_secoes_paginas: "Paginas por seccion de registro"
+    juridica_secoes_paginas: "Paginas por seccion de registro",
+    agenda_crista: "Agenda Cristiana",
+    crista_config: "Configuraciones de la Agenda Cristiana",
+    crista_horarios: "Incluir agenda de horarios (08:00-18:00)"
 }};
     </script>
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=8"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9"></script>
 
     <div id="pwdModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">

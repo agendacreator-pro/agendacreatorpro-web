@@ -16,6 +16,7 @@ from themes import (
 )
 from pdf_generator import gerar_pdf_datada, gerar_pdf_permanente, gerar_preview
 from pdf_generator import gerar_pdf_juridica, gerar_preview_juridica
+from pdf_generator import gerar_pdf_crista, gerar_preview_crista
 import localization
 
 app = Flask(__name__)
@@ -581,6 +582,102 @@ def preview_copta_juridica_route():
             com_agendamentos=com_agendamentos,
             incluir_maximas=incluir_maximas,
             secoes=secoes,
+        )
+        return send_file(buffer, mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/gerar-crista', methods=['POST'])
+@login_required
+def gerar_pdf_crista_route():
+    try:
+        data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('crista_agendamentos', False)
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        buffer = gerar_pdf_crista(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
+        )
+        nome = f"Agenda_Crista_{ano}_{tema_nome}_{formato}.pdf"
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/preview-crista', methods=['POST'])
+@login_required
+def preview_pdf_crista_route():
+    try:
+        data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('crista_agendamentos', False)
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        buffer = gerar_preview_crista(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
+        )
+        return send_file(buffer, mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/gerar-copta-crista', methods=['POST'])
+@login_required
+def gerar_copta_crista_route():
+    try:
+        data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('crista_agendamentos', False)
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        from copta_binding import gerar_pdf_crista_copta
+        buffer = gerar_pdf_crista_copta(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
+        )
+        nome = f"Agenda_Crista_Copta_{ano}_{tema_nome}_{formato}.pdf"
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/preview-copta-crista', methods=['POST'])
+@login_required
+def preview_copta_crista_route():
+    try:
+        data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
+        ano = int(data.get('ano', 2026))
+        tema_nome = data.get('tema', 'rosa')
+        formato = data.get('formato', 'A5')
+        com_agendamentos = data.get('crista_agendamentos', False)
+
+        tema = TEMAS.get(tema_nome, RosaTheme)()
+        from copta_binding import gerar_preview_crista_copta
+        buffer = gerar_preview_crista_copta(
+            ano, tema, formato=formato,
+            com_agendamentos=com_agendamentos,
         )
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:

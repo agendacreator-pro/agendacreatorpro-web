@@ -10,6 +10,7 @@ from themes import definir
 import layouts_a5
 import layouts_permanente_a5
 import layouts_juridica
+import layouts_crista
 
 
 def gerar_pdf_permanente(quantidade_paginas, tema, ano, formato="A5", com_agendamentos=False):
@@ -169,3 +170,44 @@ def gerar_preview_juridica(ano, tema, formato="A5", com_agendamentos=False,
                               incluir_maximas=incluir_maximas,
                               secoes=secoes,
                               preview=True)
+
+
+def gerar_pdf_crista(ano, tema, formato="A5", com_agendamentos=False, preview=False):
+    """Gera a Agenda Crista (365 versiculos diarios). Se preview=True, gera apenas paginas de exemplo."""
+    from styles.manager import definir as definir_estilo
+    definir_estilo('crista')
+    definir(tema)
+    from styles.crista import atualizar_cores
+    atualizar_cores()
+    config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
+    config.FORMATO = formato.upper()
+    config.AREA_UTIL = config.LARGURA - config.MARGEM_ESQ - config.MARGEM_DIR
+    config.ESCALA_X = 1.0
+    config.ESCALA_Y = 1.0
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=(config.LARGURA, config.ALTURA))
+    pdf.setPageCompression(0)
+
+    if preview:
+        layouts_crista.pagina_dados(pdf)
+        layouts_crista.pagina_calendario_anual(pdf, ano)
+        layouts_crista.pagina_planejamento(pdf)
+        layouts_crista.pagina_diaria(pdf, date(ano, 1, 15),
+                                     com_agendamentos=com_agendamentos)
+        pdf.save()
+        buffer.seek(0)
+        return buffer
+
+    layouts_crista.gerar_paginas_iniciais(pdf, ano)
+    layouts_crista.gerar_paginas_diarias(pdf, ano, com_agendamentos=com_agendamentos)
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+
+def gerar_preview_crista(ano, tema, formato="A5", com_agendamentos=False):
+    return gerar_pdf_crista(ano, tema, formato=formato,
+                            com_agendamentos=com_agendamentos,
+                            preview=True)

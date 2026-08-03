@@ -3,6 +3,7 @@ from .executivo import estilo as estilo_executivo, tema as tema_executivo
 from .floral import estilo as estilo_floral, tema as tema_floral
 from .kawaii import estilo as estilo_kawaii, tema as tema_kawaii
 from .juridico import estilo as estilo_juridico, tema as tema_juridico
+from .crista import estilo as estilo_crista, tema as tema_crista
 
 ESTILOS = {
     "minimalista": (estilo_minimalista, tema_minimalista),
@@ -10,6 +11,7 @@ ESTILOS = {
     "floral": (estilo_floral, tema_floral),
     "kawaii": (estilo_kawaii, tema_kawaii),
     "juridico": (estilo_juridico, tema_juridico),
+    "crista": (estilo_crista, tema_crista),
 }
 
 estilo_atual = estilo_minimalista
