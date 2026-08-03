@@ -446,6 +446,7 @@ def preview_pdf_copta():
 def gerar_pdf_juridica_route():
     try:
         data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
@@ -491,6 +492,7 @@ def gerar_pdf_juridica_route():
 def preview_pdf_juridica_route():
     try:
         data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
@@ -517,6 +519,7 @@ def preview_pdf_juridica_route():
 def gerar_copta_juridica_route():
     try:
         data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
@@ -563,6 +566,7 @@ def gerar_copta_juridica_route():
 def preview_copta_juridica_route():
     try:
         data = request.json
+        localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
