@@ -289,12 +289,17 @@ class Juridico(EstiloBase):
                 if day != 0:
                     dx = gx + di * col_w
                     cell_top = grid_top - header_h - wi * row_h
+                    cor_dia = COR_GOLD if di == 6 else COR_NAVY
+                    box_x = dx + 1.5
+                    box_s = 6
+                    pdf.setStrokeColor(cor_dia)
+                    pdf.setLineWidth(0.35)
+                    pdf.rect(sx(box_x * mm), sy((cell_top - 10) * mm),
+                             sx(box_s * mm), sy(box_s * mm), fill=0, stroke=1)
                     pdf.setFont(_FONT_B, 6)
-                    if di == 6:
-                        pdf.setFillColor(COR_GOLD)
-                    else:
-                        pdf.setFillColor(COR_NAVY)
-                    pdf.drawString(sx((dx + 1.5) * mm), sy((cell_top - 8) * mm), str(day))
+                    pdf.setFillColor(cor_dia)
+                    pdf.drawCentredString(sx((box_x + box_s / 2) * mm),
+                                          sy((cell_top - 8) * mm), str(day))
 
         pdf.showPage()
 
@@ -323,16 +328,17 @@ class Juridico(EstiloBase):
         segunda = data_segunda - timedelta(days=data_segunda.weekday())
         for d in range(7):
             dia_data = segunda + timedelta(days=d)
+            if dia_data < data_segunda:
+                continue
             cx = gx + d * col_w
             pdf.setFillColor(COR_NAVY)
             pdf.rect(sx(cx * mm), sy((grid_top - header_h) * mm),
                      sx(col_w * mm), sy(header_h * mm), fill=1, stroke=0)
             pdf.setFont(_FONT_B, 5.5)
             pdf.setFillColor(COR_BRANCO)
-            rotulo = dias_curto[d] + " " + str(dia_data.day) if dia_data >= data_segunda else dias_curto[d]
             pdf.drawCentredString(sx((cx + col_w / 2) * mm),
                                   sy((grid_top - header_h - 2.8) * mm),
-                                  rotulo)
+                                  dias_curto[d] + " " + str(dia_data.day))
             pdf.setStrokeColor(COR_LINHA)
             pdf.setLineWidth(0.15)
             for i in range(int((grid_h - header_h) / 5)):
