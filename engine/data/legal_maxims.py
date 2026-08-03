@@ -4,6 +4,13 @@ Maximas Juridicas (brocardos latinos) usadas na Agenda Juridica.
 Cada entrada: id, texto (latin), traducao (portugues), categoria.
 """
 
+try:
+    from .maxims_en import TRADUCOES_EN
+    from .maxims_es import TRADUCOES_ES
+except ImportError:
+    from maxims_en import TRADUCOES_EN
+    from maxims_es import TRADUCOES_ES
+
 CATEGORIAS = [
     "Principios", "Direito Civil", "Direito Penal", "Processo Civil",
     "Obrigacoes e Contratos", "Constitucional", "Provas", "Interpretacao",
@@ -675,6 +682,8 @@ def obter_todas():
             "id": i,
             "texto": texto,
             "traducao": traducao,
+            "traducao_en": TRADUCOES_EN.get(texto, traducao),
+            "traducao_es": TRADUCOES_ES.get(texto, traducao),
             "categoria": categoria,
         }
         for i, (texto, traducao, categoria) in enumerate(_BROCARDOS, start=1)

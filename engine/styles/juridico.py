@@ -13,7 +13,7 @@ from .tema import Tema
 from .estilo_base import EstiloBase
 import localization
 import themes
-from frases_prosperidade import FRASES
+from frases_prosperidade import obter_frase
 
 _FONT_B = "Helvetica-Bold"
 _FONT = "Helvetica"
@@ -81,6 +81,19 @@ def atualizar_cores():
 
 
 atualizar_cores()
+
+
+def _traducao_maxima(maxima):
+    cod = localization.codigo_idioma()
+    if cod == 'en':
+        return maxima.get('traducao_en') or maxima['traducao']
+    if cod == 'es':
+        return maxima.get('traducao_es') or maxima['traducao']
+    return maxima['traducao']
+
+
+def _frase_do_dia(data):
+    return obter_frase(data.timetuple().tm_yday, localization.codigo_idioma())
 
 
 class Juridico(EstiloBase):
@@ -161,16 +174,17 @@ class Juridico(EstiloBase):
         self._faixa_titulo(pdf, 15, ph - 36, pw - 30, 17, localization.label("dados_pessoais"))
         pdf.setFont(_FONT, 7)
         pdf.setFillColor(COR_TEXTO_SEC)
-        pdf.drawCentredString(sx((pw / 2) * mm), sy((ph - 44) * mm), "IDENTIFICACAO DO PROFISSIONAL")
+        pdf.drawCentredString(sx((pw / 2) * mm), sy((ph - 44) * mm),
+                              localization.label("identificacao_profissional"))
 
         campos_advogado = [
-            "NOME COMPLETO",
-            "OAB / UF",
-            "TELEFONE / CELULAR",
-            "E-MAIL",
-            "ENDERECO DO ESCRITORIO",
-            "CIDADE / UF",
-            "ESPECIALIDADES",
+            localization.label("nome_completo"),
+            localization.label("oab_uf"),
+            localization.label("telefone_celular"),
+            localization.label("email"),
+            localization.label("endereco_escritorio"),
+            localization.label("cidade_uf"),
+            localization.label("especialidades"),
         ]
         yy = ph - 54
         for campo in campos_advogado:
@@ -184,11 +198,11 @@ class Juridico(EstiloBase):
             pdf.rect(sx(20 * mm), sy((yy - 2) * mm), sx(1.5 * mm), sy(0.3 * mm), fill=1, stroke=0)
             yy -= 15
 
-        self._moldura_caixa(pdf, 15, 44, pw - 30, 44, "DADOS DO ESCRITORIO / SOCIEDADE")
+        self._moldura_caixa(pdf, 15, 44, pw - 30, 44, localization.label("dados_escritorio"))
         campos_escritorio = [
-            ("RAZAO SOCIAL", "CNPJ"),
-            ("NOME FANTASIA", "REGISTRO OAB"),
-            ("ENDERECO", "TELEFONE"),
+            (localization.label("razao_social"), localization.label("cnpj")),
+            (localization.label("nome_fantasia"), localization.label("registro_oab")),
+            (localization.label("endereco"), localization.label("telefone")),
         ]
         fx = 19
         for rotulo, rotulo2 in campos_escritorio:
@@ -206,7 +220,7 @@ class Juridico(EstiloBase):
         pdf.setFont(_FONT, 6)
         pdf.setFillColor(COR_TEXTO_SEC)
         pdf.drawCentredString(sx((pw / 2) * mm), sy(18 * mm),
-                              "AGENDA JURIDICA " + str(date.today().year))
+                              localization.label("agenda_juridica_ano") % date.today().year)
         pdf.showPage()
 
     # ------------------------------------------------------------ anual
@@ -215,7 +229,8 @@ class Juridico(EstiloBase):
         self._borda_pagina(pdf)
         pw = config.LARGURA / mm
         ph = config.ALTURA / mm
-        self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, "CALENDARIO " + str(ano))
+        self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11,
+                           localization.label("calendario_ano") % ano)
 
         margin_x = 9
         margin_top = ph - 21
@@ -296,9 +311,9 @@ class Juridico(EstiloBase):
         gx = 12
         gw = pw - 24
 
-        self._moldura_caixa(pdf, 12, ph - 44, gw, 22, "PRAZOS E AUDIENCIAS DO MES")
+        self._moldura_caixa(pdf, 12, ph - 44, gw, 22, localization.label("prazos_mes"))
         self._linhas(pdf, 12, ph - 44, gw, 22, intervalo=5)
-        self._moldura_caixa(pdf, 12, ph - 70, gw, 22, "OBSERVACOES DO MES")
+        self._moldura_caixa(pdf, 12, ph - 70, gw, 22, localization.label("observacoes_mes"))
         self._linhas(pdf, 12, ph - 70, gw, 22, intervalo=5)
 
         gy = 8
@@ -351,11 +366,12 @@ class Juridico(EstiloBase):
         inicio_ano = date(data_segunda.year, 1, 1)
         primeira_segunda = inicio_ano - timedelta(days=inicio_ano.weekday())
         n_semana = ((segunda - primeira_segunda).days // 7) + 1
-        titulo = ("SEMANA %02d - %02d/%02d A %02d/%02d DE %d" %
+        titulo = (localization.label("semana_intervalo") %
                   (n_semana, segunda.day, segunda.month, domingo.day, domingo.month, domingo.year))
         self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, titulo)
 
-        dias_curto = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"]
+        dias_curto = localization._idioma_atual.get(
+            'dias_semana_abr', ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'])
         gx = 8
         gw = pw - 16
         col_w = gw / 7
@@ -383,7 +399,7 @@ class Juridico(EstiloBase):
                 pdf.line(sx(cx * mm), sy(ly * mm), sx((cx + col_w) * mm), sy(ly * mm))
 
         prior_y = gy - 12
-        self._moldura_caixa(pdf, 8, prior_y, gw, 11, "PRIORIDADES DA SEMANA")
+        self._moldura_caixa(pdf, 8, prior_y, gw, 11, localization.label("prioridades_semana"))
         pdf.setFillColor(COR_NAVY)
         pdf.circle(sx(13 * mm), sy((prior_y + 2.5) * mm), 1.0 * mm, fill=1, stroke=0)
         pdf.setFillColor(COR_GOLD)
@@ -393,7 +409,7 @@ class Juridico(EstiloBase):
 
         comp_y = 9
         comp_h = prior_y - 12 - comp_y
-        self._moldura_caixa(pdf, 8, comp_y, gw, comp_h, "COMPROMISSOS E AUDIENCIAS DA SEMANA")
+        self._moldura_caixa(pdf, 8, comp_y, gw, comp_h, localization.label("compromissos_semana"))
         self._linhas(pdf, 8, comp_y, gw, comp_h, intervalo=6)
         pdf.showPage()
 
@@ -424,7 +440,7 @@ class Juridico(EstiloBase):
                             localization.nome_mes(data.month).upper() + " " + str(data.year))
 
         # frase de prosperidade do dia
-        frase = FRASES[(data.timetuple().tm_yday - 1) % len(FRASES)]
+        frase = _frase_do_dia(data)
         pdf.setFont(_FONT_O, 6.5)
         pdf.setFillColor(COR_GOLD)
         pdf.drawCentredString(sx((pw / 2) * mm), sy((ph - 29) * mm), frase[:110])
@@ -441,10 +457,11 @@ class Juridico(EstiloBase):
             pdf.drawString(sx(11 * mm), sy((6.6) * mm), maxima["texto"][:110])
             pdf.setFont(_FONT, 5.2)
             pdf.setFillColor(COR_TEXTO_SEC)
-            pdf.drawString(sx(11 * mm), sy((10.2) * mm), maxima["traducao"][:110])
+            pdf.drawString(sx(11 * mm), sy((10.2) * mm), _traducao_maxima(maxima)[:110])
 
         if com_agendamentos:
-            self._moldura_caixa(pdf, 8, ph - 46, gw := (pw - 16), 11, "COMPROMISSOS / AUDIENCIAS (HORARIOS)")
+            self._moldura_caixa(pdf, 8, ph - 46, gw := (pw - 16), 11,
+                                localization.label("compromissos_horarios"))
             slot_h = 7
             sched_y = ph - 133
             sched_h = ph - 46 - 8 - sched_y
@@ -461,12 +478,12 @@ class Juridico(EstiloBase):
                 pdf.setLineWidth(0.2)
                 pdf.line(sx(24 * mm), sy((slot_y - 2) * mm), sx((pw - 12) * mm), sy((slot_y - 2) * mm))
 
-            self._moldura_caixa(pdf, 8, 14, gw, 28, "PRAZOS E ANOTACOES")
+            self._moldura_caixa(pdf, 8, 14, gw, 28, localization.label("prazos_anotacoes"))
             self._linhas(pdf, 8, 14, gw, 28, intervalo=5)
         else:
-            self._moldura_caixa(pdf, 8, ph - 46, pw - 16, 12, "PRAZOS E COMPROMISSOS DO DIA")
+            self._moldura_caixa(pdf, 8, ph - 46, pw - 16, 12, localization.label("prazos_dia"))
             self._linhas(pdf, 8, ph - 46, pw - 16, 12, intervalo=4)
-            self._moldura_caixa(pdf, 8, 14, pw - 16, ph - 60, "ANOTACOES DO DIA")
+            self._moldura_caixa(pdf, 8, 14, pw - 16, ph - 60, localization.label("anotacoes_dia"))
             self._linhas(pdf, 8, 14, pw - 16, ph - 60, intervalo=6)
 
         pdf.showPage()
@@ -519,7 +536,7 @@ class Juridico(EstiloBase):
         self._borda_pagina(pdf)
         pw = config.LARGURA / mm
         ph = config.ALTURA / mm
-        self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, "MAXIMAS JURIDICAS")
+        self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, localization.label("maximas_juridicas"))
 
         col_w = (pw - 24) / 2
         gx = 10
@@ -534,7 +551,7 @@ class Juridico(EstiloBase):
             pdf.drawString(sx(gx * mm), sy(y_atual * mm), m["texto"][:90])
             pdf.setFont(_FONT, 5)
             pdf.setFillColor(COR_TEXTO_SEC)
-            pdf.drawString(sx(gx * mm), sy((y_atual - 2.8) * mm), m["traducao"][:100])
+            pdf.drawString(sx(gx * mm), sy((y_atual - 2.8) * mm), _traducao_maxima(m)[:100])
             pdf.setStrokeColor(COR_LINHA)
             pdf.setLineWidth(0.15)
             pdf.line(sx(gx * mm), sy((y_atual - 4) * mm), sx((gx + col_w) * mm), sy((y_atual - 4) * mm))

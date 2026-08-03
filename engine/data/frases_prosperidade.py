@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """365 frases juridicas de prosperidade e motivacao - uma para cada dia do ano."""
 
+try:
+    from .frases_en import FRASES_EN
+    from .frases_es import FRASES_ES
+except ImportError:
+    from frases_en import FRASES_EN
+    from frases_es import FRASES_ES
+
 FRASES = [
     'A justica e a alma do direito e a alma do direito e a paz.',
     'Direito e a arte do bom e do equitativo.',
@@ -368,3 +375,11 @@ FRASES = [
     'Seja agradecido e o universo colaborara.',
     'A paz na advocacia e a maior prosperidade.',
 ]
+
+
+def obter_frase(dia_do_ano, idioma='pt'):
+    if idioma == 'en':
+        return FRASES_EN[(dia_do_ano - 1) % len(FRASES_EN)]
+    if idioma == 'es':
+        return FRASES_ES[(dia_do_ano - 1) % len(FRASES_ES)]
+    return FRASES[(dia_do_ano - 1) % len(FRASES)]

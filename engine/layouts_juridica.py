@@ -48,65 +48,65 @@ def pagina_maximas(pdf, maximas):
 
 SECOES = {
     "clientes": (
-        "REGISTRO DE CLIENTES",
+        "secao_clientes",
         [
-            ("NOME / EMPRESA", 40),
-            ("CONTATO", 20),
-            ("E-MAIL", 22),
-            ("OAB / DOC", 10),
-            ("OBSERVACOES", 18),
+            ("col_nome_empresa", 40),
+            ("col_contato", 20),
+            ("email", 22),
+            ("col_oab_doc", 10),
+            ("col_observacoes", 18),
         ],
     ),
     "processos": (
-        "CONTROLE DE PROCESSOS",
+        "secao_processos",
         [
-            ("NUMERO", 16),
-            ("PARTES", 26),
-            ("AREA / TIPO", 14),
-            ("VARA / TRIBUNAL", 18),
-            ("STATUS", 12),
-            ("OBSERVACOES", 24),
+            ("col_numero", 16),
+            ("col_partes", 26),
+            ("col_area_tipo", 14),
+            ("col_vara_tribunal", 18),
+            ("col_status", 12),
+            ("col_observacoes", 24),
         ],
     ),
     "honorarios": (
-        "REGISTRO DE HONORARIOS",
+        "secao_honorarios",
         [
-            ("DATA", 12),
-            ("CLIENTE", 24),
-            ("SERVICO", 26),
-            ("VALOR", 16),
-            ("PAGO", 8),
-            ("OBSERVACOES", 24),
+            ("col_data", 12),
+            ("col_cliente", 24),
+            ("col_servico", 26),
+            ("col_valor", 16),
+            ("col_pago", 8),
+            ("col_observacoes", 24),
         ],
     ),
     "custas": (
-        "REGISTRO DE CUSTAS E DESPESAS",
+        "secao_custas",
         [
-            ("DATA", 12),
-            ("DESCRICAO", 32),
-            ("VALOR", 16),
-            ("PAGO", 8),
-            ("OBSERVACOES", 42),
+            ("col_data", 12),
+            ("col_descricao", 32),
+            ("col_valor", 16),
+            ("col_pago", 8),
+            ("col_observacoes", 42),
         ],
     ),
     "protocolos": (
-        "REGISTRO DE PROTOCOLOS",
+        "secao_protocolos",
         [
-            ("DATA", 12),
-            ("PROCESSO", 20),
-            ("DOCUMENTO / PETICAO", 30),
-            ("ORGAO", 20),
-            ("OBSERVACOES", 28),
+            ("col_data", 12),
+            ("col_processo", 20),
+            ("col_documento_peticao", 30),
+            ("col_orgao", 20),
+            ("col_observacoes", 28),
         ],
     ),
     "reunioes": (
-        "REGISTRO DE REUNIOES",
+        "secao_reunioes",
         [
-            ("DATA", 12),
-            ("HORARIO", 10),
-            ("CLIENTE / PARTE", 24),
-            ("PAUTA", 34),
-            ("OBSERVACOES", 30),
+            ("col_data", 12),
+            ("col_horario", 10),
+            ("col_cliente_parte", 24),
+            ("col_pauta", 34),
+            ("col_observacoes", 30),
         ],
     ),
 }
@@ -115,7 +115,9 @@ SECOES = {
 def desenhar_secao(pdf, secao, paginas=2, num_linhas=22):
     if secao not in SECOES:
         return
-    titulo, colunas = SECOES[secao]
+    titulo_key, colunas_keys = SECOES[secao]
+    titulo = localization.label(titulo_key)
+    colunas = [(localization.label(k), w) for k, w in colunas_keys]
     for _ in range(paginas):
         pagina_secao(pdf, titulo, colunas, num_linhas=num_linhas)
 
