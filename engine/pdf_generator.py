@@ -105,6 +105,8 @@ def gerar_pdf_juridica(ano, tema, formato="A5", com_agendamentos=False,
     from styles.manager import definir as definir_estilo
     definir_estilo('juridico')
     definir(tema)
+    from styles.juridico import atualizar_cores
+    atualizar_cores()
     config.LARGURA, config.ALTURA = config.obter_tamanho_pagina(formato)
     config.FORMATO = formato.upper()
     config.AREA_UTIL = config.LARGURA - config.MARGEM_ESQ - config.MARGEM_DIR

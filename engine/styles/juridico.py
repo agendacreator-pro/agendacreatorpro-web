@@ -12,6 +12,7 @@ from colors import *
 from .tema import Tema
 from .estilo_base import EstiloBase
 import localization
+import themes
 
 _FONT_B = "Helvetica-Bold"
 _FONT = "Helvetica"
@@ -36,15 +37,48 @@ tema = Tema(
     fonte_texto="Helvetica",
 )
 
-COR_NAVY = HexColor("#1B2A4A")
-COR_NAVY_CLARO = HexColor("#2C3E6B")
-COR_GOLD = HexColor("#B8860B")
-COR_GOLD_CLARO = HexColor("#E8D9A0")
-COR_CREME = HexColor("#F4F1EB")
-COR_TEXTO_SEC = HexColor("#5F6B7A")
-COR_LINHA = HexColor("#C9CFDA")
-COR_LINHA_FORTE = HexColor("#94A3B8")
 COR_BRANCO = HexColor("#FFFFFF")
+COR_TEXTO_SEC = HexColor("#5F6B7A")
+
+
+def _para_hex(r, g, b):
+    return "#%02X%02X%02X" % (max(0, min(255, int(round(r * 255)))),
+                              max(0, min(255, int(round(g * 255)))),
+                              max(0, min(255, int(round(b * 255)))))
+
+
+def _escurecer(cor, fator):
+    return HexColor(_para_hex(cor.red * (1 - fator),
+                              cor.green * (1 - fator),
+                              cor.blue * (1 - fator)))
+
+
+def _clarear(cor, fator):
+    return HexColor(_para_hex(cor.red + (1 - cor.red) * fator,
+                              cor.green + (1 - cor.green) * fator,
+                              cor.blue + (1 - cor.blue) * fator))
+
+
+def atualizar_cores():
+    """Deriva a paleta navy/dourado da Agenda Juridica a partir do tema ativo."""
+    global COR_NAVY, COR_NAVY_CLARO, COR_GOLD, COR_GOLD_CLARO
+    global COR_CREME, COR_LINHA, COR_LINHA_FORTE, COR_TEXTO_CABECALHO
+    base = getattr(themes.tema_atual, 'importante', None)
+    if base is None:
+        base = getattr(themes.tema_atual, 'titulo', None)
+    if base is None:
+        base = HexColor("#EFA8BC")
+    COR_NAVY = _escurecer(base, 0.55)
+    COR_NAVY_CLARO = _escurecer(base, 0.30)
+    COR_GOLD = _escurecer(base, 0.08)
+    COR_GOLD_CLARO = _clarear(base, 0.72)
+    COR_TEXTO_CABECALHO = _clarear(base, 0.55)
+    COR_CREME = _clarear(base, 0.93)
+    COR_LINHA = _clarear(base, 0.82)
+    COR_LINHA_FORTE = _escurecer(base, 0.42)
+
+
+atualizar_cores()
 
 
 class Juridico(EstiloBase):
@@ -379,10 +413,10 @@ class Juridico(EstiloBase):
         pdf.setFillColor(COR_GOLD_CLARO)
         pdf.drawString(sx(33 * mm), sy((ph - 16) * mm), localization.nome_dia(data).upper())
         pdf.setFont(_FONT, 7)
-        pdf.setFillColor(HexColor("#B7C3DC"))
+        pdf.setFillColor(COR_TEXTO_CABECALHO)
         pdf.drawString(sx(33 * mm), sy((ph - 21.5) * mm), data.strftime("%d/%m/%Y"))
         pdf.setFont(_FONT, 6.5)
-        pdf.setFillColor(HexColor("#B7C3DC"))
+        pdf.setFillColor(COR_TEXTO_CABECALHO)
         pdf.drawRightString(sx((pw - 12) * mm), sy((ph - 15) * mm),
                             localization.nome_mes(data.month).upper() + " " + str(data.year))
 
