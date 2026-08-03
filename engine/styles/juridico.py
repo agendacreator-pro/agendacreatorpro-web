@@ -325,15 +325,15 @@ class Juridico(EstiloBase):
                     cell_top = grid_top - header_h - wi * row_h
                     cor_dia = COR_GOLD if di == 6 else COR_NAVY
                     box_x = dx + 1.5
-                    box_s = 6
+                    box_s = 12
                     pdf.setStrokeColor(cor_dia)
                     pdf.setLineWidth(0.35)
-                    pdf.rect(sx(box_x * mm), sy((cell_top - 10) * mm),
+                    pdf.rect(sx(box_x * mm), sy((cell_top - 16) * mm),
                              sx(box_s * mm), sy(box_s * mm), fill=0, stroke=1)
-                    pdf.setFont(_FONT_B, 6)
+                    pdf.setFont(_FONT_B, 7)
                     pdf.setFillColor(cor_dia)
                     pdf.drawCentredString(sx((box_x + box_s / 2) * mm),
-                                          sy((cell_top - 8) * mm), str(day))
+                                          sy((cell_top - 6.5) * mm), str(day))
 
         pdf.showPage()
 
@@ -344,9 +344,10 @@ class Juridico(EstiloBase):
         pw = config.LARGURA / mm
         ph = config.ALTURA / mm
 
-        domingo = data_segunda + timedelta(days=(6 - data_segunda.weekday()))
+        segunda = data_segunda - timedelta(days=data_segunda.weekday())
+        domingo = segunda + timedelta(days=6)
         titulo = ("SEMANA %02d/%02d A %02d/%02d DE %d" %
-                  (data_segunda.day, data_segunda.month, domingo.day, domingo.month, domingo.year))
+                  (segunda.day, segunda.month, domingo.day, domingo.month, domingo.year))
         self._faixa_titulo(pdf, 8, ph - 16, pw - 16, 11, titulo)
 
         dias_curto = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"]
@@ -359,11 +360,8 @@ class Juridico(EstiloBase):
         header_h = 8
         gy = grid_top - grid_h
 
-        segunda = data_segunda - timedelta(days=data_segunda.weekday())
         for d in range(7):
             dia_data = segunda + timedelta(days=d)
-            if dia_data < data_segunda:
-                continue
             cx = gx + d * col_w
             pdf.setFillColor(COR_NAVY)
             pdf.rect(sx(cx * mm), sy((grid_top - header_h) * mm),
