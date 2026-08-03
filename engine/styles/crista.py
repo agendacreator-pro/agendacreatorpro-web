@@ -396,8 +396,9 @@ class Crista(EstiloBase):
                 pdf.setStrokeColor(COR_LINHA)
                 pdf.setLineWidth(0.2)
                 pdf.line(sx(24 * mm), sy((slot_y - 2) * mm), sx((pw - 12) * mm), sy((slot_y - 2) * mm))
-            self._moldura_caixa(pdf, 8, 14, pw - 16, 28, localization.label("anotacoes_dia"))
-            self._linhas(pdf, 8, 14, pw - 16, 28, intervalo=5)
+            notas_h = slot_y - 3.5 - 14
+            self._moldura_caixa(pdf, 8, 14, pw - 16, notas_h, localization.label("anotacoes_dia"))
+            self._linhas(pdf, 8, 14, pw - 16, notas_h, intervalo=5)
         else:
             self._moldura_caixa(pdf, 8, ph - 46, pw - 16, 12, localization.label("prioridades"))
             self._linhas(pdf, 8, ph - 46, pw - 16, 12, intervalo=4)
