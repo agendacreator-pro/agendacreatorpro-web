@@ -353,11 +353,12 @@ class Crista(EstiloBase):
         pdf.setFont(_FONT, 7)
         pdf.setFillColor(COR_TEXTO_CABECALHO)
         pdf.drawString(sx(32 * mm), sy((ph - 21.5) * mm), data.strftime("%d/%m/%Y"))
+        texto_mes = localization.nome_mes(data.month).upper() + " " + str(data.year)
         pdf.setFont(_FONT, 6.5)
         pdf.setFillColor(COR_TEXTO_CABECALHO)
-        pdf.drawRightString(sx((pw - 12) * mm), sy((ph - 15) * mm),
-                            localization.nome_mes(data.month).upper() + " " + str(data.year))
-        self._cruz(pdf, pw - 13, ph - 10, 4)
+        pdf.drawRightString(sx((pw - 12) * mm), sy((ph - 15) * mm), texto_mes)
+        larg_mes = pdf.stringWidth(texto_mes, _FONT, 6.5) / mm
+        self._cruz(pdf, pw - 12 - larg_mes - 3, ph - 15 - 1.5, 3)
 
         # versiculo do dia
         versiculo = _versiculo_do_dia(data)
@@ -366,23 +367,20 @@ class Crista(EstiloBase):
         pdf.setLineWidth(0.5)
         pdf.rect(sx(8 * mm), sy((ph - 41) * mm), sx((pw - 16) * mm), sy(14 * mm), fill=1, stroke=1)
         biblia_size = 5.0
-        biblia_y = ph - 34 - biblia_size / 2
+        biblia_y = ph - 30 - biblia_size / 2
         self._biblia(pdf, 14, biblia_y, biblia_size)
         self._biblia(pdf, pw - 14, biblia_y, biblia_size)
         pdf.setFont(_FONT_O, 7.5)
         pdf.setFillColor(COR_BORDO)
         linhas = self._quebrar(pdf, versiculo["texto"], _FONT_O, 7.5, pw - 30)[:2]
         n = len(linhas)
-        base_y = ph - 39 + (3 if n == 1 else 4)
+        base_y = ph - 32 + (1.5 if n == 1 else 2.5)
         for i, linha in enumerate(linhas):
             pdf.drawCentredString(sx((pw / 2) * mm), sy((base_y - i * 3.6) * mm), linha)
-        pdf.setFont(_FONT_B, 6)
-        pdf.setFillColor(COR_GOLD)
-        pdf.drawCentredString(sx((pw / 2) * mm), sy((ph - 43) * mm), versiculo["referencia"])
 
         if com_agendamentos:
             self._moldura_caixa(pdf, 8, ph - 46, pw - 16, 11,
-                                localization.label("compromissos_horarios"))
+                                localization.label("compromissos_cultos"))
             sched_y = ph - 128
             sched_h = ph - 46 - 8 - sched_y
             pdf.setStrokeColor(COR_LINHA)
@@ -405,13 +403,6 @@ class Crista(EstiloBase):
             self._linhas(pdf, 8, ph - 46, pw - 16, 12, intervalo=4)
             self._moldura_caixa(pdf, 8, 14, pw - 16, ph - 60, localization.label("anotacoes_dia"))
             self._linhas(pdf, 8, 14, pw - 16, ph - 60, intervalo=6)
-
-        # rodape
-        pdf.setFont(_FONT_B, 5.5)
-        pdf.setFillColor(COR_GOLD)
-        pdf.drawCentredString(sx((pw / 2 - 4) * mm), sy(9 * mm), versiculo["referencia"])
-        self._cruz(pdf, pw / 2 - 4, 12, 3.5)
-        self._sino(pdf, pw / 2 + 13, 14, 4.5)
 
         pdf.showPage()
 
