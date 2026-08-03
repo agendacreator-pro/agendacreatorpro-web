@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 cristaField.style.display = isCrista ? 'block' : 'none';
             }
             var layoutFieldEl = document.getElementById('layout-field');
-            if (layoutFieldEl) layoutFieldEl.style.display = (isJuridica || isCrista) ? 'none' : 'block';
+            if (layoutFieldEl) layoutFieldEl.style.display = isJuridica ? 'none' : 'block';
             var estiloField = document.querySelector('.field input[name="estilo"]') ?
                 document.getElementById('estilo-field') : null;
             if (estiloField) estiloField.style.display = (isJuridica || isCrista) ? 'none' : 'block';

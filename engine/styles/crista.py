@@ -367,5 +367,113 @@ class Crista(EstiloBase):
 
         pdf.showPage()
 
+    # ------------------------------------------------------------ 2dpp
+    def _metade_2dpp(self, pdf, data, base_y, alt, espelhar=False, com_agendamentos=False):
+        pw = config.LARGURA / mm
+        top_pad = alt * 0.02
+        bottom_pad = alt * 0.03
+        header_h = alt * 0.13
+        verse_h = alt * 0.12
+        prior_h = alt * 0.12
+        gap = alt * 0.015
+
+        header_y = base_y + alt - top_pad - header_h
+        verse_y = header_y - gap - verse_h
+        prior_y = verse_y - gap - prior_h
+        notes_y = base_y + bottom_pad
+        notes_h = prior_y - gap - notes_y
+
+        pdf.setFillColor(COR_BORDO)
+        pdf.rect(sx(8 * mm), sy(header_y * mm), sx((pw - 16) * mm), sy(header_h * mm), fill=1, stroke=0)
+        pdf.setFillColor(COR_GOLD)
+        if espelhar:
+            pdf.rect(sx((pw - 10.2) * mm), sy(header_y * mm), sx(2.2 * mm), sy(header_h * mm), fill=1, stroke=0)
+            pdf.setFont(_FONT_B, 20)
+            pdf.setFillColor(COR_BRANCO)
+            pdf.drawRightString(sx((pw - 12) * mm), sy((header_y + header_h * 0.45) * mm), data.strftime("%d"))
+            pdf.setFont(_FONT_B, 8)
+            pdf.setFillColor(COR_GOLD_CLARO)
+            pdf.drawString(sx(14 * mm), sy((header_y + header_h * 0.62) * mm), localization.nome_dia(data).upper())
+            pdf.setFont(_FONT, 6)
+            pdf.setFillColor(COR_TEXTO_CABECALHO)
+            pdf.drawString(sx(14 * mm), sy((header_y + header_h * 0.22) * mm), data.strftime("%d/%m/%Y"))
+            pdf.setFont(_FONT_B, 5.5)
+            pdf.setFillColor(COR_TEXTO_CABECALHO)
+            pdf.drawString(sx(14 * mm), sy((header_y + header_h * 0.45) * mm),
+                            localization.nome_mes(data.month).upper() + " " + str(data.year))
+            self._cruz(pdf, pw - 15, header_y + header_h * 0.5, 2.5)
+        else:
+            pdf.rect(sx(8 * mm), sy(header_y * mm), sx(2.2 * mm), sy(header_h * mm), fill=1, stroke=0)
+            pdf.setFont(_FONT_B, 20)
+            pdf.setFillColor(COR_BRANCO)
+            pdf.drawString(sx(15 * mm), sy((header_y + header_h * 0.45) * mm), data.strftime("%d"))
+            pdf.setFont(_FONT_B, 8)
+            pdf.setFillColor(COR_GOLD_CLARO)
+            pdf.drawRightString(sx((pw - 12) * mm), sy((header_y + header_h * 0.62) * mm),
+                                 localization.nome_dia(data).upper())
+            pdf.setFont(_FONT, 6)
+            pdf.setFillColor(COR_TEXTO_CABECALHO)
+            pdf.drawRightString(sx((pw - 12) * mm), sy((header_y + header_h * 0.22) * mm), data.strftime("%d/%m/%Y"))
+            pdf.setFont(_FONT_B, 5.5)
+            pdf.setFillColor(COR_TEXTO_CABECALHO)
+            pdf.drawRightString(sx((pw - 12) * mm), sy((header_y + header_h * 0.45) * mm),
+                                localization.nome_mes(data.month).upper() + " " + str(data.year))
+            self._cruz(pdf, 14, header_y + header_h * 0.5, 2.5)
+
+        versiculo = _versiculo_do_dia(data)
+        pdf.setFillColor(COR_CREME)
+        pdf.setStrokeColor(COR_GOLD)
+        pdf.setLineWidth(0.4)
+        pdf.rect(sx(8 * mm), sy(verse_y * mm), sx((pw - 16) * mm), sy(verse_h * mm), fill=1, stroke=1)
+        pdf.setFont(_FONT_O, 6.5)
+        pdf.setFillColor(COR_BORDO)
+        linhas = self._quebrar(pdf, versiculo["texto"], _FONT_O, 6.5, pw - 28)[:2]
+        n = len(linhas)
+        base_txt = verse_y + verse_h * 0.58
+        for i, linha in enumerate(linhas):
+            pdf.drawCentredString(sx((pw / 2) * mm), sy((base_txt - i * 3.2) * mm), linha)
+        pdf.setFont(_FONT_B, 5.5)
+        pdf.setFillColor(COR_GOLD)
+        pdf.drawCentredString(sx((pw / 2) * mm), sy((verse_y + verse_h * 0.12) * mm), versiculo["referencia"])
+
+        self._moldura_caixa(pdf, 8, prior_y, pw - 16, prior_h, localization.label("prioridades"))
+        self._linhas(pdf, 8, prior_y, pw - 16, prior_h, intervalo=4)
+
+        if com_agendamentos:
+            sched_w = (pw - 16) * 0.36
+            sched_x = 8 + (pw - 16) - sched_w
+            notes_w = (pw - 16) - sched_w - 3
+            self._moldura_caixa(pdf, sched_x, notes_y, sched_w, notes_h, localization.label("agendamentos"))
+            n_slots = int((notes_h - 8) / 6)
+            for i in range(n_slots):
+                hora = 8 + i
+                slot_y = notes_y + notes_h - 9 - i * 6
+                pdf.setFont(_FONT_B, 5)
+                pdf.setFillColor(COR_BORDO)
+                pdf.drawString(sx((sched_x + 2) * mm), sy((slot_y - 1.5) * mm), "%02d:00" % hora)
+                pdf.setStrokeColor(COR_LINHA)
+                pdf.setLineWidth(0.2)
+                pdf.line(sx((sched_x + sched_w * 0.4) * mm), sy((slot_y - 2) * mm),
+                         sx((sched_x + sched_w - 2) * mm), sy((slot_y - 2) * mm))
+            self._moldura_caixa(pdf, 8, notes_y, notes_w, notes_h, localization.label("anotacoes_dia"))
+            self._linhas(pdf, 8, notes_y, notes_w, notes_h, intervalo=4.5)
+        else:
+            self._moldura_caixa(pdf, 8, notes_y, pw - 16, notes_h, localization.label("anotacoes_dia"))
+            self._linhas(pdf, 8, notes_y, pw - 16, notes_h, intervalo=4.5)
+
+    def pagina_diaria_2dias(self, pdf, data1, data2, com_agendamentos=False):
+        self.fundo_pagina(pdf)
+        self._borda_pagina(pdf)
+        pw = config.LARGURA / mm
+        ph = config.ALTURA / mm
+        alt = ph / 2
+        self._metade_2dpp(pdf, data1, alt, alt, espelhar=False, com_agendamentos=com_agendamentos)
+        if data2 is not None:
+            self._metade_2dpp(pdf, data2, 0, alt, espelhar=True, com_agendamentos=com_agendamentos)
+        pdf.setStrokeColor(COR_GOLD)
+        pdf.setLineWidth(0.4)
+        pdf.line(sx(8 * mm), sy(alt * mm), sx((pw - 8) * mm), sy(alt * mm))
+        pdf.showPage()
+
 
 estilo = Crista()

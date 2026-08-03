@@ -600,11 +600,13 @@ def gerar_pdf_crista_route():
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
         com_agendamentos = data.get('crista_agendamentos', False)
+        layout_crista = data.get('layout', '1')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
         buffer = gerar_pdf_crista(
             ano, tema, formato=formato,
             com_agendamentos=com_agendamentos,
+            layout_pagina=layout_crista,
         )
         nome = f"Agenda_Crista_{ano}_{tema_nome}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
@@ -624,11 +626,13 @@ def preview_pdf_crista_route():
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
         com_agendamentos = data.get('crista_agendamentos', False)
+        layout_crista = data.get('layout', '1')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
         buffer = gerar_preview_crista(
             ano, tema, formato=formato,
             com_agendamentos=com_agendamentos,
+            layout_pagina=layout_crista,
         )
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:
@@ -647,12 +651,14 @@ def gerar_copta_crista_route():
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
         com_agendamentos = data.get('crista_agendamentos', False)
+        layout_crista = data.get('layout', '1')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
         from copta_binding import gerar_pdf_crista_copta
         buffer = gerar_pdf_crista_copta(
             ano, tema, formato=formato,
             com_agendamentos=com_agendamentos,
+            layout_pagina=layout_crista,
         )
         nome = f"Agenda_Crista_Copta_{ano}_{tema_nome}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
@@ -672,12 +678,14 @@ def preview_copta_crista_route():
         tema_nome = data.get('tema', 'rosa')
         formato = data.get('formato', 'A5')
         com_agendamentos = data.get('crista_agendamentos', False)
+        layout_crista = data.get('layout', '1')
 
         tema = TEMAS.get(tema_nome, RosaTheme)()
         from copta_binding import gerar_preview_crista_copta
         buffer = gerar_preview_crista_copta(
             ano, tema, formato=formato,
             com_agendamentos=com_agendamentos,
+            layout_pagina=layout_crista,
         )
         return send_file(buffer, mimetype='application/pdf')
     except Exception as e:

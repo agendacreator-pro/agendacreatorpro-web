@@ -68,15 +68,19 @@ def gerar_preview_juridica_copta(ano, tema, formato="A5", com_agendamentos=False
     return _montar_cadernilha(buf)
 
 
-def gerar_pdf_crista_copta(ano, tema, formato="A5", com_agendamentos=False):
+def gerar_pdf_crista_copta(ano, tema, formato="A5", com_agendamentos=False,
+                           layout_pagina="1"):
     buf = gerar_pdf_crista(ano, tema, formato=formato,
-                           com_agendamentos=com_agendamentos)
+                           com_agendamentos=com_agendamentos,
+                           layout_pagina=layout_pagina)
     return _montar_cadernilha(buf)
 
 
-def gerar_preview_crista_copta(ano, tema, formato="A5", com_agendamentos=False):
+def gerar_preview_crista_copta(ano, tema, formato="A5", com_agendamentos=False,
+                               layout_pagina="1"):
     buf = gerar_preview_crista(ano, tema, formato=formato,
-                               com_agendamentos=com_agendamentos)
+                               com_agendamentos=com_agendamentos,
+                               layout_pagina=layout_pagina)
     return _montar_cadernilha(buf)
 
 

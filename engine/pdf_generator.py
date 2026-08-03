@@ -172,7 +172,8 @@ def gerar_preview_juridica(ano, tema, formato="A5", com_agendamentos=False,
                               preview=True)
 
 
-def gerar_pdf_crista(ano, tema, formato="A5", com_agendamentos=False, preview=False):
+def gerar_pdf_crista(ano, tema, formato="A5", com_agendamentos=False,
+                     layout_pagina="1", preview=False):
     """Gera a Agenda Crista (365 versiculos diarios). Se preview=True, gera apenas paginas de exemplo."""
     from styles.manager import definir as definir_estilo
     definir_estilo('crista')
@@ -193,21 +194,30 @@ def gerar_pdf_crista(ano, tema, formato="A5", com_agendamentos=False, preview=Fa
         layouts_crista.pagina_dados(pdf)
         layouts_crista.pagina_calendario_anual(pdf, ano)
         layouts_crista.pagina_planejamento(pdf)
-        layouts_crista.pagina_diaria(pdf, date(ano, 1, 15),
-                                     com_agendamentos=com_agendamentos)
+        if layout_pagina == "2":
+            layouts_crista.pagina_diaria_2dias(pdf, date(ano, 1, 15), date(ano, 1, 16),
+                                               com_agendamentos=com_agendamentos)
+        else:
+            layouts_crista.pagina_diaria(pdf, date(ano, 1, 15),
+                                         com_agendamentos=com_agendamentos)
         pdf.save()
         buffer.seek(0)
         return buffer
 
     layouts_crista.gerar_paginas_iniciais(pdf, ano)
-    layouts_crista.gerar_paginas_diarias(pdf, ano, com_agendamentos=com_agendamentos)
+    if layout_pagina == "2":
+        layouts_crista.gerar_paginas_diarias_2dias(pdf, ano, com_agendamentos=com_agendamentos)
+    else:
+        layouts_crista.gerar_paginas_diarias(pdf, ano, com_agendamentos=com_agendamentos)
 
     pdf.save()
     buffer.seek(0)
     return buffer
 
 
-def gerar_preview_crista(ano, tema, formato="A5", com_agendamentos=False):
+def gerar_preview_crista(ano, tema, formato="A5", com_agendamentos=False,
+                         layout_pagina="1"):
     return gerar_pdf_crista(ano, tema, formato=formato,
                             com_agendamentos=com_agendamentos,
+                            layout_pagina=layout_pagina,
                             preview=True)

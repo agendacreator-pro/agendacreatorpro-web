@@ -31,11 +31,26 @@ def pagina_diaria(pdf, data, com_agendamentos=False):
     _est().pagina_diaria(pdf, data, com_agendamentos=com_agendamentos)
 
 
+def pagina_diaria_2dias(pdf, data1, data2, com_agendamentos=False):
+    _est().pagina_diaria_2dias(pdf, data1, data2, com_agendamentos=com_agendamentos)
+
+
 def gerar_paginas_diarias(pdf, ano, com_agendamentos=False):
     data = date(ano, 1, 1)
     while data.year == ano:
         pagina_diaria(pdf, data, com_agendamentos=com_agendamentos)
         data += timedelta(days=1)
+
+
+def gerar_paginas_diarias_2dias(pdf, ano, com_agendamentos=False):
+    data = date(ano, 1, 1)
+    while data.year == ano:
+        data1 = data
+        data2 = data + timedelta(days=1)
+        if data2.year != ano:
+            data2 = None
+        pagina_diaria_2dias(pdf, data1, data2, com_agendamentos=com_agendamentos)
+        data += timedelta(days=2)
 
 
 def gerar_paginas_iniciais(pdf, ano):
