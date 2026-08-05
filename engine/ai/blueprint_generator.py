@@ -887,22 +887,61 @@ def _get_substitutions_for_2dpp(page_index, base_date, lang="pt"):
 # ── Image-layout generator ─────────────────────────────────────────────
 
 IMAGE_OVERLAY_SEMANTICS = {"DAY_NAME", "DAY_NUMBER", "MONTH_NAME", "PAGE_NUMBER"}
+DAILY_PAGE_TYPES = {"1dpp", "2dpp"}
 
 
-def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages=7, base_date=None):
-    """Generate a PDF using the user's own image as the exact layout.
+def _resolve_daily_templates(templates, page_type):
+    """Return the templates that match the agenda's daily page type.
 
-    The image is drawn full-page as the background of every daily page and
-    only the dynamic date fields (day name, day number, month/year, page
-    number) are overlaid at the positions detected by the AI blueprint.
+    When several example pages are uploaded, the ones matching the chosen
+    daily type are used (rotating). If none match, all are used.
+    """
+    matching = []
+    for img_bytes, bp in templates:
+        bp_pt = (bp or {}).get("page_type")
+        if bp_pt == page_type or bp_pt not in DAILY_PAGE_TYPES:
+            matching.append((img_bytes, bp))
+    return matching if matching else templates
+
+
+def _overlays_for_bp(bp, w_mm, h_mm, style):
+    editable = sanitize_blueprint(bp.get("editable_objects", []), w_mm, h_mm)
+    overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    if not overlays:
+        page_type = bp.get("page_type", "1dpp")
+        if page_type == "2dpp":
+            template = _build_2dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
+        else:
+            template = _build_1dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
+        overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    return overlays
+
+
+def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=None, page_type=None):
+    """Generate a PDF using the user's own example page images as the exact layout.
+
+    ``templates`` is a list of ``(image_bytes, blueprint_dict_or_None)``. Each
+    daily page draws the example image full-page and overlays only the dynamic
+    date fields at the positions detected by the AI blueprint. Multiple
+    example pages rotate in order across the days of the chosen year, keeping
+    the Jan-1-to-Dec-31 sequence.
     """
     from PIL import Image
     from reportlab.lib.utils import ImageReader
 
-    bp = blueprint_dict
-    palette = _get_palette(bp)
-    editable = bp.get("editable_objects", [])
-    style = bp.get("style", "minimalista")
+    if not templates:
+        raise ValueError("No image templates provided")
+
+    first_bp = templates[0][1] or {}
+    palette = _get_palette(first_bp)
+    style = first_bp.get("style", "minimalista")
+
+    if page_type is None:
+        page_type = first_bp.get("page_type", "1dpp")
+        if page_type not in DAILY_PAGE_TYPES:
+            page_type = "1dpp"
+
+    templates = _resolve_daily_templates(templates, page_type)
 
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
     w_mm = w / mm
@@ -911,22 +950,13 @@ def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages
     if base_date is None:
         base_date = datetime.date(2026, 1, 1)
 
-    page_type = bp.get("page_type", "1dpp")
-
-    editable = sanitize_blueprint(editable, w_mm, h_mm)
-    overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
-    if not overlays:
-        if page_type == "2dpp":
-            template = _build_2dpp_objects(palette, w_mm, h_mm, style)
-        else:
-            template = _build_1dpp_objects(palette, w_mm, h_mm, style)
-        overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
-
-    img = Image.open(BytesIO(image_bytes)).convert("RGB")
-    iw, ih = img.size
-    scale = min(w / iw, h / ih)
-    dw, dh = iw * scale, ih * scale
-    dx, dy = (w - dw) / 2, (h - dh) / 2
+    cache = {}
+    for img_bytes, bp in templates:
+        key = id(img_bytes)
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+        iw, ih = img.size
+        scale = min(w / iw, h / ih)
+        cache[key] = (img, (iw * scale), (ih * scale), (w - iw * scale) / 2, (h - ih * scale) / 2)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
@@ -950,6 +980,11 @@ def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages
         if page_idx > 0:
             pdf.showPage()
 
+        img_bytes, bp = templates[page_idx % len(templates)]
+        img, dw, dh, dx, dy = cache[id(img_bytes)]
+        bp = bp or {}
+        bpal = _get_palette(bp) or palette
+
         pdf.setFillColor(_pc("#FFFFFF"))
         pdf.rect(0, 0, w, h, fill=1, stroke=0)
         pdf.drawImage(ImageReader(img), dx, dy, dw, dh)
@@ -959,12 +994,19 @@ def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages
         else:
             subs = _build_1dpp_substitutions(page_idx, base_date)
 
-        for obj in overlays:
-            _draw_object(pdf, obj, h, palette, subs)
+        for obj in _overlays_for_bp(bp, w_mm, h_mm, style):
+            _draw_object(pdf, obj, h, bpal, subs)
 
     pdf.save()
     buffer.seek(0)
     return buffer
+
+
+def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages=7, base_date=None):
+    """Single-template wrapper around gerar_pdf_imagens_layout."""
+    return gerar_pdf_imagens_layout([(image_bytes, blueprint_dict or {})],
+                                    formato=formato, num_pages=num_pages, base_date=base_date)
+
 
 
 # ── Main generator ──────────────────────────────────────────────────────

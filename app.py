@@ -790,15 +790,41 @@ def ia_generate():
     try:
         data = request.json
         formato = data.get('formato', 'A5')
-        num_pages = int(data.get('num_pages', 7) or 7)
+        num_pages = int(data.get('num_pages', 0) or 0)
         layout = data.get('layout', '2dpp')
         style = data.get('style', 'minimalista')
         palette = data.get('palette', {})
         blueprint = data.get('blueprint', {})
+        year = int(data.get('year', 2026) or 2026)
 
-        from ai.blueprint_generator import gerar_pdf_blueprint, gerar_pdf_imagem_layout
+        from ai.blueprint_generator import gerar_pdf_blueprint, gerar_pdf_imagens_layout
         from datetime import date
-        base = date(2026, 1, 1)
+        base = date(year, 1, 1)
+
+        def days_in_year(y):
+            return 366 if (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)) else 365
+
+        def decode_image(img_field):
+            if not isinstance(img_field, str) or not img_field:
+                return None
+            b64 = img_field
+            if img_field.startswith("data:"):
+                b64 = img_field.split(",", 1)[-1]
+            try:
+                return base64.b64decode(b64)
+            except Exception:
+                return None
+
+        def merge_bp(bp_in):
+            if not isinstance(bp_in, dict):
+                return None
+            if not bp_in.get('editable_objects'):
+                return None
+            out = dict(bp_in)
+            merged = dict(out.get('palette') or {})
+            merged.update(palette or {})
+            out['palette'] = merged
+            return out
 
         if isinstance(blueprint, dict) and blueprint.get('editable_objects'):
             bp = dict(blueprint)
@@ -815,25 +841,37 @@ def ia_generate():
                 "sections": [],
             }
 
-        image_bytes = None
-        image_field = data.get('image')
-        if isinstance(image_field, str) and image_field:
-            b64 = image_field
-            if image_field.startswith("data:"):
-                b64 = image_field.split(",", 1)[-1]
-            try:
-                image_bytes = base64.b64decode(b64)
-            except Exception:
-                image_bytes = None
+        # Multi-image templates: [{"image": dataURL, "blueprint": {...}}, ...]
+        templates = []
+        raw_templates = data.get('templates')
+        if isinstance(raw_templates, list) and raw_templates:
+            for t in raw_templates:
+                img_bytes = decode_image(t.get('image') if isinstance(t, dict) else None)
+                if not img_bytes:
+                    continue
+                bp_t = merge_bp(t.get('blueprint')) if isinstance(t, dict) else None
+                if bp_t is None:
+                    bp_t = dict(bp)
+                templates.append((img_bytes, bp_t))
+        elif data.get('image'):
+            img_bytes = decode_image(data.get('image'))
+            if img_bytes:
+                templates.append((img_bytes, merge_bp(blueprint)))
 
-        use_image_mode = bool(image_bytes and isinstance(blueprint, dict) and blueprint.get('editable_objects'))
+        full_year = bool(data.get('full_year'))
+        pt = bp.get("page_type", layout)
+        if pt not in ("1dpp", "2dpp"):
+            pt = "1dpp"
 
-        if use_image_mode:
-            buffer = gerar_pdf_imagem_layout(bp, image_bytes, formato=formato, num_pages=num_pages, base_date=base)
+        if full_year or num_pages <= 0:
+            num_pages = days_in_year(year)
+
+        if templates:
+            buffer = gerar_pdf_imagens_layout(templates, formato=formato, num_pages=num_pages,
+                                              base_date=base, page_type=pt)
         else:
             buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base)
-        pt = bp.get("page_type", layout)
-        nome = f"Agenda_{pt.upper()}_{formato}.pdf"
+        nome = f"Agenda_{pt.upper()}_{formato}_{year}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
         import traceback
