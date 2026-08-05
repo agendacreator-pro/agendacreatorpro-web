@@ -94,6 +94,12 @@ USERS = {
         'token': '',
         'ativo': True,
     },
+    'ninhacr@yahoo.com.br': {
+        'email': 'ninhacr@yahoo.com.br',
+        'password': generate_password_hash('101651'),
+        'token': '',
+        'ativo': True,
+    },
 }
 
 _repo_users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.json')
