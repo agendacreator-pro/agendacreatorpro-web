@@ -722,12 +722,13 @@ def ia_analyze():
     if len(image_bytes) > 20 * 1024 * 1024:
         return jsonify({"error": "File too large (max 20MB)"}), 400
 
+    ct = image.content_type or "image/png"
+
     try:
         from ai.color_extractor import extract_image_info
         info = extract_image_info(image_bytes)
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-        ct = image.content_type or "image/png"
-        return jsonify({
+        response = {
             "success": True,
             "palette": info["palette"],
             "image_info": {
@@ -736,9 +737,51 @@ def ia_analyze():
                 "aspect_ratio": info["aspect_ratio"],
             },
             "image_data_url": f"data:{ct};base64,{image_b64}",
-        })
+        }
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    analysis_payload = {"enabled": bool(os.environ.get('OPENAI_API_KEY'))}
+    response["analysis"] = analysis_payload
+
+    if analysis_payload["enabled"] and ct.startswith("image/"):
+        try:
+            from ai.analyzer import SmartAnalyzer
+            from ai.blueprint_generator import sanitize_blueprint
+            analyzer = SmartAnalyzer(provider_name="openai")
+            result = analyzer.analyze(image_bytes, content_type=ct)
+            if result.success and result.page_analysis:
+                bp_raw = getattr(result.page_analysis, "_blueprint_raw", None)
+                if isinstance(bp_raw, dict) and bp_raw.get("editable_objects"):
+                    blueprint = {
+                        "page_type": bp_raw.get("page_type", result.page_analysis.page_type.value),
+                        "page_type_label": bp_raw.get("page_type_label", result.page_analysis.page_type_label),
+                        "style": bp_raw.get("style", "personalizado"),
+                        "palette": bp_raw.get("palette", info["palette"]),
+                        "description": bp_raw.get("description", ""),
+                        "inferred_pages": bp_raw.get("inferred_pages", []),
+                        "editable_objects": sanitize_blueprint(bp_raw.get("editable_objects", [])),
+                    }
+                    response["blueprint"] = blueprint
+                    analysis_payload.update({
+                        "success": True,
+                        "page_type": blueprint["page_type"],
+                        "page_type_label": blueprint["page_type_label"],
+                        "confidence": result.page_analysis.confidence,
+                        "description": blueprint["description"],
+                        "inferred_pages": blueprint["inferred_pages"],
+                        "provider": result.provider,
+                        "model": result.model,
+                        "cached": result.cached,
+                        "object_count": len(blueprint["editable_objects"]),
+                    })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            analysis_payload["success"] = False
+            analysis_payload["error"] = str(e)
+
+    return jsonify(response)
 
 
 @app.route('/api/ia/generate', methods=['POST'])
@@ -751,24 +794,30 @@ def ia_generate():
         layout = data.get('layout', '2dpp')
         style = data.get('style', 'minimalista')
         palette = data.get('palette', {})
-
-        if not palette:
-            return jsonify({"error": "No palette data"}), 400
+        blueprint = data.get('blueprint', {})
 
         from ai.blueprint_generator import gerar_pdf_blueprint
         from datetime import date
         base = date(2026, 1, 1)
 
-        blueprint = {
-            "page_type": layout,
-            "style": style,
-            "palette": palette,
-            "editable_objects": [],
-            "sections": [],
-        }
+        if isinstance(blueprint, dict) and blueprint.get('editable_objects'):
+            bp = dict(blueprint)
+            bp_palette = bp.get('palette') or {}
+            merged = dict(bp_palette)
+            merged.update(palette or {})
+            bp['palette'] = merged
+        else:
+            bp = {
+                "page_type": layout,
+                "style": style,
+                "palette": palette,
+                "editable_objects": [],
+                "sections": [],
+            }
 
-        buffer = gerar_pdf_blueprint(blueprint, formato=formato, num_pages=num_pages, base_date=base)
-        nome = f"Agenda_{layout.upper()}_{formato}.pdf"
+        buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base)
+        pt = bp.get("page_type", layout)
+        nome = f"Agenda_{pt.upper()}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
         import traceback

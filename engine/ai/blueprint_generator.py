@@ -79,6 +79,111 @@ def _get_palette(blueprint_dict):
     return palette
 
 
+ALLOWED_OBJECT_TYPES = {
+    "RECTANGLE", "ROUNDED_RECTANGLE", "LINE", "CIRCLE", "CHECKBOX",
+    "TEXT", "SECTION_TITLE", "DAY_NAME", "DAY_NUMBER", "MONTH_NAME",
+    "TIME_SLOT", "TASK_TEXT", "NOTES_LABEL", "PAGE_NUMBER",
+    "DECORATION", "TABLE", "GRID",
+}
+
+TEXT_OBJECT_TYPES = {
+    "TEXT", "SECTION_TITLE", "DAY_NAME", "DAY_NUMBER", "MONTH_NAME",
+    "TIME_SLOT", "TASK_TEXT", "NOTES_LABEL", "PAGE_NUMBER",
+}
+
+
+def sanitize_blueprint(objects, w_mm=148, h_mm=210):
+    """Validate and clamp AI-generated objects to the page bounds.
+
+    Drops malformed/out-of-page objects, coerces numeric fields,
+    ensures unique ids and only known object types.
+    """
+    if not isinstance(objects, list):
+        return []
+
+    seen = set()
+    out = []
+
+    for obj in objects:
+        if not isinstance(obj, dict):
+            continue
+
+        o = dict(obj)
+
+        try:
+            x = float(o.get("x", 0) or 0)
+            y = float(o.get("y", 0) or 0)
+            w = float(o.get("w", 0) or 0)
+            h = float(o.get("h", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+
+        if w <= 0 and h <= 0:
+            continue
+
+        if x >= w_mm or y >= h_mm or x + w <= 0 or y + h <= 0:
+            continue
+
+        x = max(0.0, min(x, w_mm - 0.1))
+        y = max(0.0, min(y, h_mm - 0.1))
+        w = max(0.0, min(w, w_mm - x))
+        h = max(0.0, min(h, h_mm - y))
+        o["x"], o["y"], o["w"], o["h"] = round(x, 2), round(y, 2), round(w, 2), round(h, 2)
+
+        otype = str(o.get("obj_type", o.get("type", "") or "RECTANGLE")).upper()
+        if otype not in ALLOWED_OBJECT_TYPES:
+            otype = "RECTANGLE"
+        o["obj_type"] = otype
+
+        for k in ("font_size", "border_width", "radius", "opacity", "line_height"):
+            try:
+                v = float(o.get(k) or 0)
+                if v < 0:
+                    v = 0
+                o[k] = v
+            except (TypeError, ValueError):
+                o.pop(k, None)
+        if not o.get("font_size"):
+            o["font_size"] = 6
+        if not o.get("border_width"):
+            o["border_width"] = 0.5
+        o["font_size"] = max(1.0, min(float(o.get("font_size") or 6), 60.0))
+        o["border_width"] = max(0.05, min(float(o.get("border_width") or 0.5), 6.0))
+        o["radius"] = max(0.0, min(float(o.get("radius") or 0), 20.0))
+        o["opacity"] = max(0.0, min(float(o.get("opacity") or 1.0), 1.0))
+
+        if otype in ("TABLE", "GRID"):
+            try:
+                o["cols"] = max(1, min(int(float(o.get("cols") or 7)), 50))
+            except (TypeError, ValueError):
+                o["cols"] = 7
+            try:
+                o["rows"] = max(1, min(int(float(o.get("rows") or 6)), 50))
+            except (TypeError, ValueError):
+                o["rows"] = 6
+
+        if otype in TEXT_OBJECT_TYPES:
+            text_val = str(o.get("value", o.get("text", "")) or "").strip()
+            if not text_val:
+                continue
+            o["value"] = text_val
+
+        oid = str(o.get("id") or "")
+        if not oid:
+            oid = f"obj_{len(out)}"
+        base_id = oid
+        i = 1
+        while oid in seen:
+            oid = f"{base_id}_{i}"
+            i += 1
+        seen.add(oid)
+        o["id"] = oid
+
+        out.append(o)
+
+    return out
+
+
 def _draw_object(pdf, obj, page_h, palette, substitutions=None):
     otype = obj.get("obj_type", obj.get("type", "rect"))
     x_mm = float(obj.get("x", 0) or 0)
@@ -108,8 +213,12 @@ def _draw_object(pdf, obj, page_h, palette, substitutions=None):
     radius = float(obj.get("radius", 0) or 0)
     value = obj.get("value", obj.get("text", ""))
 
-    if substitutions and value in substitutions:
-        value = substitutions[value]
+    if substitutions:
+        sem = obj.get("semantic", "")
+        if sem and substitutions.get(sem):
+            value = substitutions[sem]
+        elif value in substitutions:
+            value = substitutions[value]
 
     if otype == "RECTANGLE":
         if bg:
@@ -685,11 +794,19 @@ def _build_1dpp_substitutions(page_index, base_date):
                  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
 
     d = base_date + datetime.timedelta(days=page_index)
+    day_name = days_pt[d.weekday()]
+    day_num = str(d.day)
+    month_year = f"{months_pt[d.month - 1]} {d.year}"
+    page_num = f"{page_index + 1} / 365"
     return {
-        "TERCA": days_pt[d.weekday()],
-        "15": str(d.day),
-        "julho 2026": f"{months_pt[d.month - 1]} {d.year}",
-        "1 / 365": f"{page_index + 1} / 365",
+        "TERCA": day_name,
+        "15": day_num,
+        "julho 2026": month_year,
+        "1 / 365": page_num,
+        "DAY_NAME": day_name,
+        "DAY_NUMBER": day_num,
+        "MONTH_NAME": month_year,
+        "PAGE_NUMBER": page_num,
     }
 
 
@@ -710,12 +827,17 @@ def _get_substitutions_for_page(page_index, page_type, base_date=None, lang="pt"
     month_name = months_pt[current_date.month - 1]
     day_num = str(current_date.day)
     month_year = f"{month_name} {current_date.year}"
+    page_num = f"{page_index + 1} / 365"
 
     return {
         "TERCA": day_name,
         "15": day_num,
         "julho 2026": month_year,
-        "1 / 365": f"{page_index + 1} / 365",
+        "1 / 365": page_num,
+        "DAY_NAME": day_name,
+        "DAY_NUMBER": day_num,
+        "MONTH_NAME": month_year,
+        "PAGE_NUMBER": page_num,
     }
 
 
@@ -750,6 +872,8 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     style = bp.get("style", "minimalista")
 
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
+    w_mm = w / mm
+    h_mm = h / mm
 
     if base_date is None:
         base_date = datetime.date(2026, 1, 1)
@@ -761,6 +885,10 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
             editable = _build_2dpp_objects(palette, style=style)
         else:
             editable = _build_1dpp_objects(palette, style=style)
+
+    editable = sanitize_blueprint(editable, w_mm, h_mm)
+    if not editable:
+        editable = _build_1dpp_objects(palette, style=style)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))

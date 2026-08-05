@@ -82,6 +82,14 @@
 
     <div id="configSection">
       <div class="color-grid" id="colorGrid"></div>
+
+      <div id="aiCard" style="display:none;background:#f0f6ff;border:1px solid #bcd9f5;border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;">
+        <div style="font-weight:700;font-size:0.95rem;color:#1a4f8b;">Layout analisado da imagem</div>
+        <div id="aiPageType" style="font-size:0.9rem;color:#333;margin-top:6px;"></div>
+        <div id="aiDesc" style="font-size:0.8rem;color:#666;margin-top:4px;"></div>
+      </div>
+      <div id="aiHint" style="display:none;font-size:0.75rem;color:#888;text-align:center;margin:-8px 0 14px;">Layout e estilo vem da imagem. Escolha formato, dias e cores abaixo.</div>
+
       <div class="config-row">
         <div><label>Formato:</label><br>
           <select id="selFormat">
@@ -90,13 +98,13 @@
             <option value="QUADRADO">Quadrado (150x150mm)</option>
           </select>
         </div>
-        <div><label>Layout:</label><br>
+        <div id="rowLayout"><label>Layout:</label><br>
           <select id="selLayout">
             <option value="2dpp">2 por pagina (2DPP)</option>
             <option value="1dpp">1 por pagina (1DPP)</option>
           </select>
         </div>
-        <div><label>Estilo:</label><br>
+        <div id="rowStyle"><label>Estilo:</label><br>
           <select id="selStyle">
             <option value="minimalista">Minimalista</option>
             <option value="executivo">Executivo</option>
@@ -159,6 +167,8 @@
 <script>
 let myFile = null;
 let myPalette = null;
+let myBlueprint = null;
+let myAnalysis = null;
 let lastBlob = null;
 let lastUrl = null;
 
@@ -211,7 +221,7 @@ function extractColors(file) {
   document.getElementById("uploadZone").style.display = "none";
   document.getElementById("progressSection").style.display = "block";
   document.getElementById("barFill").style.width = "30%";
-  document.getElementById("progressMsg").textContent = "Extraindo cores da imagem...";
+  document.getElementById("progressMsg").textContent = "Extraindo cores e analisando layout com IA...";
 
   var fd = new FormData();
   fd.append("image", file);
@@ -224,8 +234,10 @@ function extractColors(file) {
         return;
       }
       myPalette = data.palette;
+      myAnalysis = data.analysis || null;
+      myBlueprint = (data.blueprint && data.blueprint.editable_objects && data.blueprint.editable_objects.length) ? data.blueprint : null;
       document.getElementById("barFill").style.width = "100%";
-      document.getElementById("progressMsg").textContent = "Cores extraidas com sucesso!";
+      document.getElementById("progressMsg").textContent = (myBlueprint && myAnalysis && myAnalysis.success) ? "Layout analisado com IA!" : "Cores extraidas com sucesso!";
       setTimeout(showConfig, 600);
     })
     .catch(function(err) { showError(err.message); });
@@ -249,6 +261,30 @@ function showConfig() {
   document.getElementById("colorHex").textContent = myPalette.accent || "#4A90D9";
   document.getElementById("textColorPicker").value = myPalette.text || "#333333";
   document.getElementById("textColorHex").textContent = myPalette.text || "#333333";
+
+  if (myBlueprint) {
+    var labels = {
+      "1dpp": "1 dia por pagina", "2dpp": "2 dias por pagina", semanal: "Semanal",
+      mensal: "Mensal", calendario: "Calendario", checklist: "Checklist",
+      planejamento: "Planejamento", metas: "Metas", notas: "Notas",
+      dados_pessoais: "Dados pessoais"
+    };
+    var label = labels[myBlueprint.page_type] || myBlueprint.page_type_label || myBlueprint.page_type;
+    var conf = (myAnalysis && myAnalysis.confidence != null) ? Math.round(myAnalysis.confidence * 100) + "%" : "";
+    document.getElementById("aiPageType").textContent = label + (conf ? "  —  confianca: " + conf : "");
+    var desc = (myAnalysis && myAnalysis.description) ? myAnalysis.description : "";
+    document.getElementById("aiDesc").textContent = desc;
+    document.getElementById("aiDesc").style.display = desc ? "block" : "none";
+    document.getElementById("aiCard").style.display = "block";
+    document.getElementById("aiHint").style.display = "block";
+    document.getElementById("rowLayout").style.display = "none";
+    document.getElementById("rowStyle").style.display = "none";
+  } else {
+    document.getElementById("aiCard").style.display = "none";
+    document.getElementById("aiHint").style.display = "none";
+    document.getElementById("rowLayout").style.display = "block";
+    document.getElementById("rowStyle").style.display = "block";
+  }
 }
 
 document.getElementById("colorPicker").addEventListener("input", function(e) {
@@ -289,7 +325,8 @@ function generatePDF() {
       layout: document.getElementById("selLayout").value,
       style: document.getElementById("selStyle").value,
       num_pages: parseInt(document.getElementById("selDays").value),
-      palette: palette
+      palette: palette,
+      blueprint: myBlueprint
     })
   }).then(function(r) {
     if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || "Erro"); });
@@ -314,6 +351,8 @@ function showError(msg) {
   document.getElementById("configSection").style.display = "none";
   document.getElementById("errorSection").style.display = "block";
   document.getElementById("errorMsg").textContent = msg;
+  document.getElementById("rowLayout").style.display = "block";
+  document.getElementById("rowStyle").style.display = "block";
 }
 
 function downloadPDF() {
@@ -329,6 +368,8 @@ function downloadPDF() {
 function resetAll() {
   myFile = null;
   myPalette = null;
+  myBlueprint = null;
+  myAnalysis = null;
   lastBlob = null;
   if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
   document.getElementById("uploadZone").style.display = "block";
@@ -338,6 +379,8 @@ function resetAll() {
   document.getElementById("shareSection").style.display = "none";
   document.getElementById("errorSection").style.display = "none";
   document.getElementById("fileInput").value = "";
+  document.getElementById("rowLayout").style.display = "block";
+  document.getElementById("rowStyle").style.display = "block";
 }
 </script>
 </body>
