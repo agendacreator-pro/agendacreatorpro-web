@@ -350,7 +350,7 @@ button:disabled {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     gap: 7px;
     animation: meell-float 3.2s ease-in-out infinite;
 }
