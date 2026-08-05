@@ -215,8 +215,13 @@ def _draw_object(pdf, obj, page_h, palette, substitutions=None):
 
     if substitutions:
         sem = obj.get("semantic", "")
-        if sem and substitutions.get(sem):
-            value = substitutions[sem]
+        if sem:
+            slot = 1 if (y_mm + h_mm / 2) > (page_h / mm) / 2 else 0
+            slot_key = f"{sem}_{slot}"
+            if substitutions.get(slot_key):
+                value = substitutions[slot_key]
+            elif substitutions.get(sem):
+                value = substitutions[sem]
         elif value in substitutions:
             value = substitutions[value]
 
@@ -778,6 +783,12 @@ def _build_2dpp_substitutions(page_index, base_date):
     day_b = base_date + datetime.timedelta(days=page_index * 2 + 1)
 
     return {
+        "DAY_NAME_0": days_pt[day_a.weekday()],
+        "DAY_NUMBER_0": str(day_a.day),
+        "MONTH_NAME_0": f"{months_pt[day_a.month - 1]} {day_a.year}",
+        "DAY_NAME_1": days_pt[day_b.weekday()],
+        "DAY_NUMBER_1": str(day_b.day),
+        "MONTH_NAME_1": f"{months_pt[day_b.month - 1]} {day_b.year}",
         "TERCA": days_pt[day_a.weekday()],
         "15": str(day_a.day),
         "julho 2026": f"{months_pt[day_a.month - 1]} {day_a.year}",
@@ -850,6 +861,13 @@ def _get_substitutions_for_2dpp(page_index, base_date, lang="pt"):
     day_b = base_date + datetime.timedelta(days=page_index * 2 + 1)
 
     subs = {}
+    subs["DAY_NAME_0"] = days_pt[day_a.weekday()]
+    subs["DAY_NUMBER_0"] = str(day_a.day)
+    subs["MONTH_NAME_0"] = f"{months_pt[day_a.month - 1]} {day_a.year}"
+    subs["DAY_NAME_1"] = days_pt[day_b.weekday()]
+    subs["DAY_NUMBER_1"] = str(day_b.day)
+    subs["MONTH_NAME_1"] = f"{months_pt[day_b.month - 1]} {day_b.year}"
+
     subs["TERCA"] = days_pt[day_a.weekday()]
     subs["15"] = str(day_a.day)
     subs["julho 2026"] = f"{months_pt[day_a.month - 1]} {day_a.year}"
