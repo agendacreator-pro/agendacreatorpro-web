@@ -169,6 +169,7 @@ let myFile = null;
 let myPalette = null;
 let myBlueprint = null;
 let myAnalysis = null;
+let myImageData = null;
 let lastBlob = null;
 let lastUrl = null;
 
@@ -209,6 +210,7 @@ function handleFileSelect(file) {
 
   var reader = new FileReader();
   reader.onload = function(e) {
+    myImageData = e.target.result;
     document.getElementById("previewImg").src = e.target.result;
     document.getElementById("fileInfo").textContent = file.name + " — " + (file.size / 1024).toFixed(1) + "KB";
     document.getElementById("previewSection").style.display = "block";
@@ -326,7 +328,8 @@ function generatePDF() {
       style: document.getElementById("selStyle").value,
       num_pages: parseInt(document.getElementById("selDays").value),
       palette: palette,
-      blueprint: myBlueprint
+      blueprint: myBlueprint,
+      image: myBlueprint ? myImageData : null
     })
   }).then(function(r) {
     if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || "Erro"); });
@@ -370,6 +373,7 @@ function resetAll() {
   myPalette = null;
   myBlueprint = null;
   myAnalysis = null;
+  myImageData = null;
   lastBlob = null;
   if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
   document.getElementById("uploadZone").style.display = "block";

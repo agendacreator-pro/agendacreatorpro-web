@@ -796,7 +796,7 @@ def ia_generate():
         palette = data.get('palette', {})
         blueprint = data.get('blueprint', {})
 
-        from ai.blueprint_generator import gerar_pdf_blueprint
+        from ai.blueprint_generator import gerar_pdf_blueprint, gerar_pdf_imagem_layout
         from datetime import date
         base = date(2026, 1, 1)
 
@@ -815,7 +815,23 @@ def ia_generate():
                 "sections": [],
             }
 
-        buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base)
+        image_bytes = None
+        image_field = data.get('image')
+        if isinstance(image_field, str) and image_field:
+            b64 = image_field
+            if image_field.startswith("data:"):
+                b64 = image_field.split(",", 1)[-1]
+            try:
+                image_bytes = base64.b64decode(b64)
+            except Exception:
+                image_bytes = None
+
+        use_image_mode = bool(image_bytes and isinstance(blueprint, dict) and blueprint.get('editable_objects'))
+
+        if use_image_mode:
+            buffer = gerar_pdf_imagem_layout(bp, image_bytes, formato=formato, num_pages=num_pages, base_date=base)
+        else:
+            buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base)
         pt = bp.get("page_type", layout)
         nome = f"Agenda_{pt.upper()}_{formato}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)

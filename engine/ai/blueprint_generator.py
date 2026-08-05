@@ -796,6 +796,9 @@ def _build_2dpp_substitutions(page_index, base_date):
         "16": str(day_b.day),
         "agosto 2026": f"{months_pt[day_b.month - 1]} {day_b.year}",
         "1 / 365": f"{page_index * 2 + 1} / {page_index * 2 + 2}",
+        "PAGE_NUMBER": f"{page_index * 2 + 1} / {page_index * 2 + 2}",
+        "PAGE_NUMBER_0": f"{page_index * 2 + 1} / {page_index * 2 + 2}",
+        "PAGE_NUMBER_1": f"{page_index * 2 + 1} / {page_index * 2 + 2}",
     }
 
 
@@ -879,6 +882,89 @@ def _get_substitutions_for_2dpp(page_index, base_date, lang="pt"):
     subs["2 / 365"] = f"{page_index * 2 + 2} / 365"
 
     return subs
+
+
+# ── Image-layout generator ─────────────────────────────────────────────
+
+IMAGE_OVERLAY_SEMANTICS = {"DAY_NAME", "DAY_NUMBER", "MONTH_NAME", "PAGE_NUMBER"}
+
+
+def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages=7, base_date=None):
+    """Generate a PDF using the user's own image as the exact layout.
+
+    The image is drawn full-page as the background of every daily page and
+    only the dynamic date fields (day name, day number, month/year, page
+    number) are overlaid at the positions detected by the AI blueprint.
+    """
+    from PIL import Image
+    from reportlab.lib.utils import ImageReader
+
+    bp = blueprint_dict
+    palette = _get_palette(bp)
+    editable = bp.get("editable_objects", [])
+    style = bp.get("style", "minimalista")
+
+    w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
+    w_mm = w / mm
+    h_mm = h / mm
+
+    if base_date is None:
+        base_date = datetime.date(2026, 1, 1)
+
+    page_type = bp.get("page_type", "1dpp")
+
+    editable = sanitize_blueprint(editable, w_mm, h_mm)
+    overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    if not overlays:
+        if page_type == "2dpp":
+            template = _build_2dpp_objects(palette, w_mm, h_mm, style)
+        else:
+            template = _build_1dpp_objects(palette, w_mm, h_mm, style)
+        overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+
+    img = Image.open(BytesIO(image_bytes)).convert("RGB")
+    iw, ih = img.size
+    scale = min(w / iw, h / ih)
+    dw, dh = iw * scale, ih * scale
+    dx, dy = (w - dw) / 2, (h - dh) / 2
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=(w, h))
+    pdf.setPageCompression(0)
+
+    _draw_dados_pessoais(pdf, w, h, palette)
+    pdf.showPage()
+
+    _draw_calendario_anual(pdf, w, h, palette, base_date)
+    pdf.showPage()
+
+    _draw_planejamento_anual(pdf, w, h, palette, base_date)
+    pdf.showPage()
+
+    if page_type == "2dpp":
+        daily_pages = (num_pages + 1) // 2
+    else:
+        daily_pages = num_pages
+
+    for page_idx in range(daily_pages):
+        if page_idx > 0:
+            pdf.showPage()
+
+        pdf.setFillColor(_pc("#FFFFFF"))
+        pdf.rect(0, 0, w, h, fill=1, stroke=0)
+        pdf.drawImage(ImageReader(img), dx, dy, dw, dh)
+
+        if page_type == "2dpp":
+            subs = _build_2dpp_substitutions(page_idx, base_date)
+        else:
+            subs = _build_1dpp_substitutions(page_idx, base_date)
+
+        for obj in overlays:
+            _draw_object(pdf, obj, h, palette, subs)
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
 
 
 # ── Main generator ──────────────────────────────────────────────────────
