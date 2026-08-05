@@ -96,7 +96,9 @@ CRITICAL RULES:
 5. inferred_pages lists what other page types to generate (max 4)
 6. Every section child must be a full object with all fields, not just a reference
 7. Include BOTTOM elements (footer, page number, decorative items at bottom)
-8. Do NOT include time slots or ruled lines you are unsure about - only what you clearly see in the image"""
+8. Do NOT include time slots or ruled lines you are unsure about - only what you clearly see in the image
+9. On 2dpp pages, treat each half (panel) as its own day: EVERY panel MUST have its own header objects (DAY_NAME, DAY_NUMBER, MONTH_NAME) and any mini-calendar or notes section clearly visible inside that panel
+10. Each panel's ruled lines / time slots must stay INSIDE that panel's vertical bounds - never cross into the other panel"""
 
 
 PAGE_TYPE_MAP = {

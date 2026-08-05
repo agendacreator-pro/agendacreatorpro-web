@@ -129,6 +129,7 @@ def _complete_time_slots(objects):
     line_color = "_border_"
 
     first_y = float(sorted_times[0].get("y", 40))
+    last_y = float(sorted_times[-1].get("y", 40))
 
     for h in range(8, 19):
         if h in existing_hours:
@@ -136,6 +137,11 @@ def _complete_time_slots(objects):
 
         idx = h - min_h
         ty = first_y + idx * spacing_y
+
+        # Do not extend beyond the existing slots: on 2dpp pages the next panel's
+        # slots are a separate group and must not be filled into.
+        if ty > last_y + 1:
+            continue
 
         objects.append({
             "id": f"time_{h:02d}",
@@ -238,42 +244,69 @@ def _complete_ruled_lines(objects):
             continue
 
         sorted_g = sorted(group, key=lambda l: float(l.get("y", 0)))
-        spacings = []
-        for i in range(1, len(sorted_g)):
-            y1 = float(sorted_g[i - 1].get("y", 0))
-            y2 = float(sorted_g[i].get("y", 0))
-            spacings.append(y2 - y1)
 
-        if not spacings:
+        # Split into contiguous clusters. In 2dpp pages the two day panels share
+        # the same x/width for their notes lines, so the large vertical gap
+        # between panels must never be filled across. Use the median spacing to
+        # tell a normal gap inside a panel apart from the panel boundary.
+        all_gaps = [float(sorted_g[i].get("y", 0)) - float(sorted_g[i - 1].get("y", 0))
+                    for i in range(1, len(sorted_g))]
+        if not all_gaps:
             continue
+        all_gaps.sort()
+        median_gap = all_gaps[len(all_gaps) // 2]
+        boundary = max(20, 2.5 * median_gap)
 
-        avg_spacing = sum(spacings) / len(spacings)
-        if avg_spacing < 3:
-            continue
+        clusters = []
+        cur = [sorted_g[0]]
+        for nxt in sorted_g[1:]:
+            if float(nxt.get("y", 0)) - float(cur[-1].get("y", 0)) > boundary:
+                clusters.append(cur)
+                cur = [nxt]
+            else:
+                cur.append(nxt)
+        clusters.append(cur)
 
-        base_x = float(sorted_g[0].get("x", 10))
-        base_w = float(sorted_g[0].get("w", 58))
-        base_color = sorted_g[0].get("color", "_border_")
-        base_bw = float(sorted_g[0].get("border_width", 0.2) or 0.2)
+        for cluster in clusters:
+            if len(cluster) < 3:
+                continue
 
-        first_y = float(sorted_g[0].get("y", 95))
-        last_y = float(sorted_g[-1].get("y", 191))
+            spacings = []
+            for i in range(1, len(cluster)):
+                y1 = float(cluster[i - 1].get("y", 0))
+                y2 = float(cluster[i].get("y", 0))
+                spacings.append(y2 - y1)
 
-        existing_y = set(float(l.get("y", 0)) for l in sorted_g)
+            if not spacings:
+                continue
 
-        y = first_y + avg_spacing
-        idx = 1
-        while y < last_y - 1:
-            already = any(abs(ey - y) < 1 for ey in existing_y)
-            if not already:
-                objects.append({
-                    "id": f"ruled_completed_{key}_{idx}",
-                    "obj_type": "LINE",
-                    "x": base_x, "y": y, "w": base_w, "h": 0,
-                    "color": base_color, "border_width": base_bw,
-                })
-            y += avg_spacing
-            idx += 1
+            avg_spacing = sum(spacings) / len(spacings)
+            if avg_spacing < 3:
+                continue
+
+            base_x = float(cluster[0].get("x", 10))
+            base_w = float(cluster[0].get("w", 58))
+            base_color = cluster[0].get("color", "_border_")
+            base_bw = float(cluster[0].get("border_width", 0.2) or 0.2)
+
+            first_y = float(cluster[0].get("y", 95))
+            last_y = float(cluster[-1].get("y", 191))
+
+            existing_y = set(float(l.get("y", 0)) for l in cluster)
+
+            y = first_y + avg_spacing
+            idx = 1
+            while y < last_y - 1:
+                already = any(abs(ey - y) < 1 for ey in existing_y)
+                if not already:
+                    objects.append({
+                        "id": f"ruled_completed_{key}_{idx}",
+                        "obj_type": "LINE",
+                        "x": base_x, "y": y, "w": base_w, "h": 0,
+                        "color": base_color, "border_width": base_bw,
+                    })
+                y += avg_spacing
+                idx += 1
 
     return objects
 
