@@ -32,6 +32,11 @@ def _no_cache_html(resp):
         resp.headers['Expires'] = '0'
     return resp
 
+
+def _aplicar_fonte(data):
+    from styles.manager import definir_fonte
+    definir_fonte((data or {}).get('font') or None)
+
 _openai_key = os.environ.get('OPENAI_API_KEY', '')
 print(f"[STARTUP] OPENAI_API_KEY set: {bool(_openai_key)}, len: {len(_openai_key)}")
 
@@ -340,6 +345,7 @@ TEMAS = {
 def gerar_pdf():
     try:
         data = request.json
+        _aplicar_fonte(data)
         tipo = data.get('tipo', 'datada')
         ano = int(data.get('ano', 2026))
         paginas = int(data.get('paginas', 52))
@@ -374,6 +380,7 @@ def gerar_pdf():
 def gerar_pdf_copta():
     try:
         data = request.json
+        _aplicar_fonte(data)
         tipo = data.get('tipo', 'datada')
         ano = int(data.get('ano', 2026))
         paginas = int(data.get('paginas', 52))
@@ -410,6 +417,7 @@ def gerar_pdf_copta():
 def preview_pdf():
     try:
         data = request.json
+        _aplicar_fonte(data)
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         estilo = data.get('estilo', 'minimalista')
@@ -436,6 +444,7 @@ def preview_pdf():
 def preview_pdf_copta():
     try:
         data = request.json
+        _aplicar_fonte(data)
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
         estilo = data.get('estilo', 'minimalista')
@@ -463,6 +472,7 @@ def preview_pdf_copta():
 def gerar_pdf_juridica_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -509,6 +519,7 @@ def gerar_pdf_juridica_route():
 def preview_pdf_juridica_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -536,6 +547,7 @@ def preview_pdf_juridica_route():
 def gerar_copta_juridica_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -583,6 +595,7 @@ def gerar_copta_juridica_route():
 def preview_copta_juridica_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -611,6 +624,7 @@ def preview_copta_juridica_route():
 def gerar_pdf_crista_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -637,6 +651,7 @@ def gerar_pdf_crista_route():
 def preview_pdf_crista_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -662,6 +677,7 @@ def preview_pdf_crista_route():
 def gerar_copta_crista_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')
@@ -689,6 +705,7 @@ def gerar_copta_crista_route():
 def preview_copta_crista_route():
     try:
         data = request.json
+        _aplicar_fonte(data)
         localization.definir_idioma(data.get('idioma', 'pt'))
         ano = int(data.get('ano', 2026))
         tema_nome = data.get('tema', 'rosa')

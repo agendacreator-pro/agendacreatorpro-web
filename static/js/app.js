@@ -82,7 +82,8 @@ function _getPayload() {
         tipo: tipo, ano: ano, paginas: paginas, tema: tema,
         estilo: estilo, formato: formato, layout: layout,
         agendamentos: document.getElementById('agendamentos').checked,
-        idioma: document.getElementById('idioma').value
+        idioma: document.getElementById('idioma').value,
+        font: document.getElementById('selFont') ? document.getElementById('selFont').value : ''
     };
     if (tipo === 'juridica') {
         payload.estilo = 'juridico';
