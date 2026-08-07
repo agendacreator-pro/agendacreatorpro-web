@@ -24,6 +24,14 @@ FONT_OPTIONS = [
     {"key": "Quicksand", "label": "Quicksand"},
     {"key": "PlayfairDisplay", "label": "Playfair Display"},
     {"key": "CormorantGaramond", "label": "Cormorant Garamond"},
+    {"key": "Caveat", "label": "Caveat (manuscrita)"},
+    {"key": "PatrickHand", "label": "Patrick Hand (manuscrita)"},
+    {"key": "IndieFlower", "label": "Indie Flower (manuscrita)"},
+    {"key": "ShadowsIntoLight", "label": "Shadows Into Light (manuscrita)"},
+    {"key": "DancingScript", "label": "Dancing Script (script)"},
+    {"key": "GreatVibes", "label": "Great Vibes (calligraphy)"},
+    {"key": "Pacifico", "label": "Pacifico (script retrô)"},
+    {"key": "AmaticSC", "label": "Amatic SC (decorativa)"},
 ]
 
 _STYLE_SUFFIX = {
