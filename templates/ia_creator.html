@@ -46,6 +46,18 @@
     .font-chip:hover { border-color: #7B61FF; }
     .font-chip.active { border-color: #4A90D9; background: #eef5ff; box-shadow: 0 2px 8px rgba(74,144,217,0.25); font-weight: 700; }
 
+    .font-preview { margin-top: 12px; }
+    .font-preview input {
+      width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd;
+      font-size: 0.85rem; text-align: center; color: #555;
+    }
+    .font-preview-box {
+      margin-top: 8px; padding: 18px 12px; border: 2px dashed #d0d7e5; border-radius: 12px;
+      background: #fafcff; font-size: 1.7rem; color: #222; min-height: 64px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      transition: font-family 0.15s; overflow-wrap: anywhere;
+    }
+
     .color-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
     .swatch { text-align: center; }
     .swatch-box { width: 44px; height: 44px; border-radius: 8px; border: 2px solid #eee; margin: 0 auto 4px; }
@@ -131,6 +143,10 @@
         <label style="display:block; margin-bottom:8px;">Fonte:</label>
         <input type="hidden" id="selFont" value="">
         <div id="fontGrid" class="font-grid"></div>
+        <div class="font-preview">
+          <input type="text" id="fontPreviewText" value="Agenda Creator Pro - Web" maxlength="40" spellcheck="false">
+          <div id="fontPreview" class="font-preview-box">Agenda Creator Pro - Web</div>
+        </div>
       </div>
       <div class="config-row" style="align-items:center;">
         <div style="text-align:center;">
@@ -365,12 +381,21 @@ var FONT_OPTIONS = [
   { key: "AmaticSC", label: "Amatic SC", css: "'Amatic SC', cursive" }
 ];
 
+function updateFontPreview(key, css) {
+  document.getElementById("fontPreview").style.fontFamily = css || "Helvetica, Arial, sans-serif";
+  document.getElementById("fontPreview").textContent = document.getElementById("fontPreviewText").value || "Agenda Creator Pro - Web";
+}
+
 function selectFont(key) {
   document.getElementById("selFont").value = key || "";
   var chips = document.querySelectorAll(".font-chip");
+  var css = "Helvetica, Arial, sans-serif";
   for (var i = 0; i < chips.length; i++) {
-    chips[i].classList.toggle("active", chips[i].getAttribute("data-font") === key);
+    var on = chips[i].getAttribute("data-font") === key;
+    chips[i].classList.toggle("active", on);
+    if (on) css = chips[i].style.fontFamily;
   }
+  updateFontPreview(key, css);
 }
 
 function buildFontGrid() {
@@ -386,6 +411,16 @@ function buildFontGrid() {
     chip.onclick = function() { selectFont(f.key); };
     grid.appendChild(chip);
   });
+  document.getElementById("fontPreviewText").addEventListener("input", function() {
+    updateFontPreview(document.getElementById("selFont").value, getSelectedCss());
+  });
+}
+function getSelectedCss() {
+  var chips = document.querySelectorAll(".font-chip");
+  for (var i = 0; i < chips.length; i++) {
+    if (chips[i].classList.contains("active")) return chips[i].style.fontFamily;
+  }
+  return "Helvetica, Arial, sans-serif";
 }
 buildFontGrid();
 
