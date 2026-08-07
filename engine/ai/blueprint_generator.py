@@ -925,12 +925,32 @@ def _overlays_for_bp(bp, w_mm, h_mm, style):
     editable = sanitize_blueprint(bp.get("editable_objects", []), w_mm, h_mm)
     overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
     if not overlays:
-        page_type = bp.get("page_type", "1dpp")
-        if page_type == "2dpp":
-            template = _build_2dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
-        else:
-            template = _build_1dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
-        overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+        overlays = _fallback_date_overlays(bp, w_mm, h_mm, style)
+    return overlays
+
+
+def _fallback_date_overlays(bp, w_mm, h_mm, style):
+    """Default date objects when the layout has no detected date fields.
+
+    They sit on an unknown image background, so never render them white:
+    recolor so the auto-generated dates stay visible on a light layout.
+    """
+    page_type = bp.get("page_type", "1dpp")
+    if page_type == "2dpp":
+        template = _build_2dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
+    else:
+        template = _build_1dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
+    overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    fallback_colors = {
+        "DAY_NAME": "_text_",
+        "DAY_NUMBER": "_accent_",
+        "MONTH_NAME": "_text_",
+        "PAGE_NUMBER": "_text_",
+    }
+    for o in overlays:
+        new_color = fallback_colors.get(o.get("semantic"))
+        if new_color:
+            o["color"] = new_color
     return overlays
 
 
@@ -1052,6 +1072,8 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     editable = sanitize_blueprint(editable, w_mm, h_mm)
     if not editable:
         editable = _build_1dpp_objects(palette, style=style)
+    elif not any(o.get("semantic") in IMAGE_OVERLAY_SEMANTICS for o in editable):
+        editable = list(editable) + _fallback_date_overlays(bp, w_mm, h_mm, style)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
