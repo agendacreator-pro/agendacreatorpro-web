@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criador Inteligente - Agenda Creator Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Caveat:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Indie+Flower&family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Nunito:wght@400;700&family=Open+Sans:wght@400;700&family=Pacifico&family=Patrick+Hand&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Quicksand:wght@400;700&family=Roboto:wght@400;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
@@ -33,6 +36,15 @@
     .config-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
     .config-row label { font-weight: 600; font-size: 0.85rem; }
     .config-row select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.9rem; }
+
+    .font-grid { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .font-chip {
+      padding: 10px 16px; border-radius: 10px; border: 2px solid #e0e0e0;
+      background: #fff; cursor: pointer; font-size: 1.05rem; line-height: 1;
+      transition: all 0.15s; color: #333;
+    }
+    .font-chip:hover { border-color: #7B61FF; }
+    .font-chip.active { border-color: #4A90D9; background: #eef5ff; box-shadow: 0 2px 8px rgba(74,144,217,0.25); font-weight: 700; }
 
     .color-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
     .swatch { text-align: center; }
@@ -115,30 +127,10 @@
           </select>
         </div>
       </div>
-      <div class="config-row">
-        <div><label>Fonte:</label><br>
-          <select id="selFont">
-            <option value="">Padrão (Helvetica)</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Poppins">Poppins</option>
-            <option value="Lato">Lato</option>
-            <option value="OpenSans">Open Sans</option>
-            <option value="Nunito">Nunito</option>
-            <option value="Roboto">Roboto</option>
-            <option value="Inter">Inter</option>
-            <option value="Quicksand">Quicksand</option>
-            <option value="PlayfairDisplay">Playfair Display</option>
-            <option value="CormorantGaramond">Cormorant Garamond</option>
-            <option value="Caveat">Caveat (manuscrita)</option>
-            <option value="PatrickHand">Patrick Hand (manuscrita)</option>
-            <option value="IndieFlower">Indie Flower (manuscrita)</option>
-            <option value="ShadowsIntoLight">Shadows Into Light (manuscrita)</option>
-            <option value="DancingScript">Dancing Script (script)</option>
-            <option value="GreatVibes">Great Vibes (calligraphy)</option>
-            <option value="Pacifico">Pacifico (script retrô)</option>
-            <option value="AmaticSC">Amatic SC (decorativa)</option>
-          </select>
-        </div>
+      <div class="config-row" style="display:block;">
+        <label style="display:block; margin-bottom:8px;">Fonte:</label>
+        <input type="hidden" id="selFont" value="">
+        <div id="fontGrid" class="font-grid"></div>
       </div>
       <div class="config-row" style="align-items:center;">
         <div style="text-align:center;">
@@ -351,6 +343,52 @@ function pickColor(hex) {
   document.getElementById("colorHex").textContent = hex;
 }
 
+var FONT_OPTIONS = [
+  { key: "", label: "Padrão", css: "Helvetica, Arial, sans-serif" },
+  { key: "Montserrat", label: "Montserrat", css: "'Montserrat', sans-serif" },
+  { key: "Poppins", label: "Poppins", css: "'Poppins', sans-serif" },
+  { key: "Lato", label: "Lato", css: "'Lato', sans-serif" },
+  { key: "OpenSans", label: "Open Sans", css: "'Open Sans', sans-serif" },
+  { key: "Nunito", label: "Nunito", css: "'Nunito', sans-serif" },
+  { key: "Roboto", label: "Roboto", css: "'Roboto', sans-serif" },
+  { key: "Inter", label: "Inter", css: "'Inter', sans-serif" },
+  { key: "Quicksand", label: "Quicksand", css: "'Quicksand', sans-serif" },
+  { key: "PlayfairDisplay", label: "Playfair Display", css: "'Playfair Display', serif" },
+  { key: "CormorantGaramond", label: "Cormorant Garamond", css: "'Cormorant Garamond', serif" },
+  { key: "Caveat", label: "Caveat", css: "'Caveat', cursive" },
+  { key: "PatrickHand", label: "Patrick Hand", css: "'Patrick Hand', cursive" },
+  { key: "IndieFlower", label: "Indie Flower", css: "'Indie Flower', cursive" },
+  { key: "ShadowsIntoLight", label: "Shadows Into Light", css: "'Shadows Into Light', cursive" },
+  { key: "DancingScript", label: "Dancing Script", css: "'Dancing Script', cursive" },
+  { key: "GreatVibes", label: "Great Vibes", css: "'Great Vibes', cursive" },
+  { key: "Pacifico", label: "Pacifico", css: "'Pacifico', cursive" },
+  { key: "AmaticSC", label: "Amatic SC", css: "'Amatic SC', cursive" }
+];
+
+function selectFont(key) {
+  document.getElementById("selFont").value = key || "";
+  var chips = document.querySelectorAll(".font-chip");
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].classList.toggle("active", chips[i].getAttribute("data-font") === key);
+  }
+}
+
+function buildFontGrid() {
+  var grid = document.getElementById("fontGrid");
+  grid.innerHTML = "";
+  FONT_OPTIONS.forEach(function(f) {
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "font-chip" + (f.key === "" ? " active" : "");
+    chip.setAttribute("data-font", f.key);
+    chip.style.fontFamily = f.css;
+    chip.textContent = f.label;
+    chip.onclick = function() { selectFont(f.key); };
+    grid.appendChild(chip);
+  });
+}
+buildFontGrid();
+
 function generatePDF() {
   var btn = document.getElementById("btnGenerate");
   btn.disabled = true;
@@ -436,6 +474,7 @@ function resetAll() {
   document.getElementById("shareSection").style.display = "none";
   document.getElementById("errorSection").style.display = "none";
   document.getElementById("fileInput").value = "";
+  selectFont("");
 }
 </script>
 </body>
