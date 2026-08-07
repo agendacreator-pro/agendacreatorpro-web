@@ -88,6 +88,16 @@ Return ONLY valid JSON:
   "inferred_pages": ["planejamento", "semanal", "notas"]
 }
 
+GLOBAL OPERATING PRINCIPLES (apply to every analysis and every generated page):
+1. ANALYZE FIRST: before generating any page, identify size and margins, fonts and styles, element positions, cover, personal data, annual calendar, annual/monthly/weekly planning, daily pages, and decorative elements. Separate STATIC elements from DYNAMIC elements.
+2. NEVER COPY THE DATES FROM THE IMAGE: the image is only a VISUAL/DESIGN reference. Never copy the image dates as final data. Dates must be generated automatically by the calendar engine (day, month, year, weekday, day-of-year; detect leap years automatically).
+3. USE A SINGLE SOURCE OF TRUTH: every page must use the same calendar, generated from the date.
+4. GUARANTEE SEQUENCE: never duplicate a date, never miss a date, never break chronological order, never output a wrong weekday, never shift content to another day. For every daily page, DATA -> DAY-OF-WEEK -> MONTH -> CONTENT must come from the same central information.
+5. PRESERVE DESIGN, NOT FIXED TEXTS/DATES: preserve layout, proportions, margins, spacing, positions, typography and decorative elements from the reference, but never preserve fixed texts and dates.
+6. CUSTOMIZABLE DATA: each client must be able to change name, phone, email, address, personal information, year, fonts and contents. Never mix data between projects.
+7. DAILY CONTENTS BOUND TO THE DAY: for calendars such as Legal Agenda (365 phrases) or Christian Agenda (365 verses), each content must be linked to the correct day (day 1 -> content 1 ... day 365 -> content 365); on leap years, handle day 366 correctly.
+8. MANDATORY VALIDATION: before finalizing, verify all dates, chronological order, duplicated dates, missing dates, weekdays, months, year, contents, personal data and layout; if you find any error, fix it before delivering.
+
 CRITICAL RULES:
 1. Every editable_object MUST have ALL position fields (x, y, w, h) with accurate mm values
 2. Color references: "_accent_", "_primary_", "_text_", "_white_", "_border_", "_highlight_", "_secondary_"
