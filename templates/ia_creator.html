@@ -115,6 +115,23 @@
           </select>
         </div>
       </div>
+      <div class="config-row">
+        <div><label>Fonte:</label><br>
+          <select id="selFont">
+            <option value="">Padrão (Helvetica)</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Poppins">Poppins</option>
+            <option value="Lato">Lato</option>
+            <option value="OpenSans">Open Sans</option>
+            <option value="Nunito">Nunito</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Inter">Inter</option>
+            <option value="Quicksand">Quicksand</option>
+            <option value="PlayfairDisplay">Playfair Display</option>
+            <option value="CormorantGaramond">Cormorant Garamond</option>
+          </select>
+        </div>
+      </div>
       <div class="config-row" style="align-items:center;">
         <div style="text-align:center;">
           <label>Cor da agenda:</label><br>
@@ -353,6 +370,7 @@ function generatePDF() {
     year: year,
     num_pages: numPages,
     full_year: fullYear,
+    font: document.getElementById("selFont").value || null,
     palette: palette,
     templates: myTemplates.map(function(t) {
       return { image: t.image, blueprint: t.blueprint };

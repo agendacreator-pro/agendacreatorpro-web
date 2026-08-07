@@ -21,7 +21,16 @@ def _pc(hex_str, fallback="#000000"):
         return HexColor(fallback)
 
 
-def _fn(name, bold=False, italic=False):
+def _fn(name, bold=False, italic=False, family=None):
+    if family:
+        try:
+            from fonts import resolve_font
+        except Exception:
+            resolve_font = None
+        if resolve_font:
+            rl = resolve_font(family, bold, italic)
+            if rl:
+                return rl
     safe = (name or "Helvetica").replace(" ", "-").replace("_", "-")
     valid = {
         "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique",
@@ -37,6 +46,14 @@ def _fn(name, bold=False, italic=False):
     if italic:
         return "Helvetica-Oblique"
     return "Helvetica"
+
+
+def _set_font(pdf, font_family, name, size):
+    """Set the current font, overriding the family when one was chosen."""
+    n = (name or "").lower()
+    bold = "bold" in n
+    italic = "italic" in n
+    pdf.setFont(_fn(name, bold, italic, family=font_family), size)
 
 
 PAGE_SIZES = {
@@ -184,7 +201,7 @@ def sanitize_blueprint(objects, w_mm=148, h_mm=210):
     return out
 
 
-def _draw_object(pdf, obj, page_h, palette, substitutions=None):
+def _draw_object(pdf, obj, page_h, palette, substitutions=None, font_family=None):
     otype = obj.get("obj_type", obj.get("type", "rect"))
     x_mm = float(obj.get("x", 0) or 0)
     y_mm = float(obj.get("y", 0) or 0)
@@ -207,7 +224,7 @@ def _draw_object(pdf, obj, page_h, palette, substitutions=None):
     bw = float(obj.get("border_width", 0.5) or 0.5)
     bold = bool(obj.get("bold"))
     italic = bool(obj.get("italic"))
-    fn = _fn(obj.get("font_name", "Helvetica"), bold, italic)
+    fn = _fn(obj.get("font_name", "Helvetica"), bold, italic, family=font_family)
     fs = float(obj.get("font_size", 6) or 6)
     align = obj.get("align", "left")
     radius = float(obj.get("radius", 0) or 0)
@@ -365,7 +382,7 @@ MONTHS_SHORT = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
 DAYS_SHORT = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"]
 
 
-def _draw_dados_pessoais(pdf, w, h, palette):
+def _draw_dados_pessoais(pdf, w, h, palette, font_family=None):
     accent = _pc(_resolve_color("_accent_", palette) or "#4A90D9")
     text_c = _pc(_resolve_color("_text_", palette) or "#333333")
     border_c = _pc(_resolve_color("_border_", palette) or "#E0E0E0")
@@ -378,7 +395,7 @@ def _draw_dados_pessoais(pdf, w, h, palette):
     pdf.setFillColor(accent)
     pdf.rect(0, h - top_bar, w, top_bar, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFFFFF"))
-    pdf.setFont("Helvetica-Bold", 14)
+    _set_font(pdf, font_family, "Helvetica-Bold", 14)
     pdf.drawCentredString(w / 2, h - 16 * mm, "DADOS PESSOAIS")
 
     y = h - top_bar - 20 * mm
@@ -393,7 +410,7 @@ def _draw_dados_pessoais(pdf, w, h, palette):
 
     for label, field_h_mm in fields:
         pdf.setFillColor(text_c)
-        pdf.setFont("Helvetica-Bold", 7)
+        _set_font(pdf, font_family, "Helvetica-Bold", 7)
         pdf.drawString(15 * mm, y, label)
         y -= label_h
         pdf.setStrokeColor(border_c)
@@ -402,11 +419,11 @@ def _draw_dados_pessoais(pdf, w, h, palette):
         y -= (field_h_mm - label_h) * mm
 
     pdf.setFillColor(border_c)
-    pdf.setFont("Helvetica", 5)
+    _set_font(pdf, font_family, "Helvetica", 5)
     pdf.drawCentredString(w / 2, 8 * mm, "Agenda Creator Pro")
 
 
-def _draw_calendario_anual(pdf, w, h, palette, base_date):
+def _draw_calendario_anual(pdf, w, h, palette, base_date, font_family=None):
     accent = _pc(_resolve_color("_accent_", palette) or "#4A90D9")
     text_c = _pc(_resolve_color("_text_", palette) or "#333333")
     border_c = _pc(_resolve_color("_border_", palette) or "#E0E0E0")
@@ -419,7 +436,7 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
     pdf.setFillColor(accent)
     pdf.rect(0, h - top_bar, w, top_bar, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFFFFF"))
-    pdf.setFont("Helvetica-Bold", 12)
+    _set_font(pdf, font_family, "Helvetica-Bold", 12)
     pdf.drawCentredString(w / 2, h - 14 * mm, f"CALENDARIO {base_date.year}")
 
     margin = 8 * mm
@@ -440,7 +457,7 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
             pdf.setFillColor(accent)
             pdf.rect(cx, cy + cell_h - 5 * mm, cell_w, 5 * mm, fill=1, stroke=0)
             pdf.setFillColor(_pc("#FFFFFF"))
-            pdf.setFont("Helvetica-Bold", 5)
+            _set_font(pdf, font_family, "Helvetica-Bold", 5)
             pdf.drawCentredString(cx + cell_w / 2, cy + cell_h - 3.8 * mm, MONTHS_PT[month_idx])
 
             pdf.setStrokeColor(border_c)
@@ -449,7 +466,7 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
 
             col_w = cell_w / 7
             header_y = cy + cell_h - 7 * mm
-            pdf.setFont("Helvetica", 3)
+            _set_font(pdf, font_family, "Helvetica", 3)
             pdf.setFillColor(text_c)
             for d in range(7):
                 pdf.drawCentredString(cx + col_w * d + col_w / 2, header_y, DAYS_SHORT[d])
@@ -465,7 +482,7 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
             except ValueError:
                 continue
 
-            pdf.setFont("Helvetica", 3)
+            _set_font(pdf, font_family, "Helvetica", 3)
             for day in range(1, days_in_month + 1):
                 pos = start_weekday + day - 1
                 dr = pos // 7
@@ -478,7 +495,7 @@ def _draw_calendario_anual(pdf, w, h, palette, base_date):
                 pdf.drawCentredString(dx, dy, str(day))
 
 
-def _draw_planejamento_anual(pdf, w, h, palette, base_date):
+def _draw_planejamento_anual(pdf, w, h, palette, base_date, font_family=None):
     accent = _pc(_resolve_color("_accent_", palette) or "#4A90D9")
     text_c = _pc(_resolve_color("_text_", palette) or "#333333")
     border_c = _pc(_resolve_color("_border_", palette) or "#E0E0E0")
@@ -491,7 +508,7 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
     pdf.setFillColor(accent)
     pdf.rect(0, h - top_bar, w, top_bar, fill=1, stroke=0)
     pdf.setFillColor(_pc("#FFFFFF"))
-    pdf.setFont("Helvetica-Bold", 12)
+    _set_font(pdf, font_family, "Helvetica-Bold", 12)
     pdf.drawCentredString(w / 2, h - 13 * mm, f"PLANEJAMENTO {base_date.year}")
 
     margin = 10 * mm
@@ -508,7 +525,7 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
         pdf.setFillColor(accent)
         pdf.roundRect(margin, y + 1 * mm, 22 * mm, 6 * mm, 2 * mm, fill=1, stroke=0)
         pdf.setFillColor(_pc("#FFFFFF"))
-        pdf.setFont("Helvetica-Bold", 5)
+        _set_font(pdf, font_family, "Helvetica-Bold", 5)
         pdf.drawCentredString(margin + 11 * mm, y + 2.8 * mm, MONTHS_SHORT[m])
 
         pdf.setStrokeColor(border_c)
@@ -518,7 +535,7 @@ def _draw_planejamento_anual(pdf, w, h, palette, base_date):
             pdf.line(margin + 24 * mm, ly, w - margin, ly)
 
     pdf.setFillColor(border_c)
-    pdf.setFont("Helvetica", 5)
+    _set_font(pdf, font_family, "Helvetica", 5)
     pdf.drawCentredString(w / 2, 8 * mm, "Agenda Creator Pro")
 
 
@@ -917,7 +934,7 @@ def _overlays_for_bp(bp, w_mm, h_mm, style):
     return overlays
 
 
-def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=None, page_type=None):
+def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=None, page_type=None, font=None):
     """Generate a PDF using the user's own example page images as the exact layout.
 
     ``templates`` is a list of ``(image_bytes, blueprint_dict_or_None)``. Each
@@ -962,13 +979,13 @@ def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=Non
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
     pdf.setPageCompression(0)
 
-    _draw_dados_pessoais(pdf, w, h, palette)
+    _draw_dados_pessoais(pdf, w, h, palette, font_family=font)
     pdf.showPage()
 
-    _draw_calendario_anual(pdf, w, h, palette, base_date)
+    _draw_calendario_anual(pdf, w, h, palette, base_date, font_family=font)
     pdf.showPage()
 
-    _draw_planejamento_anual(pdf, w, h, palette, base_date)
+    _draw_planejamento_anual(pdf, w, h, palette, base_date, font_family=font)
     pdf.showPage()
 
     if page_type == "2dpp":
@@ -995,23 +1012,23 @@ def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=Non
             subs = _build_1dpp_substitutions(page_idx, base_date)
 
         for obj in _overlays_for_bp(bp, w_mm, h_mm, style):
-            _draw_object(pdf, obj, h, bpal, subs)
+            _draw_object(pdf, obj, h, bpal, subs, font_family=font)
 
     pdf.save()
     buffer.seek(0)
     return buffer
 
 
-def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages=7, base_date=None):
+def gerar_pdf_imagem_layout(blueprint_dict, image_bytes, formato="A5", num_pages=7, base_date=None, font=None):
     """Single-template wrapper around gerar_pdf_imagens_layout."""
     return gerar_pdf_imagens_layout([(image_bytes, blueprint_dict or {})],
-                                    formato=formato, num_pages=num_pages, base_date=base_date)
+                                    formato=formato, num_pages=num_pages, base_date=base_date, font=font)
 
 
 
 # ── Main generator ──────────────────────────────────────────────────────
 
-def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=None):
+def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=None, font=None):
     bp = blueprint_dict
     palette = _get_palette(bp)
     editable = bp.get("editable_objects", [])
@@ -1040,13 +1057,13 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
     pdf.setPageCompression(0)
 
-    _draw_dados_pessoais(pdf, w, h, palette)
+    _draw_dados_pessoais(pdf, w, h, palette, font_family=font)
     pdf.showPage()
 
-    _draw_calendario_anual(pdf, w, h, palette, base_date)
+    _draw_calendario_anual(pdf, w, h, palette, base_date, font_family=font)
     pdf.showPage()
 
-    _draw_planejamento_anual(pdf, w, h, palette, base_date)
+    _draw_planejamento_anual(pdf, w, h, palette, base_date, font_family=font)
     pdf.showPage()
 
     if page_type == "2dpp":
@@ -1068,7 +1085,7 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
             subs = _build_1dpp_substitutions(page_idx, base_date)
 
         for obj in editable:
-            _draw_object(pdf, obj, h, palette, subs)
+            _draw_object(pdf, obj, h, palette, subs, font_family=font)
 
     pdf.save()
     buffer.seek(0)

@@ -796,6 +796,7 @@ def ia_generate():
         palette = data.get('palette', {})
         blueprint = data.get('blueprint', {})
         year = int(data.get('year', 2026) or 2026)
+        font = data.get('font') or None
 
         from ai.blueprint_generator import gerar_pdf_blueprint, gerar_pdf_imagens_layout
         from datetime import date
@@ -868,9 +869,9 @@ def ia_generate():
 
         if templates:
             buffer = gerar_pdf_imagens_layout(templates, formato=formato, num_pages=num_pages,
-                                              base_date=base, page_type=pt)
+                                              base_date=base, page_type=pt, font=font)
         else:
-            buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base)
+            buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base, font=font)
         nome = f"Agenda_{pt.upper()}_{formato}_{year}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
     except Exception as e:
