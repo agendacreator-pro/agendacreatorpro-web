@@ -22,6 +22,16 @@ import localization
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'agendacreatorpro-secret-key-change-in-prod')
 
+
+@app.after_request
+def _no_cache_html(resp):
+    ct = resp.content_type or ''
+    if ct.startswith('text/html'):
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+    return resp
+
 _openai_key = os.environ.get('OPENAI_API_KEY', '')
 print(f"[STARTUP] OPENAI_API_KEY set: {bool(_openai_key)}, len: {len(_openai_key)}")
 
