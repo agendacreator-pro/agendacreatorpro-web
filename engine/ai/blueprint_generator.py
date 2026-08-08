@@ -285,7 +285,14 @@ def _draw_object(pdf, obj, page_h, palette, substitutions=None, font_family=None
         text = value
         if not text:
             return
-        if bg:
+        if obj.get("chip") == "circle":
+            # Stroked circle around the text, no fill, in the text color.
+            cx = x + w / 2
+            cy = y_pdf + h / 2
+            pdf.setStrokeColor(color)
+            pdf.setLineWidth(bw)
+            pdf.circle(cx, cy, min(w, h) / 2, fill=0, stroke=1)
+        elif bg:
             pdf.setFillColor(bg)
             if radius > 0:
                 pdf.roundRect(x, y_pdf, w, h, radius * mm, fill=1, stroke=0)
@@ -1022,10 +1029,11 @@ def _fallback_date_overlays(bp, w_mm, h_mm, style, dominant_color=None, content_
         if new_color:
             o["color"] = new_color
         if o.get("semantic") == "DAY_NUMBER":
-            # White chip behind the day number keeps it visible even on a
-            # colored header band.
-            o["bg_color"] = "_white_"
-            o["radius"] = max(float(o.get("radius") or 0), 2)
+            # Circular outline (no fill) around the day number, in the
+            # layout's dominant color, instead of a white chip.
+            o["chip"] = "circle"
+            o["align"] = "center"
+            o["border_width"] = max(float(o.get("border_width") or 0.5), 0.8)
     return overlays
 
 
