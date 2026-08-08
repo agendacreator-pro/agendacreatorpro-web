@@ -1017,6 +1017,15 @@ def _fallback_date_overlays(bp, w_mm, h_mm, style, dominant_color=None, content_
     else:
         template = _build_1dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
     overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    if page_type == "2dpp":
+        # Tuned positions for two-panel layouts: day number + circle 2mm left
+        # and 7mm up, month/year rising with it (both panels).
+        for o in overlays:
+            if o.get("semantic") == "DAY_NUMBER":
+                o["x"] = float(o.get("x", 0) or 0) - 2
+                o["y"] = float(o.get("y", 0) or 0) - 7
+            elif o.get("semantic") == "MONTH_NAME":
+                o["y"] = float(o.get("y", 0) or 0) - 7
     day_number_color = dominant_color or "_accent_"
     fallback_colors = {
         "DAY_NAME": "_text_",
