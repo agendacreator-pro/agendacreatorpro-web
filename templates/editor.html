@@ -87,6 +87,7 @@
     border: 1px solid var(--line);
   }
   #canvas { display: block; }
+  #stage.drop-over { outline: 3px dashed #E85D9E; outline-offset: -8px; background: rgba(232,93,158,.06); }
   #divider2dpp { position: absolute; left: 0; right: 0; top: 50%; height: 0; border-top: 2px dashed var(--accent); opacity: .6; display: none; pointer-events: none; }
   #divider2dpp span { position: absolute; right: 6px; top: -9px; background: var(--panel); font-size: 10px; color: var(--accent); padding: 0 6px; border-radius: 6px; }
   #stageHud { position: absolute; bottom: -26px; left: 0; font-size: 11px; color: var(--muted); white-space: nowrap; }
@@ -300,8 +301,8 @@
   <div class="box" id="modalBox"></div>
 </div>
 
-<input type="file" id="fileImg" accept="image/png,image/jpeg" style="display:none">
-<input type="file" id="fileBase" accept="image/png,image/jpeg" style="display:none">
+<input type="file" id="fileImg" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+<input type="file" id="fileBase" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
 <div id="toast"></div>
 
 <script>
@@ -809,7 +810,10 @@ function updateToolbar() {
   document.getElementById("btnUndo").disabled = state.history.length === 0;
   document.getElementById("btnRedo").disabled = state.future.length === 0;
 }
-document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => { state.tool = b.dataset.tool; updateToolbar(); }));
+document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.tool === "image") { addImageFromPicker(); return; }
+  state.tool = b.dataset.tool; updateToolbar();
+}));
 
 function select(id) { state.selected = id; renderAll(); updateProps(); }
 
@@ -962,30 +966,85 @@ function removeEl(id) {
 function copyEl() { const el = selectedEl(); if (el) clipboardEl = JSON.parse(JSON.stringify(el)); }
 let clipboardEl = null;
 
+function readImageFile(f, cb) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const mmW = Math.max(10, Math.round(img.naturalWidth / 40));
+      const mmH = Math.max(10, Math.round(img.naturalHeight / 40));
+      const el = newEl("image", { x: 20, y: 20, w: mmW, h: mmH });
+      el.image = reader.result;
+      cb(el);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+}
 function openImagePicker(cb) {
   const inp = document.getElementById("fileImg");
   inp.onchange = () => {
-    const f = inp.files[0]; if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const mmW = img.naturalWidth / 40, mmH = img.naturalHeight / 40;
-        const el = newEl("image", { x: 20, y: 20, w: Math.round(mmW), h: Math.round(mmH) });
-        el.image = reader.result;
-        cb(el);
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(f);
+    const f = inp.files[0];
+    inp.value = "";
+    if (!f) return;
+    readImageFile(f, cb);
   };
   inp.click();
+}
+function addImageFromPicker() {
+  openImagePicker(el => {
+    if (!el) return;
+    const [pw, ph] = PAGE_SIZES[state.formato];
+    el.x = Math.round(((pw - el.w) / 2) * 10) / 10;
+    el.y = Math.round(((ph - el.h) / 2) * 10) / 10;
+    state.elements.push(el); select(el.id); renderAll(); updateProps(); snapshot();
+    toast("Imagem anexada ao layout");
+  });
+}
+function attachImageAtPoint(el, cx, cy) {
+  const [pw, ph] = PAGE_SIZES[state.formato];
+  el.x = Math.round((Math.max(0, Math.min(pw, cx)) - el.w / 2) * 10) / 10;
+  el.y = Math.round((Math.max(0, Math.min(ph, cy)) - el.h / 2) * 10) / 10;
+  state.elements.push(el); select(el.id); renderAll(); updateProps(); snapshot();
 }
 function replaceImage() {
   openImagePicker(el => {
     const cur = selectedEl(); if (cur && cur.type === "image" && el) { cur.image = el.image; renderAll(); markDirty(); snapshot(); }
   });
 }
+
+// ── Drag & drop / colar imagens ─────────────────────────────────────────
+const dropTarget = document.getElementById("stage");
+let dropActive = false;
+dropTarget.addEventListener("dragover", (e) => { e.preventDefault(); if (!dropActive) { dropActive = true; dropTarget.classList.add("drop-over"); } });
+dropTarget.addEventListener("dragleave", (e) => { if (!dropTarget.contains(e.relatedTarget)) { dropActive = false; dropTarget.classList.remove("drop-over"); } });
+dropTarget.addEventListener("drop", (e) => {
+  e.preventDefault(); dropActive = false; dropTarget.classList.remove("drop-over");
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f && f.type && f.type.indexOf("image") === 0) {
+    const p = canvasPoint(e);
+    readImageFile(f, el => { attachImageAtPoint(el, p.x, p.y); toast("Imagem anexada ao layout"); });
+  } else {
+    toast("Solte um arquivo de imagem");
+  }
+});
+document.addEventListener("paste", (e) => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.type && it.type.indexOf("image") === 0) {
+      e.preventDefault();
+      const f = it.getAsFile();
+      if (!f) continue;
+      readImageFile(f, el => {
+        const [pw, ph] = PAGE_SIZES[state.formato];
+        attachImageAtPoint(el, pw / 2, ph / 2);
+        toast("Imagem colada no layout");
+      });
+      return;
+    }
+  }
+});
 
 // ── History ─────────────────────────────────────────────────────────────
 function snapshot() {
