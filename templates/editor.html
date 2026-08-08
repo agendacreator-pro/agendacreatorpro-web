@@ -710,6 +710,20 @@ function hitTest(mx, my) {
   return null;
 }
 
+function hitHandle(p) {
+  const el = selectedEl(); if (!el) return null;
+  const x = el.x*state.scale, y = el.y*state.scale, w = el.w*state.scale, h = el.h*state.scale;
+  const px = p.x*state.scale, py = p.y*state.scale, s = 7;
+  const names = ["nw","n","ne","e","se","s","sw","w"];
+  const pts = [[0,0],[0.5,0],[1,0],[1,0.5],[1,1],[0.5,1],[0,1],[0,0.5]];
+  for (let i = 0; i < pts.length; i++) {
+    const hx = x + pts[i][0]*w, hy = y + pts[i][1]*h;
+    if (Math.abs(px-hx) <= s && Math.abs(py-hy) <= s) return { corner: names[i], el };
+  }
+  if (Math.abs(px-(x+w/2)) <= s && Math.abs(py-(y-12)) <= s) return { corner: "rotate", el };
+  return null;
+}
+
 // ── Interactions ────────────────────────────────────────────────────────
 let drag = null;
 function canvasPoint(e) {
@@ -720,6 +734,17 @@ function canvasPoint(e) {
 function onDown(e) {
   const p = canvasPoint(e);
   if (state.tool !== "select") { startDrawTool(e); return; }
+  const hh = hitHandle(p);
+  if (hh) {
+    drag = {
+      type: hh.corner === "rotate" ? "rotate" : "resize", corner: hh.corner, id: hh.el.id,
+      start: { x: p.x, y: p.y },
+      orig: { x: hh.el.x, y: hh.el.y, w: hh.el.w, h: hh.el.h, rotation: hh.el.rotation || 0 },
+    };
+    select(hh.el.id);
+    e.preventDefault();
+    return;
+  }
   const el = hitTest(p.x, p.y);
   const prev = selectedEl();
   if (el && prev && el.id === prev.id) {
@@ -733,8 +758,14 @@ function onDown(e) {
 }
 
 function onMove(e) {
-  if (!drag) return;
   const p = canvasPoint(e);
+  if (!drag) {
+    if (state.tool === "select" && state.selected) {
+      const h = hitHandle(p);
+      canvas.style.cursor = h ? (h.corner === "rotate" ? "crosshair" : "nwse-resize") : "default";
+    }
+    return;
+  }
   const el = state.elements.find(o => o.id === drag.id);
   if (!el) return;
   if (drag.type === "move") {
@@ -746,6 +777,25 @@ function onMove(e) {
   } else if (drag.type === "resize" && drag.mode === "draw") {
     el.w = Math.max(1, Math.round((p.x - drag.orig.x)*10)/10);
     el.h = Math.max(1, Math.round((p.y - drag.orig.y)*10)/10);
+    renderAll(); updateProps(); markDirty();
+  } else if (drag.type === "resize") {
+    const o = drag.orig, c = drag.corner, MIN = 1;
+    let nx = o.x, ny = o.y, nw = o.w, nh = o.h;
+    if (c.indexOf("e") >= 0) nw = o.w + (p.x - drag.start.x);
+    if (c.indexOf("s") >= 0) nh = o.h + (p.y - drag.start.y);
+    if (c.indexOf("w") >= 0) { nw = o.w - (p.x - drag.start.x); nx = o.x + (p.x - drag.start.x); }
+    if (c.indexOf("n") >= 0) { nh = o.h - (p.y - drag.start.y); ny = o.y + (p.y - drag.start.y); }
+    if (nw < MIN) { nx -= (MIN - nw); nw = MIN; }
+    if (nh < MIN) { ny -= (MIN - nh); nh = MIN; }
+    el.x = Math.round(nx*10)/10; el.y = Math.round(ny*10)/10;
+    el.w = Math.round(nw*10)/10; el.h = Math.round(nh*10)/10;
+    renderAll(); updateProps(); markDirty();
+  } else if (drag.type === "rotate") {
+    const cx = el.x + el.w/2, cy = el.y + el.h/2;
+    const a0 = Math.atan2(drag.start.y - cy, drag.start.x - cx);
+    const a1 = Math.atan2(p.y - cy, p.x - cx);
+    let deg = (drag.orig.rotation + (a1 - a0) * 180 / Math.PI);
+    el.rotation = Math.round((((deg % 360) + 360) % 360) * 10) / 10;
     renderAll(); updateProps(); markDirty();
   }
 }
