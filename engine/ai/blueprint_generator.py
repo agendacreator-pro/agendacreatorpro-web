@@ -922,32 +922,98 @@ def _resolve_daily_templates(templates, page_type):
     return matching if matching else templates
 
 
-def _overlays_for_bp(bp, w_mm, h_mm, style):
+def _dominant_color_rgb(img):
+    """Most frequent saturated non-white color of an image (the layout's accent)."""
+    try:
+        from PIL import Image
+        small = img.convert("RGB").resize((64, 64))
+        counts = {}
+        for p in small.getdata():
+            r, g, b = p
+            mx, mn = max(p), min(p)
+            if (r + g + b) / 3 > 245 or mx < 30 or mx - mn < 20:
+                continue
+            key = (r // 16 * 16, g // 16 * 16, b // 16 * 16)
+            counts[key] = counts.get(key, 0) + 1
+        if not counts:
+            return None
+        best = max(counts.items(), key=lambda kv: kv[1])[0]
+        return "#%02X%02X%02X" % best
+    except Exception:
+        return None
+
+
+def _looks_like_2dpp(objects, w_mm, h_mm):
+    """Detect a two-panel daily layout (2 days/page) even when the AI said 1dpp.
+
+    The classic signature is two full-width colored header bands, one in each
+    half of the page. Fall back to a content-split check for layouts without
+    colored bands.
+    """
+    bands = [o for o in objects if o.get("obj_type") in ("RECTANGLE", "ROUNDED_RECTANGLE")
+             and float(o.get("w", 0) or 0) > 0.7 * w_mm
+             and 3 <= float(o.get("h", 0) or 0) <= 40
+             and (o.get("bg_color") or o.get("color"))]
+    if len(bands) >= 2:
+        top = [b for b in bands if float(b.get("y", 0)) + float(b.get("h", 0)) / 2 < h_mm * 0.48]
+        bot = [b for b in bands if float(b.get("y", 0)) + float(b.get("h", 0)) / 2 > h_mm * 0.52]
+        if top and bot:
+            return True
+
+    sig = [o for o in objects if float(o.get("w", 0) or 0) > 20]
+    if len(sig) < 4:
+        return False
+    tops = [float(o.get("y", 0) or 0) for o in sig]
+    bots = [float(o.get("y", 0) or 0) + float(o.get("h", 0) or 0) for o in sig]
+    if max(bots) < h_mm * 0.75 or min(tops) > h_mm * 0.25:
+        return False
+    mid_lo, mid_hi = h_mm * 0.40, h_mm * 0.60
+    in_middle = [o for o in sig if mid_lo < float(o.get("y", 0)) < mid_hi]
+    above = [o for o in sig if float(o.get("y", 0)) + float(o.get("h", 0)) <= mid_lo]
+    below = [o for o in sig if float(o.get("y", 0)) >= mid_hi]
+    return len(above) >= 2 and len(below) >= 2 and len(in_middle) <= max(1, len(sig) // 8)
+
+
+def _effective_page_type(bp, objects, w_mm, h_mm):
+    pt = bp.get("page_type", "1dpp")
+    if pt == "2dpp":
+        return "2dpp"
+    if pt == "1dpp" and _looks_like_2dpp(objects, w_mm, h_mm):
+        return "2dpp"
+    return "1dpp"
+
+
+def _overlays_for_bp(bp, w_mm, h_mm, style, dominant_color=None, content_objects=None, page_type_override=None):
     editable = sanitize_blueprint(bp.get("editable_objects", []), w_mm, h_mm)
     overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
     if not any(o.get("semantic") in DAY_HEADER_SEMANTICS for o in overlays):
         have = {o.get("semantic") for o in overlays}
-        for o in _fallback_date_overlays(bp, w_mm, h_mm, style):
+        for o in _fallback_date_overlays(bp, w_mm, h_mm, style,
+                                         dominant_color=dominant_color,
+                                         content_objects=editable or content_objects,
+                                         page_type_override=page_type_override):
             if o.get("semantic") not in have:
                 overlays.append(o)
     return overlays
 
 
-def _fallback_date_overlays(bp, w_mm, h_mm, style):
+def _fallback_date_overlays(bp, w_mm, h_mm, style, dominant_color=None, content_objects=None, page_type_override=None):
     """Default date objects when the layout has no detected day-header fields.
 
     They sit on an unknown image background, so never render them white:
-    recolor so the auto-generated dates stay visible on a light layout.
+    recolor so the auto-generated dates stay visible on a light layout and
+    pick up the dominant color of the layout.
     """
-    page_type = bp.get("page_type", "1dpp")
+    page_type = page_type_override or _effective_page_type(bp, content_objects or [], w_mm, h_mm)
     if page_type == "2dpp":
         template = _build_2dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
     else:
         template = _build_1dpp_objects(bp.get("palette", {}), w_mm, h_mm, style)
     overlays = [o for o in template if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
+    day_number_color = dominant_color or "_accent_"
     fallback_colors = {
         "DAY_NAME": "_text_",
-        "DAY_NUMBER": "_accent_",
+        "DAY_NUMBER": day_number_color,
         "MONTH_NAME": "_text_",
         "PAGE_NUMBER": "_text_",
     }
@@ -987,22 +1053,30 @@ def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=Non
         if page_type not in DAILY_PAGE_TYPES:
             page_type = "1dpp"
 
-    templates = _resolve_daily_templates(templates, page_type)
-
     w, h = PAGE_SIZES.get(formato.upper(), PAGE_SIZES["A5"])
     w_mm = w / mm
     h_mm = h / mm
+
+    first_editable = sanitize_blueprint(first_bp.get("editable_objects", []), w_mm, h_mm)
+    effective_pt = page_type
+    if effective_pt == "1dpp" and _looks_like_2dpp(first_editable, w_mm, h_mm):
+        effective_pt = "2dpp"
+
+    templates = _resolve_daily_templates(templates, effective_pt)
 
     if base_date is None:
         base_date = datetime.date(2026, 1, 1)
 
     cache = {}
+    dominant_color = None
     for img_bytes, bp in templates:
         key = id(img_bytes)
         img = Image.open(BytesIO(img_bytes)).convert("RGB")
         iw, ih = img.size
         scale = min(w / iw, h / ih)
         cache[key] = (img, (iw * scale), (ih * scale), (w - iw * scale) / 2, (h - ih * scale) / 2)
+        if dominant_color is None:
+            dominant_color = _dominant_color_rgb(img)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
@@ -1017,7 +1091,7 @@ def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=Non
     _draw_planejamento_anual(pdf, w, h, palette, base_date, font_family=font)
     pdf.showPage()
 
-    if page_type == "2dpp":
+    if effective_pt == "2dpp":
         daily_pages = (num_pages + 1) // 2
     else:
         daily_pages = num_pages
@@ -1035,12 +1109,14 @@ def gerar_pdf_imagens_layout(templates, formato="A5", num_pages=7, base_date=Non
         pdf.rect(0, 0, w, h, fill=1, stroke=0)
         pdf.drawImage(ImageReader(img), dx, dy, dw, dh)
 
-        if page_type == "2dpp":
+        if effective_pt == "2dpp":
             subs = _build_2dpp_substitutions(page_idx, base_date)
         else:
             subs = _build_1dpp_substitutions(page_idx, base_date)
 
-        for obj in _overlays_for_bp(bp, w_mm, h_mm, style):
+        for obj in _overlays_for_bp(bp, w_mm, h_mm, style,
+                                    dominant_color=dominant_color,
+                                    page_type_override=effective_pt):
             _draw_object(pdf, obj, h, bpal, subs, font_family=font)
 
     pdf.save()
@@ -1083,7 +1159,8 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
         editable = _build_1dpp_objects(palette, style=style)
     elif not any(o.get("semantic") in DAY_HEADER_SEMANTICS for o in editable):
         have = {o.get("semantic") for o in editable}
-        for o in _fallback_date_overlays(bp, w_mm, h_mm, style):
+        for o in _fallback_date_overlays(bp, w_mm, h_mm, style,
+                                         content_objects=editable):
             if o.get("semantic") not in have:
                 editable.append(o)
 
