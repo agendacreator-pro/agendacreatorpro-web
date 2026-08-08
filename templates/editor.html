@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Layout - Agenda Creator Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;700&family=Nunito:wght@400;700&family=Roboto:wght@400;700&family=Inter:wght@400;700&family=Quicksand:wght@400;700&family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Caveat:wght@400;700&family=Patrick+Hand&family=Indie+Flower&family=Shadows+Into+Light&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Pacifico&family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #F6E3EA; --rose-2: #EEC9D6; --rose-3: #E19EB6;
+    --lilac: #EBE4F6; --lilac-2: #D6C8EA; --lilac-3: #B79FDB;
+    --ink: #4A3B4F; --muted: #8D7F94; --panel: #FDF9FB;
+    --line: #E9DCE5; --accent: #C77FB2; --accent-2: #9C7BD8;
+    --danger: #E0526E; --ok: #5FA97C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(160deg, var(--rose), var(--lilac));
+    color: var(--ink); overflow: hidden; display: flex; flex-direction: column;
+  }
+
+  /* ── Top bar ─────────────────────────── */
+  #topbar {
+    height: 52px; background: rgba(255,255,255,0.82); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line); display: flex; align-items: center;
+    gap: 6px; padding: 0 12px; flex: 0 0 auto; z-index: 20;
+  }
+  #topbar .brand { display: flex; align-items: center; gap: 8px; margin-right: 8px; font-weight: 800; }
+  #topbar .brand .dot {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--rose-3), var(--lilac-3));
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.08);
+  }
+  .tb-btn {
+    min-width: 34px; height: 34px; padding: 0 9px; border: 1px solid var(--line);
+    background: #fff; border-radius: 9px; cursor: pointer; color: var(--ink);
+    font-size: 13px; display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; transition: all .12s; white-space: nowrap;
+  }
+  .tb-btn:hover { border-color: var(--rose-3); background: var(--rose); }
+  .tb-btn.active { background: linear-gradient(135deg, var(--rose-2), var(--lilac-2)); border-color: var(--lilac-3); box-shadow: inset 0 0 0 1px rgba(156,123,216,.35); }
+  .tb-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .tb-sep { width: 1px; height: 26px; background: var(--line); margin: 0 4px; }
+  .spacer { flex: 1; }
+  .sel {
+    height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 9px;
+    background: #fff; color: var(--ink); font-size: 13px; cursor: pointer;
+  }
+
+  /* ── Workspace ───────────────────────── */
+  #workspace { flex: 1 1 auto; display: flex; min-height: 0; }
+
+  /* left library */
+  #left { width: 210px; background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 12px; flex: 0 0 auto; }
+  #left h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 14px 0 8px; }
+  #left h3:first-child { margin-top: 0; }
+  .lib-item {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer;
+    font-size: 12.5px; margin-bottom: 6px; text-align: left; transition: all .12s;
+  }
+  .lib-item:hover { border-color: var(--rose-3); background: var(--rose); transform: translateX(2px); }
+  .lib-item .ic { width: 20px; text-align: center; font-size: 15px; }
+  .lib-sub { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+  .lib-chip {
+    padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    font-size: 11.5px; cursor: pointer; color: var(--ink); transition: all .12s;
+  }
+  .lib-chip:hover { background: var(--lilac); border-color: var(--lilac-3); }
+  .lib-note { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+  #bgToggleWrap { border: 1px dashed var(--lilac-3); border-radius: 10px; padding: 10px; margin-top: 4px; background: #FBF8FD; }
+  #bgToggleWrap label { display: flex; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0; cursor: pointer; }
+  #bgToggleWrap input[type=checkbox] { accent-color: var(--accent); }
+
+  /* center canvas */
+  #center { flex: 1 1 auto; position: relative; overflow: auto; background: #F3ECF2; }
+  #rulersWrap { position: sticky; top: 0; left: 0; z-index: 15; pointer-events: none; }
+  #rulerH { position: absolute; top: 0; left: 0; height: 22px; background: #FBF6F9; border-bottom: 1px solid var(--line); overflow: hidden; }
+  #rulerV { position: absolute; top: 0; left: 0; width: 22px; background: #FBF6F9; border-right: 1px solid var(--line); overflow: hidden; }
+  #stageWrap { position: relative; margin: 26px 30px; display: inline-block; }
+  #stage {
+    background: #fff; box-shadow: 0 10px 40px rgba(90,60,110,.25); position: relative;
+    border: 1px solid var(--line);
+  }
+  #canvas { display: block; }
+  #divider2dpp { position: absolute; left: 0; right: 0; top: 50%; height: 0; border-top: 2px dashed var(--accent); opacity: .6; display: none; pointer-events: none; }
+  #divider2dpp span { position: absolute; right: 6px; top: -9px; background: var(--panel); font-size: 10px; color: var(--accent); padding: 0 6px; border-radius: 6px; }
+  #stageHud { position: absolute; bottom: -26px; left: 0; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  #guidesOverlay { position: absolute; inset: 0; pointer-events: none; }
+  .guide-line { position: absolute; background: rgba(199,127,178,.7); width: 1px; height: 100%; }
+  .guide-line.h { width: 100%; height: 1px; }
+
+  /* right properties */
+  #right { width: 248px; background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 12px; flex: 0 0 auto; }
+  #right h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 14px 0 8px; }
+  #right h3:first-child { margin-top: 0; }
+  #right .empty { color: var(--muted); font-size: 12.5px; text-align: center; padding: 40px 6px; line-height: 1.6; }
+  .prop { margin-bottom: 8px; }
+  .prop label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .prop input[type=text], .prop input[type=number], .prop select, .prop textarea {
+    width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 12.5px; color: var(--ink); background: #fff;
+  }
+  .prop textarea { resize: vertical; min-height: 44px; }
+  .prop-row { display: flex; gap: 6px; }
+  .prop-row > div { flex: 1; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 5px; }
+  .swatch {
+    width: 22px; height: 22px; border-radius: 6px; border: 2px solid #fff; cursor: pointer;
+    box-shadow: 0 0 0 1px var(--line); position: relative;
+  }
+  .swatch.active { box-shadow: 0 0 0 2px var(--accent); }
+  .row-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mini-btn {
+    flex: 1; padding: 7px 4px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    font-size: 11.5px; cursor: pointer; color: var(--ink); text-align: center; transition: all .12s;
+  }
+  .mini-btn:hover { border-color: var(--lilac-3); background: var(--lilac); }
+  .mini-btn.danger:hover { background: #FDE7EC; border-color: var(--danger); color: var(--danger); }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; padding: 6px 0; border: none; background: #fff; font-size: 12px; cursor: pointer; color: var(--ink); }
+  .seg button.active { background: linear-gradient(135deg, var(--rose-2), var(--lilac-2)); font-weight: 700; }
+
+  /* bottom strip */
+  #bottom {
+    height: 92px; background: rgba(255,255,255,0.85); border-top: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px; padding: 0 14px; flex: 0 0 auto; z-index: 20;
+  }
+  #bottom label { font-size: 11.5px; color: var(--muted); margin-right: 4px; }
+  #thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px; flex: 1; }
+  .thumb {
+    width: 44px; height: 62px; border-radius: 6px; border: 2px solid var(--line); cursor: pointer;
+    background: #fff; flex: 0 0 auto; box-shadow: 0 2px 6px rgba(90,60,110,.12); overflow: hidden; position: relative;
+  }
+  .thumb.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(199,127,178,.35); }
+  .thumb canvas { width: 100%; height: 100%; display: block; }
+  .thumb .num { position: absolute; left: 3px; top: 2px; font-size: 9px; color: var(--muted); background: rgba(255,255,255,.8); border-radius: 4px; padding: 0 3px; }
+  #genBtns { display: flex; gap: 8px; }
+  .btn {
+    padding: 11px 18px; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .15s; color: #fff;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-preview { background: linear-gradient(135deg, var(--lilac-3), var(--accent-2)); }
+  .btn-generate { background: linear-gradient(135deg, var(--rose-3), var(--accent)); }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(160,100,150,.3); }
+
+  /* status / toast */
+  #status { font-size: 11.5px; color: var(--muted); max-width: 180px; line-height: 1.4; }
+  #toast {
+    position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px;
+    opacity: 0; transition: all .25s; z-index: 100; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* modal */
+  #modal { position: fixed; inset: 0; background: rgba(70,50,80,.4); display: none; align-items: center; justify-content: center; z-index: 200; }
+  #modal .box { background: #fff; border-radius: 16px; padding: 22px; width: 420px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  #modal h2 { font-size: 17px; margin-bottom: 6px; }
+  #modal p { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  #modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  #modal .btn-ghost { background: #fff; border: 1px solid var(--line); color: var(--ink); padding: 9px 16px; border-radius: 9px; font-size: 13px; cursor: pointer; }
+  #modal select, #modal input[type=text] { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; margin: 4px 0; }
+  #modalList { max-height: 200px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; }
+  #modalList .item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #F3ECF2; cursor: pointer; font-size: 13px; }
+  #modalList .item:hover { background: var(--lilac); }
+  #modalList .item .del { margin-left: auto; color: var(--danger); cursor: pointer; padding: 2px 6px; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand"><span class="dot"></span> Editor de Layout</div>
+  <button class="tb-btn" id="btnUndo" title="Desfazer (Ctrl+Z)">&#x21A9;</button>
+  <button class="tb-btn" id="btnRedo" title="Refazer (Ctrl+Y)">&#x21AA;</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" data-tool="select" title="Selecionar (V)">&#x279C; <span style="font-size:11px;">Selecionar</span></button>
+  <button class="tb-btn" data-tool="text" title="Texto">T</button>
+  <button class="tb-btn" data-tool="line" title="Linha">&#x2194;</button>
+  <button class="tb-btn" data-tool="rect" title="Retângulo">&#x25A2;</button>
+  <button class="tb-btn" data-tool="rounded_rect" title="Retângulo arredondado">&#x25A2;</button>
+  <button class="tb-btn" data-tool="circle" title="Círculo">&#x25CB;</button>
+  <button class="tb-btn" data-tool="ellipse" title="Elipse">&#x2B22;</button>
+  <button class="tb-btn" data-tool="grid" title="Tabela / Grade">&#x25A3;</button>
+  <button class="tb-btn" data-tool="calendar" title="Calendário">&#x1F4C5;</button>
+  <button class="tb-btn" data-tool="decoration" title="Ícone / Decoração">&#x2764;</button>
+  <button class="tb-btn" data-tool="image" title="Imagem">&#x1F5BC;</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="btnGrid" title="Grade">&#x22EE;</button>
+  <button class="tb-btn" id="btnZoomOut">&#x2212;</button>
+  <span id="zoomLabel" style="font-size:12px;color:var(--muted);min-width:44px;text-align:center;">100%</span>
+  <button class="tb-btn" id="btnZoomIn">+</button>
+  <div class="tb-sep"></div>
+  <select class="sel" id="selFormato" title="Formato da página">
+    <option value="A5">A5</option>
+    <option value="QUADRADO">Quadrado</option>
+  </select>
+  <select class="sel" id="selAno" title="Ano"></select>
+  <div class="spacer"></div>
+  <button class="tb-btn" id="btnImportBase" title="Importar imagem base de trabalho">&#x1F5BC; Importar base</button>
+  <button class="tb-btn" id="btnLoad" title="Carregar layout">&#x1F4C2;</button>
+  <button class="tb-btn" id="btnSave" title="Salvar (Ctrl+S)">&#x1F4BE;</button>
+  <button class="btn btn-preview" id="btnPreview">Visualizar PDF</button>
+  <button class="btn btn-generate" id="btnGenerate">Gerar PDF (365 dias)</button>
+</div>
+
+<div id="workspace">
+  <div id="left">
+    <h3>Dinâmicos</h3>
+    <button class="lib-item" data-token="{DIA}"><span class="ic">1</span> Dia do mês</button>
+    <button class="lib-item" data-token="{DATA}"><span class="ic">&#x1F4C5;</span> Data completa</button>
+    <button class="lib-item" data-token="{DIA_SEMANA}"><span class="ic">&#x1F4CB;</span> Dia da semana</button>
+    <button class="lib-item" data-token="{MES_CAP}"><span class="ic">&#x1F4CE;</span> Mês</button>
+    <button class="lib-item" data-token="{ANO}"><span class="ic">&#x1F550;</span> Ano</button>
+    <button class="lib-item" data-token="{NOME}"><span class="ic">&#x1F464;</span> Nome</button>
+    <button class="lib-item" data-token="{FRASE}"><span class="ic">&#x2728;</span> Frase do dia</button>
+    <button class="lib-item" data-token="{VERSICULO}"><span class="ic">&#x1F4D6;</span> Versículo</button>
+    <button class="lib-item" data-token="{DATA_EXTENSO}"><span class="ic">&#x1F4C6;</span> Data por extenso</button>
+    <h3>Texto</h3>
+    <button class="lib-item" data-addtext="Título"><span class="ic">T</span> Caixa de texto</button>
+    <h3>Formas</h3>
+    <div class="lib-sub">
+      <button class="lib-chip" data-shape="rect">Retângulo</button>
+      <button class="lib-chip" data-shape="rounded_rect">Arredondado</button>
+      <button class="lib-chip" data-shape="circle">Círculo</button>
+      <button class="lib-chip" data-shape="ellipse">Elipse</button>
+      <button class="lib-chip" data-shape="line">Linha</button>
+    </div>
+    <h3>Ícones</h3>
+    <div class="lib-sub">
+      <button class="lib-chip" data-deco="heart">&#x2764; Coração</button>
+      <button class="lib-chip" data-deco="star">&#x2605; Estrela</button>
+      <button class="lib-chip" data-deco="circle">&#x25CF; Bolinha</button>
+    </div>
+    <h3>Elementos</h3>
+    <button class="lib-item" data-addtype="calendar"><span class="ic">&#x1F4C5;</span> Calendário do mês</button>
+    <button class="lib-item" data-addtype="grid"><span class="ic">&#x25A3;</span> Tabela / Grade</button>
+    <button class="lib-item" data-addtype="image"><span class="ic">&#x1F5BC;</span> Imagem</button>
+    <h3>Imagem base</h3>
+    <div id="bgToggleWrap">
+      <label><input type="checkbox" id="bgVisible" checked> Mostrar no canvas</label>
+      <label><input type="checkbox" id="bgInPdf" checked> Incluir no PDF</label>
+      <button class="mini-btn" id="btnClearBase">Remover imagem base</button>
+    </div>
+    <p class="lib-note">A IA nunca reposiciona elementos. Você controla 100% do layout — o gerador apenas repete as posições por todos os dias do ano.</p>
+  </div>
+
+  <div id="center">
+    <div id="rulersWrap">
+      <canvas id="rulerH"></canvas>
+      <canvas id="rulerV"></canvas>
+    </div>
+    <div id="stageWrap">
+      <div id="stage">
+        <canvas id="canvas"></canvas>
+        <div id="guidesOverlay"></div>
+        <div id="divider2dpp"><span>2 dias por página</span></div>
+      </div>
+      <div id="stageHud"></div>
+    </div>
+  </div>
+
+  <div id="right">
+    <h3>Página</h3>
+    <div class="prop">
+      <label>Dias por página</label>
+      <div class="seg" id="segPageType">
+        <button data-pt="1dpp" class="active">1 por página</button>
+        <button data-pt="2dpp">2 por página</button>
+      </div>
+    </div>
+    <div class="prop">
+      <label>Cor de fundo da página</label>
+      <input type="text" id="bgColor" value="#FFFFFF">
+    </div>
+    <h3>Propriedades</h3>
+    <div id="propArea"><div class="empty">Selecione um elemento<br>no canvas para editar</div></div>
+  </div>
+</div>
+
+<div id="bottom">
+  <div>
+    <label for="selNome">Nome</label><br>
+    <input type="text" id="selNome" class="sel" placeholder="Nome na agenda" style="width:170px;margin-top:4px;" value="">
+  </div>
+  <div id="thumbs"></div>
+  <div id="genBtns">
+    <div id="status">Pronto</div>
+    <button class="btn btn-preview" id="btnPreview2">Visualizar</button>
+    <button class="btn btn-generate" id="btnGenerate2">Gerar PDF</button>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="box" id="modalBox"></div>
+</div>
+
+<input type="file" id="fileImg" accept="image/png,image/jpeg" style="display:none">
+<input type="file" id="fileBase" accept="image/png,image/jpeg" style="display:none">
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+// ── Page geometry ───────────────────────────────────────────────────────
+const PAGE_SIZES = { A5: [148, 210], QUADRADO: [210, 210] };
+const PT_PER_MM = 2.83465;
+
+// ── Fonts (mirrors engine/fonts.py FONT_OPTIONS) ────────────────────────
+const FONTS = [
+  ["Montserrat","Montserrat"],["Poppins","Poppins"],["Lato","Lato"],
+  ["Open Sans","Open Sans"],["Nunito","Nunito"],["Roboto","Roboto"],
+  ["Inter","Inter"],["Quicksand","Quicksand"],["Playfair Display","Playfair Display"],
+  ["Cormorant Garamond","Cormorant Garamond"],["Caveat","Caveat (manuscrita)"],
+  ["Patrick Hand","Patrick Hand (manuscrita)"],["Indie Flower","Indie Flower (manuscrita)"],
+  ["Shadows Into Light","Shadows Into Light (manuscrita)"],["Dancing Script","Dancing Script (script)"],
+  ["Great Vibes","Great Vibes (calligraphy)"],["Pacifico","Pacifico (script retrô)"],
+  ["Amatic SC","Amatic SC (decorativa)"]
+];
+const PALETTE = [
+  "#333333","#FFFFFF","#000000","#E85D9E","#9C7BD8","#4A90D9","#5FA97C",
+  "#E0A93A","#E0526E","#F5E9D5","#F6E3EA","#EBE4F6","#EEF5FF","#F0F5EC"
+];
+const SAMPLE_DATE = { y: 2026, m: 1, d: 1 }; // used only to preview dynamic tokens
+
+// ── State ───────────────────────────────────────────────────────────────
+const state = {
+  formato: "A5", page_type: "1dpp", year: 2026, nome: "",
+  scale: 3.4, zoom: 1,
+  tool: "select",
+  elements: [],
+  background: { type: "color", color: "#FFFFFF", image: null, visible: true, include_in_pdf: true },
+  selected: null,
+  grid: true, guides: [],
+  history: [], future: [],
+  layoutId: null,
+  autosaveTimer: null,
+  drawing: null,
+};
+
+let canvas, ctx, stage, pageW, pageH;
+let nextId = 1;
+let dirty = false;
+const imgCache = {};
+let bgImageObj = null;
+
+function getImage(src, onload) {
+  if (imgCache[src]) return imgCache[src];
+  const img = new Image();
+  img.onload = () => { imgCache[src] = img; if (onload) onload(); };
+  img.src = src;
+  return img;
+}
+function loadBgImage() {
+  bgImageObj = null;
+  if (!state.background.image) { renderAll(); return; }
+  bgImageObj = getImage(state.background.image, () => renderAll());
+}
+
+// ── Element factory ─────────────────────────────────────────────────────
+function newEl(type, over) {
+  const el = Object.assign({ id: "el" + (nextId++), type, x: 20, y: 20, w: 40, h: 20, rotation: 0, opacity: 1, layer: 0 }, over || {});
+  if (type === "text") {
+    Object.assign(el, { text: over && over.text || "Texto", font: "Montserrat", font_size: 14, bold: false, italic: false, color: "#333333", align: "left", line_height: 1.2, dynamic: false });
+  } else if (type === "line") {
+    Object.assign(el, { color: "#999999", border_width: 0.5, dashed: "none", vertical: false });
+  } else if (type === "image") {
+    Object.assign(el, { image: null });
+  } else if (type === "calendar") {
+    Object.assign(el, { show_header: true, color: "#333333", fill: "#FFFFFF", border_color: "#CCCCCC" });
+  } else if (type === "grid") {
+    Object.assign(el, { cols: 7, rows: 6, fill: "#FFFFFF", border_color: "#CCCCCC", border_width: 0.4 });
+  } else if (type === "decoration") {
+    Object.assign(el, { shape: "heart", color: "#E85D9E" });
+  } else {
+    Object.assign(el, { fill: "#FFFFFF", border_color: "#CCCCCC", border_width: 0.5, radius: 0, dashed: "none" });
+  }
+  return el;
+}
+
+// ── Dynamic substitution (mirror of backend build_substitutions) ────────
+const DAYS = ["SEGUNDA","TERCA","QUARTA","QUINTA","SEXTA","SABADO","DOMINGO"];
+const DAYS_LONG = ["SEGUNDA-FEIRA","TERCA-FEIRA","QUARTA-FEIRA","QUINTA-FEIRA","SEXTA-FEIRA","SABADO","DOMINGO"];
+const MONTHS = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function buildSubs(date) {
+  const doy = Math.floor((new Date(date.y, date.m-1, date.d) - new Date(date.y,0,1)) / 86400000) + 1;
+  const wd = new Date(date.y, date.m-1, date.d).getDay(); // 0=Sunday
+  const diaSemana = wd === 0 ? 6 : wd - 1;
+  const m = date.m - 1;
+  return {
+    "DIA": String(date.d), "DIA_NUM": String(date.d).padStart(2,"0"),
+    "DATA": ("0"+date.d).slice(-2)+"/"+("0"+date.m).slice(-2)+"/"+date.y,
+    "DATA_EXTENSO": date.d+" de "+MONTHS[m]+" de "+date.y,
+    "DIA_SEMANA": DAYS[diaSemana], "DIA_SEMANA_EXTENSO": DAYS_LONG[diaSemana],
+    "MES": MONTHS[m], "MES_CAP": MONTHS[m].charAt(0).toUpperCase()+MONTHS[m].slice(1),
+    "MES_NUM": ("0"+date.m).slice(-2), "ANO": String(date.y),
+    "NOME": state.nome || "[Nome]",
+    "FRASE": "Frase de prosperidade do dia...", "VERSICULO": "Versículo diário...", "REFERENCIA": "",
+    "PAGINA": "1 / 365", "ANO_CAL": String(date.y)
+  };
+}
+function subText(t, subs) { return t.replace(/\{([A-Z0-9_]+)\}/g, (_, k) => subs[k] !== undefined ? subs[k] : "{"+k+"}"); }
+
+// ── Canvas setup ────────────────────────────────────────────────────────
+function pagePx() { return [PAGE_SIZES[state.formato][0]*state.scale, PAGE_SIZES[state.formato][1]*state.scale]; }
+function mm2px(mm) { return mm * state.scale; }
+function px2mm(px) { return px / state.scale; }
+function pt2px(pt) { return pt * (state.scale / PT_PER_MM); }
+function fontCss(el, extra) {
+  const fam = (el.font || "Montserrat").replace(/ \(.*\)/,"").replace(/ /g,"+");
+  const w = el.bold ? 700 : 400;
+  const st = el.italic ? "italic" : "normal";
+  return (st + " " + w + " " + pt2px(el.font_size) + "px '" + fam + "', sans-serif").replace(/^normal /,"");
+}
+
+function setupCanvas() {
+  canvas = document.getElementById("canvas");
+  ctx = canvas.getContext("2d");
+  stage = document.getElementById("stage");
+  resize();
+}
+function resize() {
+  const [w,h] = pagePx();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  canvas.style.width = w+"px"; canvas.style.height = h+"px";
+  stage.style.width = w+"px"; stage.style.height = h+"px";
+  document.getElementById("divider2dpp").style.display = state.page_type === "2dpp" ? "block" : "none";
+  pageW = w; pageH = h;
+  drawRulers();
+  renderAll();
+  updateThumbs();
+}
+
+// ── Rulers ──────────────────────────────────────────────────────────────
+function drawRulers() {
+  const rh = document.getElementById("rulerH"), rv = document.getElementById("rulerV");
+  const [w,h] = pagePx();
+  const dpr = window.devicePixelRatio || 1;
+  rh.width = w*dpr; rh.height = 22*dpr; rh.style.width = w+"px";
+  rv.width = 22*dpr; rv.height = h*dpr; rv.style.height = h+"px";
+  const ch = rh.getContext("2d"), cv = rv.getContext("2d");
+  ch.setTransform(dpr,0,0,dpr,0,0); cv.setTransform(dpr,0,0,dpr,0,0);
+  ch.fillStyle = "#FBF6F9"; ch.fillRect(0,0,w,22);
+  cv.fillStyle = "#FBF6F9"; cv.fillRect(0,0,22,h);
+  ch.strokeStyle = "#E4D5E0"; cv.strokeStyle = "#E4D5E0";
+  ch.fillStyle = "#9A88A0"; cv.fillStyle = "#9A88A0";
+  ch.font = "9px Inter"; cv.font = "9px Inter";
+  const mmStep = state.zoom >= 1.5 ? 5 : 10;
+  const pxPerMM = state.scale;
+  ch.beginPath(); cv.beginPath();
+  for (let m = 0; m <= PAGE_SIZES[state.formato][0]; m += mmStep) {
+    const x = m*pxPerMM;
+    ch.moveTo(x+0.5, 14); ch.lineTo(x+0.5, 22);
+    ch.fillText(m, x+2, 11);
+  }
+  for (let m = 0; m <= PAGE_SIZES[state.formato][1]; m += mmStep) {
+    const y = m*pxPerMM;
+    cv.moveTo(14, y+0.5); cv.lineTo(22, y+0.5);
+    cv.save(); cv.translate(9, y+2); cv.rotate(-Math.PI/2); cv.fillText(m, 0, 0); cv.restore();
+  }
+  ch.stroke(); cv.stroke();
+}
+
+// ── Rendering (WYSIWYG mirror of backend _draw_element) ─────────────────
+function renderAll() {
+  const [w,h] = pagePx();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,w,h);
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawBackground();
+  const subs = buildSubs(SAMPLE_DATE);
+  const sorted = state.elements.slice().sort((a,b) => (a.layer||0)-(b.layer||0));
+  for (const el of sorted) drawElement(ctx, el, subs);
+  if (state.selected) drawSelection();
+  if (state.grid) drawGrid();
+}
+
+function drawBackground() {
+  const [w,h] = pagePx();
+  ctx.fillStyle = state.background.color || "#FFFFFF";
+  ctx.fillRect(0,0,w,h);
+  if (state.background.image && state.background.visible && bgImageObj && bgImageObj.complete && bgImageObj.naturalWidth) {
+    const iw = bgImageObj.naturalWidth, ih = bgImageObj.naturalHeight;
+    const s = Math.min(w/iw, h/ih);
+    ctx.drawImage(bgImageObj, (w-iw*s)/2, (h-ih*s)/2, iw*s, ih*s);
+  }
+}
+
+function wrapLines(text, fontCssStr, sizePx, maxW) {
+  const lines = [];
+  for (const raw of text.split("\n")) {
+    let line = "";
+    for (const word of raw.split(" ")) {
+      const trial = (line ? line + " " : "") + word;
+      ctx.font = fontCssStr;
+      if (ctx.measureText(trial).width <= maxW || !line) line = trial;
+      else { lines.push(line); line = word; }
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+
+function drawText(el, subs, ox, oy) {
+  const text = subText(el.text || "", subs);
+  if (!text.trim()) return;
+  const sizePx = pt2px(el.font_size);
+  const lh = el.line_height || 1.2;
+  const fontStr = fontCss(el);
+  const lines = wrapLines(text, fontStr, sizePx, el.w*state.scale);
+  const lineH = sizePx * 1.25 * lh;
+  const totalH = lines.length * lineH;
+  const w = el.w*state.scale, h = el.h*state.scale;
+  const x = ox, y = oy;
+  let baseline0 = h - lineH;
+  if (totalH < h) baseline0 = (h + totalH)/2 - lineH;
+  ctx.font = fontStr;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = el.color || "#333333";
+  lines.forEach((lt, i) => {
+    const base = y + baseline0 - i*lineH;
+    if (base < y - lineH) return;
+    if (el.align === "center") ctx.textAlign = "center", ctx.fillText(lt, x + w/2, base);
+    else if (el.align === "right") ctx.textAlign = "right", ctx.fillText(lt, x + w, base);
+    else ctx.textAlign = "left", ctx.fillText(lt, x + 2*state.scale, base);
+  });
+}
+
+function drawCalendar(el, subs, ox, oy) {
+  const size = 7;
+  const sizePx = pt2px(size);
+  const x = ox, y = oy, w = el.w*state.scale, h = el.h*state.scale;
+  const year = SAMPLE_DATE.y, month = SAMPLE_DATE.m;
+  const firstW = new Date(year, month-1, 1).getDay();
+  const nDays = new Date(year, month, 0).getDate();
+  ctx.font = (el.bold?700:400)+" "+(size+1)+"pt "+fontFamily(el.font);
+  ctx.fillStyle = el.color || "#333333";
+  ctx.textAlign = "center";
+  if (el.show_header) {
+    ctx.font = "bold "+(size+1)+"pt "+fontFamily(el.font);
+    ctx.fillText(month+"/"+year, x+w/2, y+size+4);
+  }
+  const top = el.show_header ? y + size*2.6*state.scale : y;
+  const bodyH = el.show_header ? (y+h - top) : h;
+  const cols = 7;
+  const rows = Math.max(1, Math.ceil((firstW + nDays)/7));
+  const cw = w/cols, ch = bodyH/Math.max(rows,1);
+  const dayLabels = ["D","S","T","Q","Q","S","S"];
+  ctx.font = "bold "+(size*0.8)+"pt "+fontFamily(el.font);
+  ctx.fillStyle = el.color || "#333333";
+  ctx.textAlign = "center";
+  dayLabels.forEach((l,c) => ctx.fillText(l, x + c*cw + cw/2, top + size));
+  ctx.font = (size)+"pt "+fontFamily(el.font);
+  for (let i=0;i<nDays;i++){
+    const r = Math.floor((firstW+i)/cols), c = (firstW+i)%cols;
+    if (r >= rows) break;
+    const cx = x + c*cw + cw/2, cy = top + (r+1)*ch - ch*0.55;
+    if (i+1 === SAMPLE_DATE.d) {
+      ctx.beginPath(); ctx.arc(cx, cy - size, size*1.4, 0, 2*Math.PI);
+      ctx.fillStyle = el.fill || "#FFFFFF"; ctx.fill();
+      ctx.strokeStyle = el.border_color || "#CCCCCC"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = el.color || "#333333";
+    }
+    ctx.fillText(String(i+1), cx, cy);
+  }
+}
+
+function drawDecoration(el, ox, oy) {
+  const x = ox, y = oy, w = el.w*state.scale, h = el.h*state.scale;
+  const cx = x + w/2, cy = y + h/2, r = Math.min(w,h)/2.5;
+  ctx.fillStyle = el.color || "#E85D9E";
+  ctx.strokeStyle = el.color || "#E85D9E";
+  ctx.beginPath();
+  if (el.shape === "heart") {
+    ctx.arc(cx - r*0.3, cy + r*0.15, r*0.35, 0, 2*Math.PI);
+    ctx.arc(cx + r*0.3, cy + r*0.15, r*0.35, 0, 2*Math.PI);
+    ctx.moveTo(cx - r*0.6, cy + r*0.2); ctx.lineTo(cx, cy - r*0.6); ctx.lineTo(cx + r*0.6, cy + r*0.2);
+    ctx.closePath(); ctx.fill();
+  } else if (el.shape === "star") {
+    for (let i=0;i<10;i++){
+      const ang = Math.PI/2 + i*Math.PI/5;
+      const rad = i%2===0 ? r : r*0.4;
+      const px = cx + rad*Math.cos(ang), py = cy + rad*Math.sin(ang);
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+    ctx.closePath(); ctx.fill();
+  } else {
+    ctx.arc(cx, cy, r, 0, 2*Math.PI); ctx.fill();
+  }
+}
+
+function drawElement(g, el, subs) {
+  const rot = ((el.rotation||0) % 360 + 360) % 360;
+  const opacity = el.opacity === undefined ? 1 : el.opacity;
+  if (opacity <= 0) return;
+  g.save();
+  g.globalAlpha = opacity;
+  if (rot !== 0) {
+    const cx = (el.x + el.w/2)*state.scale, cy = (el.y + el.h/2)*state.scale;
+    g.translate(cx, cy);
+    g.rotate(rot * Math.PI/180);
+    g.translate(-el.w*state.scale/2, -el.h*state.scale/2);
+    drawElementBody(g, el, subs, 0, 0);
+  } else {
+    drawElementBody(g, el, subs, el.x*state.scale, el.y*state.scale);
+  }
+  g.restore();
+}
+
+function drawElementBody(g, el, subs, ox, oy) {
+  const w = el.w*state.scale, h = el.h*state.scale;
+  const x = ox, y = oy;
+  g.lineWidth = (el.border_width||0.5)*state.scale;
+  g.strokeStyle = el.border_color || el.color || "#CCCCCC";
+  g.fillStyle = el.fill || el.color || "#FFFFFF";
+  g.setLineDash(el.dashed && el.dashed !== "none" ? [Math.max(2,(el.border_width||0.5)*state.scale*2), Math.max(2,(el.border_width||0.5)*state.scale*2)] : []);
+  switch (el.type) {
+    case "text": drawText(el, subs, x, y); break;
+    case "line":
+      if (el.vertical) { g.beginPath(); g.moveTo(x+w/2,y); g.lineTo(x+w/2,y+h); }
+      else { g.beginPath(); g.moveTo(x,y+h/2); g.lineTo(x+w,y+h/2); }
+      g.lineWidth = (el.border_width||0.5)*state.scale;
+      g.strokeStyle = el.color || "#999999"; g.stroke(); break;
+    case "rect":
+    case "rounded_rect":
+      g.beginPath();
+      if (el.type === "rounded_rect" || (el.radius||0) > 0) {
+        const rad = Math.max(el.radius||0, 2)*state.scale;
+        g.roundRect(x, y, w, h, rad);
+      } else g.rect(x, y, w, h);
+      g.fill(); g.stroke(); break;
+    case "circle":
+      g.beginPath(); g.arc(x+w/2, y+h/2, Math.min(w,h)/2, 0, 2*Math.PI); g.fill(); g.stroke(); break;
+    case "ellipse":
+      g.beginPath(); g.ellipse(x+w/2, y+h/2, w/2, h/2, 0, 0, 2*Math.PI); g.fill(); g.stroke(); break;
+    case "grid":
+    case "table":
+      g.fillStyle = el.fill || "#FFFFFF"; g.fillRect(x, y, w, h);
+      g.strokeStyle = el.border_color || "#CCCCCC"; g.lineWidth = (el.border_width||0.4)*state.scale;
+      for (let c=0;c<=(el.cols||7);c++){ g.beginPath(); g.moveTo(x + w*(c/(el.cols||7)), y); g.lineTo(x + w*(c/(el.cols||7)), y+h); g.stroke(); }
+      for (let r=0;r<=(el.rows||6);r++){ g.beginPath(); g.moveTo(x, y + h*(r/(el.rows||6))); g.lineTo(x+w, y + h*(r/(el.rows||6))); g.stroke(); }
+      break;
+    case "calendar": drawCalendar(el, subs, x, y); break;
+    case "decoration": drawDecoration(el, x, y); break;
+    case "image":
+      if (el.image) {
+        const img = getImage(el.image, () => renderAll());
+        if (img.complete && img.naturalWidth) g.drawImage(img, x, y, w, h);
+      }
+      break;
+  }
+  g.setLineDash([]);
+}
+
+function fontFamily(name) { return (name||"Montserrat").replace(/ \(.*\)/,"").replace(/ /g,"+"); }
+
+// ── Selection / handles ─────────────────────────────────────────────────
+function selectedEl() { return state.elements.find(e => e.id === state.selected) || null; }
+function drawSelection() {
+  const el = selectedEl(); if (!el) return;
+  const x = el.x*state.scale, y = el.y*state.scale, w = el.w*state.scale, h = el.h*state.scale;
+  ctx.save();
+  ctx.strokeStyle = "#C77FB2"; ctx.lineWidth = 1.2; ctx.setLineDash([4,3]);
+  ctx.strokeRect(x, y, w, h);
+  ctx.setLineDash([]);
+  const s = 5;
+  const pts = [[0,0],[0.5,0],[1,0],[1,0.5],[1,1],[0.5,1],[0,1],[0,0.5]];
+  ctx.fillStyle = "#fff"; ctx.strokeStyle = "#C77FB2"; ctx.lineWidth = 1;
+  for (const [fx,fy] of pts) {
+    const hx = x + fx*w, hy = y + fy*h;
+    ctx.beginPath(); ctx.fillRect(hx-s/2, hy-s/2, s, s); ctx.strokeRect(hx-s/2, hy-s/2, s, s);
+  }
+  // rotate handle
+  ctx.beginPath(); ctx.arc(x+w/2, y-12, 5, 0, 2*Math.PI);
+  ctx.fillStyle = "#C77FB2"; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x+w/2, y-6); ctx.lineTo(x+w/2, y); ctx.stroke();
+  ctx.restore();
+}
+
+function drawGrid() {
+  ctx.save();
+  ctx.strokeStyle = "rgba(156,123,216,.12)"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let m = 10; m < PAGE_SIZES[state.formato][0]; m += 10) {
+    ctx.moveTo(m*state.scale+0.5, 0); ctx.lineTo(m*state.scale+0.5, pageH);
+  }
+  for (let m = 10; m < PAGE_SIZES[state.formato][1]; m += 10) {
+    ctx.moveTo(0, m*state.scale+0.5); ctx.lineTo(pageW, m*state.scale+0.5);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Hit testing ─────────────────────────────────────────────────────────
+function hitTest(mx, my) {
+  const sorted = state.elements.slice().sort((a,b) => (b.layer||0)-(a.layer||0));
+  for (const el of sorted) {
+    if (mx >= el.x && mx <= el.x+el.w && my >= el.y && my <= el.y+el.h) return el;
+  }
+  return null;
+}
+
+// ── Interactions ────────────────────────────────────────────────────────
+let drag = null;
+function canvasPoint(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: px2mm(e.clientX - r.left), y: px2mm(e.clientY - r.top) };
+}
+
+function onDown(e) {
+  const p = canvasPoint(e);
+  if (state.tool !== "select") { startDrawTool(e); return; }
+  const el = hitTest(p.x, p.y);
+  const prev = selectedEl();
+  if (el && prev && el.id === prev.id) {
+    drag = { type: "move", id: el.id, start: { x: p.x, y: p.y }, orig: { x: el.x, y: el.y } };
+  } else if (el) {
+    select(el.id); drag = { type: "move", id: el.id, start: { x: p.x, y: p.y }, orig: { x: el.x, y: el.y } };
+  } else {
+    state.selected = null; renderAll(); updateProps();
+  }
+  if (drag) e.preventDefault();
+}
+
+function onMove(e) {
+  if (!drag) return;
+  const p = canvasPoint(e);
+  const el = state.elements.find(o => o.id === drag.id);
+  if (!el) return;
+  if (drag.type === "move") {
+    const dx = p.x - drag.start.x, dy = p.y - drag.start.y;
+    el.x = Math.round((drag.orig.x + dx)*10)/10;
+    el.y = Math.round((drag.orig.y + dy)*10)/10;
+    if (state.guides.some(g => g.h)) snapToGuides(el);
+    renderAll(); updateProps(); markDirty();
+  } else if (drag.type === "resize" && drag.mode === "draw") {
+    el.w = Math.max(1, Math.round((p.x - drag.orig.x)*10)/10);
+    el.h = Math.max(1, Math.round((p.y - drag.orig.y)*10)/10);
+    renderAll(); updateProps(); markDirty();
+  }
+}
+
+function onUp() { if (drag) { drag = null; snapshot(); } }
+
+function snapToGuides(el) {
+  for (const g of state.guides) {
+    if (g.h) { if (Math.abs(el.y - g.pos) < 1.5) el.y = g.pos; }
+    else { if (Math.abs(el.x - g.pos) < 1.5) el.x = g.pos; }
+  }
+}
+
+function startDrawTool(e) {
+  const p = canvasPoint(e);
+  let el = null;
+  if (state.tool === "text") {
+    el = newEl("text", { x: p.x, y: p.y, w: 70, h: 12 });
+    el.text = "Texto";
+  } else if (state.tool === "image") {
+    openImagePicker(el => {
+      if (el) { el.x = Math.round((p.x - el.w/2)*10)/10; el.y = Math.round((p.y - el.h/2)*10)/10; renderAll(); snapshot(); }
+    });
+    return;
+  } else {
+    const type = state.tool;
+    el = newEl(type, { x: p.x, y: p.y, w: 45, h: 26 });
+    drag = { type: "resize", id: el.id, start: { x: p.x, y: p.y }, orig: { x: el.x, y: el.y, w: el.w, h: el.h }, mode: "draw" };
+  }
+  state.elements.push(el);
+  select(el.id);
+  renderAll(); updateProps(); snapshot();
+}
+
+// ── Keyboard ────────────────────────────────────────────────────────────
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) {
+    if (e.key === "Escape") t.blur();
+    return;
+  }
+  const el = selectedEl();
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { undo(); e.preventDefault(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { redo(); e.preventDefault(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { saveLayout(); e.preventDefault(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") { copyEl(); e.preventDefault(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") { duplicateEl(); e.preventDefault(); return; }
+  if (e.key === "Delete" || e.key === "Backspace") { if (el) removeEl(el.id); return; }
+  if (el) {
+    const step = e.shiftKey ? 0.1 : 1;
+    const k = e.key;
+    if (k === "ArrowUp") { el.y = Math.round((el.y - step)*10)/10; renderAll(); updateProps(); markDirty(); snapshot(); }
+    else if (k === "ArrowDown") { el.y = Math.round((el.y + step)*10)/10; renderAll(); updateProps(); markDirty(); snapshot(); }
+    else if (k === "ArrowLeft") { el.x = Math.round((el.x - step)*10)/10; renderAll(); updateProps(); markDirty(); snapshot(); }
+    else if (k === "ArrowRight") { el.x = Math.round((el.x + step)*10)/10; renderAll(); updateProps(); markDirty(); snapshot(); }
+    else if (k === "v") state.tool = "select", updateToolbar();
+  }
+});
+
+// ── Toolbar / tool state ────────────────────────────────────────────────
+function updateToolbar() {
+  document.querySelectorAll("[data-tool]").forEach(b => b.classList.toggle("active", b.dataset.tool === state.tool));
+  document.querySelectorAll("#segPageType button").forEach(b => b.classList.toggle("active", b.dataset.pt === state.page_type));
+  document.getElementById("btnUndo").disabled = state.history.length === 0;
+  document.getElementById("btnRedo").disabled = state.future.length === 0;
+}
+document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => { state.tool = b.dataset.tool; updateToolbar(); }));
+
+function select(id) { state.selected = id; renderAll(); updateProps(); }
+
+// ── Properties panel ────────────────────────────────────────────────────
+const COLOR_FIELDS = { text:["color"], line:["color"], rect:["fill","border_color"], rounded_rect:["fill","border_color"], circle:["fill","border_color"], ellipse:["fill","border_color"], grid:["fill","border_color"], calendar:["color","fill","border_color"], decoration:["color"] };
+
+function updateProps() {
+  const area = document.getElementById("propArea");
+  const el = selectedEl();
+  if (!el) { area.innerHTML = '<div class="empty">Selecione um elemento<br>no canvas para editar</div>'; return; }
+  let html = "";
+  const num = (v, f) => `<input type="number" step="0.1" value="${Math.round(v*10)/10}" data-f="${f}">`;
+  html += `<div class="prop"><label>Posição (mm)</label><div class="prop-row">
+    <div>X ${num(el.x,"x")}</div><div>Y ${num(el.y,"y")}</div></div></div>`;
+  html += `<div class="prop"><label>Tamanho (mm)</label><div class="prop-row">
+    <div>Larg ${num(el.w,"w")}</div><div>Alt ${num(el.h,"h")}</div></div></div>`;
+  html += `<div class="prop"><label>Rotação (graus)</label>${num(el.rotation,"rotation")}</div>`;
+  html += `<div class="prop"><label>Opacidade</label><input type="range" min="0" max="100" value="${Math.round((el.opacity||1)*100)}" data-f="opacity"></div>`;
+  if (el.type === "text") {
+    html += `<div class="prop"><label>Texto</label><textarea data-f="text">${esc(el.text)}</textarea></div>`;
+    html += `<div class="prop"><label>Fonte</label><select data-f="font">${FONTS.map(([k,l]) => `<option value="${k}" ${el.font===k?"selected":""}>${l}</option>`).join("")}</select></div>`;
+    html += `<div class="prop"><label>Tamanho (pt)</label><input type="number" step="0.5" value="${el.font_size}" data-f="font_size"></div>`;
+    html += `<div class="prop"><label>Alinhamento</label><div class="seg">
+      <button data-f="align" data-v="left" class="${el.align==='left'?'active':''}">Esquerda</button>
+      <button data-f="align" data-v="center" class="${el.align==='center'?'active':''}">Centro</button>
+      <button data-f="align" data-v="right" class="${el.align==='right'?'active':''}">Direita</button></div></div>`;
+    html += `<div class="prop"><label>Espaçamento de linha</label><input type="number" step="0.05" value="${el.line_height||1.2}" data-f="line_height"></div>`;
+    html += `<div class="prop-row" style="gap:6px;"><button class="mini-btn" data-f="bold" data-toggle="1">${el.bold?'<b>B</b>':'B'}</button>
+      <button class="mini-btn" data-f="italic" data-toggle="1">${el.italic?'<i>I</i>':'I'}</button></div>`;
+  } else if (el.type === "line") {
+    html += `<div class="prop"><label>Espessura (mm)</label><input type="number" step="0.1" value="${el.border_width||0.5}" data-f="border_width"></div>`;
+    html += `<div class="prop"><label>Estilo</label><select data-f="dashed">
+      <option value="none" ${el.dashed==='none'?'selected':''}>Sólida</option>
+      <option value="dashed" ${el.dashed==='dashed'?'selected':''}>Tracejada</option>
+      <option value="dotted" ${el.dashed==='dotted'?'selected':''}>Pontilhada</option></select></div>`;
+    html += `<div class="prop-row" style="gap:6px;"><button class="mini-btn" data-f="vertical" data-toggle="1">${el.vertical?'<b>Vertical</b>':'Horizontal'}</button></div>`;
+  } else if (el.type === "grid" || el.type === "table") {
+    html += `<div class="prop"><label>Colunas</label><input type="number" min="1" max="60" value="${el.cols||7}" data-f="cols"></div>`;
+    html += `<div class="prop"><label>Linhas</label><input type="number" min="1" max="60" value="${el.rows||6}" data-f="rows"></div>`;
+    html += `<div class="prop"><label>Espessura (mm)</label><input type="number" step="0.05" value="${el.border_width||0.4}" data-f="border_width"></div>`;
+  } else if (el.type === "calendar") {
+    html += `<div class="prop-row" style="gap:6px;"><button class="mini-btn" data-f="show_header" data-toggle="1">${el.show_header?'<b>Mostrar título</b>':'Mostrar título'}</button></div>`;
+  } else if (el.type === "decoration") {
+    html += `<div class="prop"><label>Forma</label><select data-f="shape">
+      <option value="heart" ${el.shape==='heart'?'selected':''}>Coração</option>
+      <option value="star" ${el.shape==='star'?'selected':''}>Estrela</option>
+      <option value="circle" ${el.shape==='circle'?'selected':''}>Bolinha</option></select></div>`;
+  } else if (el.type === "image") {
+    html += `<div class="prop"><button class="mini-btn" onclick="replaceImage()">Trocar imagem</button></div>`;
+  }
+  const fields = COLOR_FIELDS[el.type] || [];
+  if (fields.length) {
+    html += `<div class="prop"><label>${fields.length>1?'Cores':'Cor'}</label>`;
+    fields.forEach(f => {
+      const label = f === "fill" ? "Preench." : f === "border_color" ? "Contorno" : "Cor";
+      html += `<div style="font-size:11px;color:var(--muted);margin:4px 0 2px;">${label}</div>`;
+      html += `<div class="swatches" data-field="${f}">${PALETTE.map(c => `<span class="swatch ${(el[f]||'').toUpperCase()===c?'active':''}" style="background:${c}" data-c="${c}"></span>`).join("")}</div>`;
+    });
+    html += `</div>`;
+  }
+  html += `<div class="prop"><label>Camada</label><div class="row-btns">
+    <button class="mini-btn" id="btnFront">Frente</button>
+    <button class="mini-btn" id="btnBack">Trás</button>
+    <button class="mini-btn" id="btnDup">Duplicar</button>
+    <button class="mini-btn danger" id="btnDel">Excluir</button></div></div>`;
+  area.innerHTML = html;
+
+  area.querySelectorAll("[data-f]").forEach(inp => {
+    const f = inp.dataset.f;
+    const apply = () => {
+      let v;
+      if (inp.type === "number") v = parseFloat(inp.value) || 0;
+      else if (inp.dataset.toggle) v = !el[f];
+      else if (inp.dataset.v !== undefined) v = inp.dataset.v;
+      else v = inp.value;
+      if (f === "opacity") v = (parseFloat(v) || 0) / 100;
+      el[f] = v;
+      renderAll(); updateProps(); markDirty(); snapshot();
+    };
+    const live = () => {
+      let v;
+      if (inp.type === "number") v = parseFloat(inp.value) || 0;
+      else if (inp.dataset.v !== undefined) v = inp.dataset.v;
+      else v = inp.value;
+      if (f === "opacity") v = (parseFloat(v) || 0) / 100;
+      el[f] = v;
+      renderAll(); markDirty();
+    };
+    if (inp.dataset.toggle || inp.dataset.v !== undefined) inp.addEventListener("click", apply);
+    else { inp.addEventListener("input", live); inp.addEventListener("change", () => snapshot()); }
+  });
+  area.querySelectorAll(".swatches").forEach(sw => {
+    sw.querySelectorAll(".swatch").forEach(s => s.addEventListener("click", () => {
+      el[sw.dataset.field] = s.dataset.c; renderAll(); updateProps(); markDirty(); snapshot();
+    }));
+  });
+  area.querySelectorAll("#btnFront, #btnBack").forEach(b => b.addEventListener("click", () => {
+    const z = el.layer || 0;
+    const all = state.elements.map(e => e.layer || 0);
+    const max = Math.max(...all), min = Math.min(...all);
+    el.layer = b.id === "btnFront" ? max + 1 : min - 1;
+    renderAll(); markDirty(); snapshot();
+  }));
+  document.getElementById("btnDup").addEventListener("click", duplicateEl);
+  document.getElementById("btnDel").addEventListener("click", () => removeEl(el.id));
+}
+function esc(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// ── Actions ─────────────────────────────────────────────────────────────
+function addToken(token) {
+  const el = newEl("text", { text: token, w: 90, h: 16, font_size: 20, bold: true, align: "center", color: "#4A3B4F" });
+  el.x = Math.max(10, (PAGE_SIZES[state.formato][0] - el.w)/2);
+  el.y = 20 + state.elements.length*18 % 120;
+  state.elements.push(el); select(el.id); snapshot();
+  toast("Elemento dinâmico adicionado: " + token);
+}
+function addTextSample() {
+  const el = newEl("text", { x: 20, y: 30, w: 80, h: 12, font_size: 14, color: "#4A3B4F" });
+  state.elements.push(el); select(el.id); snapshot();
+}
+function addShape(shape) {
+  const el = newEl(shape === "line" ? "line" : shape, { x: 25, y: 30, w: shape==="line"?70:40, h: shape==="line"?1:40, fill: "#F6E3EA", border_color: "#C77FB2", border_width: 0.6 });
+  if (shape === "circle") el.fill = "#F6E3EA";
+  state.elements.push(el); select(el.id); snapshot();
+}
+function addDecoration(shape) {
+  const el = newEl("decoration", { x: 25, y: 30, w: 12, h: 12, shape, color: "#E85D9E" });
+  state.elements.push(el); select(el.id); snapshot();
+}
+function addType(type) {
+  let el;
+  if (type === "calendar") el = newEl("calendar", { x: 45, y: 70, w: 58, h: 40 });
+  else if (type === "grid") el = newEl("grid", { x: 15, y: 100, w: 118, h: 40 });
+  else if (type === "image") { openImagePicker(im => { if (im) { state.elements.push(im); select(im.id); snapshot(); } }); return; }
+  state.elements.push(el); select(el.id); snapshot();
+}
+
+function duplicateEl() {
+  const el = selectedEl(); if (!el) return;
+  const copy = JSON.parse(JSON.stringify(el));
+  copy.id = "el" + (nextId++);
+  copy.x += 3; copy.y += 3; copy.layer = (copy.layer||0)+1;
+  state.elements.push(copy); select(copy.id); snapshot();
+}
+function removeEl(id) {
+  state.elements = state.elements.filter(e => e.id !== id);
+  if (state.selected === id) state.selected = null;
+  renderAll(); updateProps(); markDirty(); snapshot();
+}
+function copyEl() { const el = selectedEl(); if (el) clipboardEl = JSON.parse(JSON.stringify(el)); }
+let clipboardEl = null;
+
+function openImagePicker(cb) {
+  const inp = document.getElementById("fileImg");
+  inp.onchange = () => {
+    const f = inp.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const mmW = img.naturalWidth / 40, mmH = img.naturalHeight / 40;
+        const el = newEl("image", { x: 20, y: 20, w: Math.round(mmW), h: Math.round(mmH) });
+        el.image = reader.result;
+        cb(el);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  inp.click();
+}
+function replaceImage() {
+  openImagePicker(el => {
+    const cur = selectedEl(); if (cur && cur.type === "image" && el) { cur.image = el.image; renderAll(); markDirty(); snapshot(); }
+  });
+}
+
+// ── History ─────────────────────────────────────────────────────────────
+function snapshot() {
+  state.history.push(JSON.stringify({ elements: state.elements, background: state.background }));
+  if (state.history.length > 100) state.history.shift();
+  state.future = [];
+  updateToolbar();
+}
+function undo() {
+  if (!state.history.length) return;
+  state.future.push(JSON.stringify({ elements: state.elements, background: state.background }));
+  restoreState(state.history.pop());
+}
+function redo() {
+  if (!state.future.length) return;
+  state.history.push(JSON.stringify({ elements: state.elements, background: state.background }));
+  restoreState(state.future.pop());
+}
+function restoreState(s) {
+  const data = JSON.parse(s);
+  state.elements = data.elements; state.background = data.background;
+  state.selected = null; renderAll(); updateProps(); updateToolbar(); markDirty();
+}
+
+// ── Background base image ───────────────────────────────────────────────
+document.getElementById("btnImportBase").addEventListener("click", () => document.getElementById("fileBase").click());
+document.getElementById("fileBase").addEventListener("change", (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => { state.background.image = reader.result; state.background.visible = true; state.background.include_in_pdf = true; loadBgImage(); snapshot(); toast("Imagem base importada"); };
+  reader.readAsDataURL(f);
+});
+document.getElementById("btnClearBase").addEventListener("click", () => { state.background.image = null; loadBgImage(); markDirty(); snapshot(); });
+document.getElementById("bgVisible").addEventListener("change", (e) => { state.background.visible = e.target.checked; renderAll(); });
+document.getElementById("bgInPdf").addEventListener("change", (e) => { state.background.include_in_pdf = e.target.checked; markDirty(); });
+document.getElementById("bgColor").addEventListener("input", (e) => { state.background.color = e.target.value || "#FFFFFF"; renderAll(); markDirty(); });
+
+// ── Page config ─────────────────────────────────────────────────────────
+document.getElementById("selFormato").addEventListener("change", (e) => {
+  state.formato = e.target.value; renderAll(); resize();
+});
+document.getElementById("selAno").addEventListener("change", (e) => { state.year = parseInt(e.target.value); markDirty(); });
+for (let y = new Date().getFullYear(); y <= new Date().getFullYear()+1; y++) {
+  const o = document.createElement("option"); o.value = y; o.textContent = y; if (y === state.year) o.selected = true;
+  document.getElementById("selAno").appendChild(o);
+}
+document.getElementById("segPageType").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.page_type = b.dataset.pt; updateToolbar(); resize(); markDirty();
+});
+document.getElementById("selNome").addEventListener("input", (e) => { state.nome = e.target.value; renderAll(); markDirty(); });
+
+// ── Library wiring ──────────────────────────────────────────────────────
+document.querySelectorAll("[data-token]").forEach(b => b.addEventListener("click", () => addToken(b.dataset.token)));
+document.querySelectorAll("[data-addtext]").forEach(b => b.addEventListener("click", () => addTextSample()));
+document.querySelectorAll("[data-shape]").forEach(b => b.addEventListener("click", () => addShape(b.dataset.shape)));
+document.querySelectorAll("[data-deco]").forEach(b => b.addEventListener("click", () => addDecoration(b.dataset.deco)));
+document.querySelectorAll("[data-addtype]").forEach(b => b.addEventListener("click", () => addType(b.dataset.addtype)));
+
+// ── Zoom / grid / guides ────────────────────────────────────────────────
+document.getElementById("btnZoomIn").addEventListener("click", () => setZoom(state.zoom + 0.25));
+document.getElementById("btnZoomOut").addEventListener("click", () => setZoom(Math.max(0.25, state.zoom - 0.25)));
+function setZoom(z) {
+  state.zoom = Math.round(z*100)/100;
+  state.scale = 3.4 * state.zoom;
+  document.getElementById("zoomLabel").textContent = Math.round(state.zoom*100)+"%";
+  resize();
+}
+document.getElementById("btnGrid").addEventListener("click", () => { state.grid = !state.grid; document.getElementById("btnGrid").classList.toggle("active", state.grid); renderAll(); });
+document.getElementById("btnGrid").classList.add("active");
+
+// ── Thumbnails (client-side mini render) ────────────────────────────────
+function updateThumbs() {
+  const wrap = document.getElementById("thumbs");
+  wrap.innerHTML = "";
+  const count = state.page_type === "2dpp" ? 4 : 4;
+  for (let i = 0; i < count; i++) {
+    const d = document.createElement("div");
+    d.className = "thumb" + (i === 0 ? " active" : "");
+    const c = document.createElement("canvas");
+    d.appendChild(c);
+    const n = document.createElement("span"); n.className = "num"; n.textContent = i === 0 ? "1" : (i === 1 ? "meio" : (i === 2 ? "final" : ""));
+    if (i > 0) d.appendChild(n);
+    wrap.appendChild(d);
+    const tctx = c.getContext("2d");
+    c.width = 44; c.height = 62;
+    renderThumb(tctx, 44, 62);
+  }
+}
+function renderThumb(tctx, tw, th) {
+  const [w,h] = pagePx();
+  const s = tw / w;
+  tctx.save();
+  tctx.scale(s, s);
+  tctx.fillStyle = state.background.color || "#FFFFFF";
+  tctx.fillRect(0,0,w,h);
+  if (state.background.image && state.background.visible && bgImageObj && bgImageObj.complete && bgImageObj.naturalWidth) {
+    const iw = bgImageObj.naturalWidth, ih = bgImageObj.naturalHeight;
+    const ss = Math.min(w/iw, h/ih);
+    tctx.drawImage(bgImageObj, (w-iw*ss)/2, (h-ih*ss)/2, iw*ss, ih*ss);
+  }
+  const subs = buildSubs(SAMPLE_DATE);
+  const sorted = state.elements.slice().sort((a,b) => (a.layer||0)-(b.layer||0));
+  const fakeScale = state.scale;
+  // reuse main render by temporarily switching ctx? Simpler: draw simplified shapes directly in mm coords via scale factor
+  const mmS = tw / (PAGE_SIZES[state.formato][0] * state.scale);
+  tctx.restore();
+  drawThumbElements(tctx, sorted, subs, mmS, tw, th);
+}
+function drawThumbElements(tctx, els, subs, mmS, tw, th) {
+  for (const el of els) {
+    tctx.save();
+    tctx.globalAlpha = el.opacity === undefined ? 1 : el.opacity;
+    const x = el.x*state.scale*mmS, y = el.y*state.scale*mmS;
+    const w = el.w*state.scale*mmS, h = el.h*state.scale*mmS;
+    tctx.fillStyle = el.fill || el.color || "#FFFFFF";
+    tctx.strokeStyle = el.border_color || el.color || "#CCCCCC";
+    tctx.lineWidth = Math.max(0.5, (el.border_width||0.5)*state.scale*mmS);
+    switch (el.type) {
+      case "text":
+        tctx.font = (el.bold?700:400)+" "+(el.font_size*state.scale*mmS/PT_PER_MM)+"px "+fontFamily(el.font);
+        tctx.fillStyle = el.color || "#333333";
+        tctx.textAlign = el.align === "center" ? "center" : el.align === "right" ? "right" : "left";
+        tctx.fillText(subText(el.text||"", subs).split("\n")[0].slice(0,18),
+          el.align==="center" ? x+w/2 : el.align==="right" ? x+w : x, y + el.font_size*state.scale*mmS/PT_PER_MM*0.8);
+        break;
+      case "rect": tctx.fillRect(x,y,w,h); tctx.strokeRect(x,y,w,h); break;
+      case "rounded_rect": tctx.beginPath(); tctx.roundRect(x,y,w,h,Math.max(2,(el.radius||0)*state.scale*mmS)); tctx.fill(); tctx.stroke(); break;
+      case "circle": tctx.beginPath(); tctx.arc(x+w/2,y+h/2,Math.min(w,h)/2,0,2*Math.PI); tctx.fill(); tctx.stroke(); break;
+      case "ellipse": tctx.beginPath(); tctx.ellipse(x+w/2,y+h/2,w/2,h/2,0,0,2*Math.PI); tctx.fill(); tctx.stroke(); break;
+      case "line": tctx.beginPath(); tctx.moveTo(x,y+h/2); tctx.lineTo(x+w,y+h/2); tctx.stroke(); break;
+      case "grid": tctx.fillRect(x,y,w,h); tctx.strokeRect(x,y,w,h); break;
+      case "decoration": tctx.beginPath(); tctx.arc(x+w/2,y+h/2,Math.min(w,h)/2.5,0,2*Math.PI); tctx.fillStyle = el.color; tctx.fill(); break;
+    }
+    tctx.restore();
+  }
+}
+
+// ── Save / Load / Preview / Generate ────────────────────────────────────
+function buildPayload() {
+  return {
+    id: state.layoutId, name: state.layoutId || "Layout", nome: state.nome,
+    formato: state.formato, page_type: state.page_type, year: state.year,
+    background: state.background, elements: state.elements
+  };
+}
+function markDirty() {
+  dirty = true;
+  document.getElementById("status").textContent = "Alterações não salvas";
+  clearTimeout(state.autosaveTimer);
+  state.autosaveTimer = setTimeout(() => { if (dirty) saveLayout(true); }, 5000);
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+async function saveLayout(silent) {
+  try {
+    const r = await fetch("/api/editor/layout", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(buildPayload()) });
+    const j = await r.json();
+    if (j.success) { state.layoutId = j.id; dirty = false; document.getElementById("status").textContent = "Salvo às " + new Date().toLocaleTimeString(); if (!silent) toast("Layout salvo"); }
+    else throw new Error(j.error || "erro");
+  } catch (err) { if (!silent) toast("Erro ao salvar: " + err.message); }
+}
+function modal(html) { const m = document.getElementById("modal"), b = document.getElementById("modalBox"); b.innerHTML = html; m.style.display = "flex"; }
+function closeModal() { document.getElementById("modal").style.display = "none"; }
+document.getElementById("modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
+
+document.getElementById("btnSave").addEventListener("click", () => saveLayout(false));
+document.getElementById("btnLoad").addEventListener("click", async () => {
+  const r = await fetch("/api/editor/layouts");
+  const j = await r.json();
+  const items = (j.layouts || []).map(l => `
+    <div class="item" data-id="${l.id}">
+      <span>${esc(l.name)} <span style="color:var(--muted);font-size:11px;">(${l.formato} · ${l.page_type})</span></span>
+      <span class="del" data-del="${l.id}">&#128465;</span>
+    </div>`).join("") || '<div style="padding:12px;color:var(--muted);font-size:12px;">Nenhum layout salvo</div>';
+  modal(`<h2>Carregar layout</h2><p>Selecione um layout salvo:</p><div id="modalList">${items}</div>
+    <div class="btn-row"><button class="btn-ghost" onclick="closeModal()">Cancelar</button></div>`);
+  document.querySelectorAll("#modalList .item").forEach(it => it.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("del")) {
+      const id = e.target.dataset.del;
+      await fetch("/api/editor/layout/" + id, { method: "DELETE" });
+      document.getElementById("btnLoad").click(); return;
+    }
+    const id = it.dataset.id;
+    const rr = await fetch("/api/editor/layout/" + id);
+    const jj = await rr.json();
+    if (jj.error) return toast("Erro ao carregar");
+    applyLayout(jj);
+    closeModal();
+  }));
+});
+function applyLayout(j) {
+  state.elements = j.elements || [];
+  state.background = Object.assign({ type:"color", color:"#FFFFFF", image:null, visible:true, include_in_pdf:true }, j.background || {});
+  state.formato = (j.formato || "A5").toUpperCase();
+  state.page_type = j.page_type === "2dpp" ? "2dpp" : "1dpp";
+  state.year = j.year || new Date().getFullYear();
+  state.nome = j.nome || "";
+  state.layoutId = j.id || null;
+  document.getElementById("selFormato").value = state.formato;
+  document.getElementById("selNome").value = state.nome;
+  for (const el of state.elements) nextId = Math.max(nextId, parseInt((el.id||"").replace(/\D/g,"")||0)+1);
+  document.getElementById("bgColor").value = state.background.color || "#FFFFFF";
+  document.getElementById("bgVisible").checked = state.background.visible !== false;
+  document.getElementById("bgInPdf").checked = state.background.include_in_pdf !== false;
+  loadBgImage();
+  updateToolbar(); resize(); snapshot(); dirty = false;
+  toast("Layout carregado");
+}
+
+async function runPDF(endpoint, btn) {
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.textContent = "Gerando...";
+  document.getElementById("status").textContent = "Gerando PDF...";
+  try {
+    if (dirty) await saveLayout(true);
+    const r = await fetch(endpoint, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(buildPayload()) });
+    if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || r.status); }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (r.headers.get("Content-Disposition") || "").match(/filename="([^"]+)"/) ? (r.headers.get("Content-Disposition").match(/filename="([^"]+)"/)[1]) : "agenda.pdf";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    document.getElementById("status").textContent = "PDF gerado";
+  } catch (err) {
+    toast("Erro: " + err.message);
+    document.getElementById("status").textContent = "Erro ao gerar PDF";
+  } finally { btn.disabled = false; btn.textContent = label; }
+}
+document.getElementById("btnPreview").addEventListener("click", () => runPDF("/api/editor/preview", document.getElementById("btnPreview")));
+document.getElementById("btnPreview2").addEventListener("click", () => runPDF("/api/editor/preview", document.getElementById("btnPreview2")));
+document.getElementById("btnGenerate").addEventListener("click", () => runPDF("/api/editor/generate", document.getElementById("btnGenerate")));
+document.getElementById("btnGenerate2").addEventListener("click", () => runPDF("/api/editor/generate", document.getElementById("btnGenerate2")));
+document.getElementById("btnUndo").addEventListener("click", undo);
+document.getElementById("btnRedo").addEventListener("click", redo);
+
+// ── Init ────────────────────────────────────────────────────────────────
+setupCanvas();
+canvas.addEventListener("mousedown", onDown);
+window.addEventListener("mousemove", onMove);
+window.addEventListener("mouseup", onUp);
+snapshot();
+</script>
+</body>
+</html>

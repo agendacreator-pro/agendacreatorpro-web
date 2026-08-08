@@ -3,6 +3,7 @@ import os
 import json
 import secrets
 import base64
+import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'engine'))
 
@@ -901,6 +902,177 @@ def ia_generate():
             buffer = gerar_pdf_blueprint(bp, formato=formato, num_pages=num_pages, base_date=base, font=font)
         nome = f"Agenda_{pt.upper()}_{formato}_{year}.pdf"
         return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nome)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Visual Layout Editor ────────────────────────────────────────────────
+
+LAYOUTS_DIR = os.path.join(os.path.dirname(__file__), 'user_layouts')
+
+
+def _layout_path(layout_id):
+    safe = os.path.basename(str(layout_id or '')) or 'layout'
+    if not safe.endswith('.json'):
+        safe += '.json'
+    return os.path.join(LAYOUTS_DIR, safe)
+
+
+@app.route('/editor')
+@login_required
+def editor_page():
+    return render_template('editor.html')
+
+
+@app.route('/api/editor/layouts', methods=['GET'])
+@login_required
+def editor_list_layouts():
+    try:
+        os.makedirs(LAYOUTS_DIR, exist_ok=True)
+        items = []
+        for f in sorted(os.listdir(LAYOUTS_DIR)):
+            if f.endswith('.json'):
+                try:
+                    with open(os.path.join(LAYOUTS_DIR, f), encoding='utf-8') as fh:
+                        data = json.load(fh)
+                    items.append({
+                        "id": f[:-5],
+                        "name": data.get("name") or f[:-5],
+                        "formato": data.get("formato", "A5"),
+                        "page_type": data.get("page_type", "1dpp"),
+                        "updated": data.get("updated") or "",
+                        "element_count": len(data.get("elements", []) or []),
+                    })
+                except Exception:
+                    continue
+        return jsonify({"layouts": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/editor/layout', methods=['POST'])
+@login_required
+def editor_save_layout():
+    try:
+        data = request.json or {}
+        if not isinstance(data.get('elements'), list):
+            return jsonify({"error": "invalid layout"}), 400
+        layout_id = str(data.get('id') or '').strip()
+        if not layout_id:
+            layout_id = 'layout_%s_%s' % (current_user.id.split('@')[0].replace('.', '_'), secrets.token_hex(3))
+        data['id'] = layout_id
+        data['updated'] = datetime.datetime.utcnow().isoformat() + 'Z'
+        os.makedirs(LAYOUTS_DIR, exist_ok=True)
+        with open(_layout_path(layout_id), 'w', encoding='utf-8') as fh:
+            json.dump(data, fh, ensure_ascii=False, indent=2)
+        return jsonify({"success": True, "id": layout_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/editor/layout/<layout_id>', methods=['GET'])
+@login_required
+def editor_load_layout(layout_id):
+    try:
+        path = _layout_path(layout_id)
+        if not os.path.exists(path):
+            return jsonify({"error": "layout not found"}), 404
+        with open(path, encoding='utf-8') as fh:
+            return jsonify(json.load(fh))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/editor/layout/<layout_id>', methods=['DELETE'])
+@login_required
+def editor_delete_layout(layout_id):
+    try:
+        path = _layout_path(layout_id)
+        if os.path.exists(path):
+            os.remove(path)
+            return jsonify({"success": True})
+        return jsonify({"error": "layout not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+def _editor_params(data, files=None):
+    from reportlab.lib.units import mm as _mm
+    from ai.visual_editor import sanitize_layout
+    from ai.blueprint_generator import PAGE_SIZES as _PS
+    from datetime import date as _date
+    formato = str(data.get('formato') or 'A5').upper()
+    if formato not in _PS:
+        formato = 'A5'
+    pt = str(data.get('page_type') or '1dpp')
+    if pt not in ('1dpp', '2dpp'):
+        pt = '1dpp'
+    year = int(data.get('year', 2026) or 2026)
+    num_days = int(data.get('num_days', 0) or 0)
+    num_days = num_days or (366 if (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)) else 365)
+    nome = str(data.get('nome') or '')
+    font = data.get('font') or None
+    w_mm = _PS[formato][0] / _mm
+    layout = sanitize_layout(data.get('layout') or data, w_mm=w_mm)
+    return layout, formato, pt, year, num_days, nome, font
+
+
+@app.route('/api/editor/preview', methods=['POST'])
+@login_required
+def editor_preview():
+    try:
+        from datetime import date as _date
+        from ai.visual_editor import gerar_preview_editor
+        data = request.json or {}
+        layout, formato, pt, year, num_days, nome, font = _editor_params(data)
+        base = _date(year, 1, 1)
+        buffer = gerar_preview_editor(layout, formato=formato, num_days=num_days,
+                                      base_date=base, nome=nome, font=font, page_type=pt)
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True,
+                         download_name=f"preview_editor_{formato}_{year}.pdf")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/editor/generate', methods=['POST'])
+@login_required
+def editor_generate():
+    try:
+        from datetime import date as _date
+        from ai.visual_editor import gerar_pdf_editor
+        data = request.json or {}
+        layout, formato, pt, year, num_days, nome, font = _editor_params(data)
+        base = _date(year, 1, 1)
+        buffer = gerar_pdf_editor(layout, formato=formato, num_days=num_days,
+                                  base_date=base, nome=nome, font=font, page_type=pt)
+        return send_file(buffer, mimetype='application/pdf', as_attachment=True,
+                         download_name=f"agenda_editor_{formato}_{year}.pdf")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/editor/page', methods=['POST'])
+@login_required
+def editor_page_png():
+    try:
+        from datetime import date as _date
+        from ai.visual_editor import render_page_png
+        data = request.json or {}
+        layout, formato, pt, year, num_days, nome, font = _editor_params(data)
+        page_index = int(data.get('page_index', 0) or 0)
+        dpi = int(data.get('dpi', 72) or 72)
+        base = _date(year, 1, 1)
+        png = render_page_png(layout, formato=formato, num_days=num_days, base_date=base,
+                              page_index=page_index, nome=nome, font=font, page_type=pt, dpi=dpi)
+        if not png:
+            return jsonify({"error": "pymupdf not available"}), 500
+        return jsonify({"image": "data:image/png;base64," + png})
     except Exception as e:
         import traceback
         traceback.print_exc()
