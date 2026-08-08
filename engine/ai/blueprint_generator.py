@@ -904,6 +904,7 @@ def _get_substitutions_for_2dpp(page_index, base_date, lang="pt"):
 # ── Image-layout generator ─────────────────────────────────────────────
 
 IMAGE_OVERLAY_SEMANTICS = {"DAY_NAME", "DAY_NUMBER", "MONTH_NAME", "PAGE_NUMBER"}
+DAY_HEADER_SEMANTICS = {"DAY_NAME", "DAY_NUMBER", "MONTH_NAME"}
 DAILY_PAGE_TYPES = {"1dpp", "2dpp"}
 
 
@@ -924,13 +925,16 @@ def _resolve_daily_templates(templates, page_type):
 def _overlays_for_bp(bp, w_mm, h_mm, style):
     editable = sanitize_blueprint(bp.get("editable_objects", []), w_mm, h_mm)
     overlays = [o for o in editable if o.get("semantic") in IMAGE_OVERLAY_SEMANTICS]
-    if not overlays:
-        overlays = _fallback_date_overlays(bp, w_mm, h_mm, style)
+    if not any(o.get("semantic") in DAY_HEADER_SEMANTICS for o in overlays):
+        have = {o.get("semantic") for o in overlays}
+        for o in _fallback_date_overlays(bp, w_mm, h_mm, style):
+            if o.get("semantic") not in have:
+                overlays.append(o)
     return overlays
 
 
 def _fallback_date_overlays(bp, w_mm, h_mm, style):
-    """Default date objects when the layout has no detected date fields.
+    """Default date objects when the layout has no detected day-header fields.
 
     They sit on an unknown image background, so never render them white:
     recolor so the auto-generated dates stay visible on a light layout.
@@ -951,6 +955,11 @@ def _fallback_date_overlays(bp, w_mm, h_mm, style):
         new_color = fallback_colors.get(o.get("semantic"))
         if new_color:
             o["color"] = new_color
+        if o.get("semantic") == "DAY_NUMBER":
+            # White chip behind the day number keeps it visible even on a
+            # colored header band.
+            o["bg_color"] = "_white_"
+            o["radius"] = max(float(o.get("radius") or 0), 2)
     return overlays
 
 
@@ -1072,8 +1081,11 @@ def gerar_pdf_blueprint(blueprint_dict, formato="A5", num_pages=7, base_date=Non
     editable = sanitize_blueprint(editable, w_mm, h_mm)
     if not editable:
         editable = _build_1dpp_objects(palette, style=style)
-    elif not any(o.get("semantic") in IMAGE_OVERLAY_SEMANTICS for o in editable):
-        editable = list(editable) + _fallback_date_overlays(bp, w_mm, h_mm, style)
+    elif not any(o.get("semantic") in DAY_HEADER_SEMANTICS for o in editable):
+        have = {o.get("semantic") for o in editable}
+        for o in _fallback_date_overlays(bp, w_mm, h_mm, style):
+            if o.get("semantic") not in have:
+                editable.append(o)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(w, h))
